@@ -1,0 +1,8 @@
+prefix=/home/autonav/aim_ws/devel
+
+Name: lattice_planner_morai
+Description: Description of lattice_planner_morai
+Version: 1.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: roscpp geometry_msgs nav_msgs sensor_msgs pcl_conversions pcl_ros
