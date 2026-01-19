@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
 
     // ref.txt 읽기
-    string ref_path = "/root/aim_ws/src/roscpp_morai/config/ref.txt";
+    string ref_path = "/autonav/aim_ws/src/roscpp_morai/config/ref.txt";
     ifstream ref_file(ref_path);
     if (!ref_file.is_open()) {
         ROS_ERROR("Failed to open ref file: %s", ref_path.c_str());
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 
     ros::Subscriber gps_sub = nh.subscribe("/gps", 10, gpsCallback);
 
-    string file_path = "/root/aim_ws/src/roscpp_morai/config/track_log_recorded.csv";
+    string file_path = "/home/autonav/aim_ws/src/roscpp_morai/config/track_log_recorded.csv";
     ofstream out_file(file_path); 
 
     if (!out_file.is_open()) {
