@@ -1,8 +1,0 @@
-prefix=/home/autonav/aim_ws/devel
-
-Name: carvision
-Description: Description of carvision
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: roscpp nav_msgs geometry_msgs sensor_msgs std_msgs morai_msgs tf

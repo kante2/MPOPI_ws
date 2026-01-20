@@ -26,12 +26,17 @@ include_directories(
 add_executable(lattice_test_node
   src/main.cpp
   src/LatticePlanning.cpp
+  src/Util_Coordinates.cpp
+
   # 만약 변환/유틸 구현 cpp가 따로 있으면 여기에 추가!
   # src/transform_utils.cpp
 )
 
 target_link_libraries(lattice_test_node
   ${catkin_LIBRARIES}
+)
+target_include_directories(lattice_test_node PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 # 헤더 의존성 (optional)

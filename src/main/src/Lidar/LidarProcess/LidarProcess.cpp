@@ -1,4 +1,4 @@
-#include <Lidar/LidarProcess/LidarProcess.hpp>
+#include <LidarProcess/LidarProcess.hpp>
 
 // MultiObjectTracker g_tracker;
 
@@ -12,9 +12,11 @@ void LidarProcess(Lidar& st_Lidar, LidarCluster& st_LidarCluster, const std_msgs
     Euclidean(st_Lidar);
     LShapeFitting(st_Lidar);
 
-    st_LidarCluster.header = header;
-    
-    Costmap(st_LidarCluster);
+    for (LidarCluster& cluster : st_Lidar.vec_clusters)
+    {
+        cluster.header = header;
+    }
+    Costmap(st_Lidar, header.stamp);
 
     // =============================================================================
     // kalman

@@ -1,4 +1,4 @@
-#include <Lidar/Costmap/Costmap.hpp>
+#include <Costmap/Costmap.hpp>
 
 CostmapState state;
 CostmapParams params;
@@ -6,45 +6,45 @@ unique_ptr<tf2_ros::Buffer> tfBuffer;
 ros::Publisher pub_costmap;
 string costmap_frame = "base_link";
 
-// 전역 변수 선언부에 리스너 추가
-unique_ptr<tf2_ros::TransformListener> tfListener; // 리스너가 있어야 데이터를 모읍니다.
-
+unique_ptr<tf2_ros::TransformListener> tfListener;
 
 // ========================================
 // 초기화
 // ========================================
 
-void initCostmapModule(ros::NodeHandle &nh) {
-    // 1. Buffer와 Listener 초기화 (reset은 unique_ptr에 메모리를 할당하는 안전한 방법입니다)
+void initCostmapModule(ros::NodeHandle &nh) 
+{
     tfBuffer.reset(new tf2_ros::Buffer());
     tfListener.reset(new tf2_ros::TransformListener(*tfBuffer));
 
-    // 2. 퍼블리셔 초기화
     pub_costmap = nh.advertise<nav_msgs::OccupancyGrid>("/costmap", 1);
     
-    // 3. 파라미터 세팅
-    params.resolution = 0.1;
-    params.width = 30.0;   // 필요에 따라 조절
-    params.height = 30.0;
-    params.obstacle_cost = 100;
-    params.free_cost = 0;
-    params.unknown_cost = -1;
-    params.inflation_radius = 0.2; // 이전에 쓰시던 파라미터도 잊지 말고 넣어주세요
+    // ---- global.hpp에서 파라미터 값 수정 ------
+
+    // params.resolution = 0.1;
+    // params.width = 30.0;   
+    // params.height = 30.0;
+    // params.obstacle_cost = 100;
+    // params.free_cost = 0;
+    // params.unknown_cost = -1;
+    // params.inflation_radius = 1.0;
 }
 
-
 // ========================================
-// 0.헬퍼 함수
+// 0. 헬퍼 함수
 // ========================================
 
-string normalizeFrameId(string frame_id) {
-  while (!frame_id.empty() && frame_id.front() == '/') {
+string normalizeFrameId(string frame_id) 
+{
+  while (!frame_id.empty() && frame_id.front() == '/') 
+  {
     frame_id.erase(frame_id.begin());
   }
   return frame_id;
 }
 
-int clampToRange(int value, int min_val, int max_val) {
+int clampToRange(int value, int min_val, int max_val) 
+{
   return max(min_val, min(value, max_val));
 }
 
@@ -52,44 +52,33 @@ int clampToRange(int value, int min_val, int max_val) {
 // 1. TF 변환 (Lidar link -> base link)
 // ========================================
 
-void transformLidarToBaselink(const LidarCluster& st_LidarCluster) {
-  state.tf_ok = false;
+void transformLidarToBaselink(const LidarCluster& st_LidarCluster) 
+{
+    state.tf_ok = false;
 
     string raw_src = st_LidarCluster.header.frame_id;
     string src = normalizeFrameId(raw_src);
     string tgt = costmap_frame;
 
-  ROS_INFO("TF CHECK -> src: '%s' (raw: '%s'), tgt: '%s'", src.c_str(), raw_src.c_str(), tgt.c_str());
+    ROS_INFO("TF CHECK -> src: '%s' (raw: '%s'), tgt: '%s'", src.c_str(), raw_src.c_str(), tgt.c_str());
 
-    if (src.empty()) {
+    if (src.empty()) 
+    {
         ROS_ERROR("TF ABORT: Source frame is EMPTY! Did you fill the header?");
         return; 
     }
 
-  if (src == tgt) {
-    state.baselink_cloud = st_LidarCluster; //state.baselink_cloud 타입 : LidarCluster
-    state.tf_ok = true;
-    return;
-  }
+    if (src == tgt) 
+    {
+      state.baselink_cloud = st_LidarCluster; //state.baselink_cloud 타입 : LidarCluster
+      state.tf_ok = true;
+      return;
+    }
 
-  // sensormsgs 형이 아니라 LidarCluster 형을 사용하려면 struct 멤버 변수들을 하나씩 변환해주는 걸 구현해야. 
-//   try {
-//     if (!tfBuffer) {
-//       ROS_WARN_THROTTLE(1.0, "tfBuffer is null. Did you call initCostmapModule()?");
-//       state.tf_ok = false;
-//       return;
-//     }
-
-//     geometry_msgs::TransformStamped tf =
-//         tfBuffer->lookupTransform(tgt, src, ros::Time(0), ros::Duration(0.05));
-
-//     tf2::doTransform(st_LidarCluster, state.baselink_cloud, tf);
-//     state.tf_ok = true;
-//   }
     try 
     {
-        if (!tfBuffer) {
-        cout << "CRITICAL: tfBuffer is NULL pointer!" << endl;
+        if (!tfBuffer) 
+        {
         ROS_ERROR("TF ABORT: tfBuffer is NULL! Check initialization.");
         return;
         }
@@ -121,7 +110,8 @@ void transformLidarToBaselink(const LidarCluster& st_LidarCluster) {
 
         // ------------------- 3. OBB 꼭짓점(vec_Corners) 변환 -------------------------
 
-        for (const Point2D& corner : st_LidarCluster.vec_Corners) {
+        for (const Point2D& corner : st_LidarCluster.vec_Corners) 
+        {
             geometry_msgs::Point c_in, c_out;
             
             // lidar_link
@@ -146,7 +136,7 @@ void transformLidarToBaselink(const LidarCluster& st_LidarCluster) {
         // 기존 theta에 좌표계 회전량을 더함
         float transformed_theta = st_LidarCluster.theta + static_cast<float>(tf_yaw);
 
-        // 각도 범위를 -PI ~ PI 사이로 정규화 (필요한 경우)
+        // 각도 범위를 -PI ~ PI 사이로 정규화 
         while (transformed_theta > M_PI) transformed_theta -= 2.0 * M_PI;
         while (transformed_theta < -M_PI) transformed_theta += 2.0 * M_PI;
 
@@ -167,7 +157,8 @@ void transformLidarToBaselink(const LidarCluster& st_LidarCluster) {
 // 2. Costmap 초기화
 // ========================================
 
-void initializeCostmap(const ros::Time &stamp) {
+void initializeCostmap(const ros::Time &stamp) 
+{
   state.costmap.header.frame_id = costmap_frame;
   state.costmap.header.stamp = stamp;
 
@@ -194,9 +185,12 @@ void initializeCostmap(const ros::Time &stamp) {
   const size_t total = static_cast<size_t>(w) * h;
   
   // 데이터 크기가 이미 맞다면 fill, 아니면 assign
-  if (state.costmap.data.size() != total) {
+  if (state.costmap.data.size() != total) 
+  {
       state.costmap.data.assign(total, params.unknown_cost);
-  } else {
+  } 
+  else 
+  {
       fill(state.costmap.data.begin(), state.costmap.data.end(), params.unknown_cost);
   }
 }
@@ -206,16 +200,20 @@ void initializeCostmap(const ros::Time &stamp) {
 // 3. 원점(차량 바로 아래) 주변 장애물 삭제
 // ========================================
 
-void clearOriginArea() {
+void clearOriginArea() 
+{
   int ox, oy;
   if (!convertBaselinkToGrid(state.costmap, 0.0f, 0.0f, ox, oy)) return;
 
   const int radius = 3; // 차량이 더 크거나 노이즈가 넓게 찍힌다면  숫자 더 크게
 
-  for (int y = oy - radius; y <= oy + radius; ++y) {
-    for (int x = ox - radius; x <= ox + radius; ++x) {
+  for (int y = oy - radius; y <= oy + radius; ++y) 
+  {
+    for (int x = ox - radius; x <= ox + radius; ++x) 
+    {
       int idx = convertGridToIndex(state.costmap, x, y);
-      if (idx >= 0 && idx < (int)state.costmap.data.size()) {
+      if (idx >= 0 && idx < (int)state.costmap.data.size()) 
+      {
         state.costmap.data[idx] = params.free_cost;
       }
     }
@@ -223,36 +221,24 @@ void clearOriginArea() {
 }
 
 
-// // ========================================
-// // 4.. 3D AABB → 2D AABB (위에서 내려다본 투영)
-// // ========================================
-
-// void projectAABB3DTo2D(const Eigen::Vector3f &min_3d,
-//                        const Eigen::Vector3f &max_3d,
-//                        float &min_2d_x, float &min_2d_y,
-//                        float &max_2d_x, float &max_2d_y) {
-//   min_2d_x = min_3d.x();
-//   min_2d_y = min_3d.y();
-//   max_2d_x = max_3d.x();
-//   max_2d_y = max_3d.y();
-// }
-
 // ========================================
 // 4-1. 2D 점이 다각형 내부에 있는지 판별 (Cross Product 활용)
 // ========================================
 
-bool isPointInPolygon(int x, int y, const vector<pair<int, int>>& polygon) {
+bool isPointInPolygon(int x, int y, const vector<pair<int, int>>& polygon) 
+{
     int n = polygon.size();
     bool inside = false;
-    for (int i = 0, j = n - 1; i < n; j = i++) {
+    for (int i = 0, j = n - 1; i < n; j = i++) 
+    {
         if (((polygon[i].second > y) != (polygon[j].second > y)) &&
             (x < (polygon[j].first - polygon[i].first) * (y - polygon[i].second) / 
-            (polygon[j].second - polygon[i].second) + polygon[i].first)) {
+            (polygon[j].second - polygon[i].second) + polygon[i].first)) 
+        {
             inside = !inside;
         }
     }
     return inside;
-    cout << "is Point in polygon" << endl;
 }
 
 // ========================================
@@ -266,7 +252,7 @@ void fillLShapePolygon(nav_msgs::OccupancyGrid &costmap,
 { 
     if (corners.empty()) return;
 
-    // 1. AABB 계산 (Inflation 반영)
+    // 1-1. AABB 계산 (Inflation 반영) -> 여기서 AABB 는 range
     double min_x = numeric_limits<double>::max();
     double min_y = numeric_limits<double>::max();
     double max_x = numeric_limits<double>::lowest(); 
@@ -280,7 +266,7 @@ void fillLShapePolygon(nav_msgs::OccupancyGrid &costmap,
         max_y = max(max_y, (double)c.y);
     }
 
-    // 그리드 범위 계산 : base_link 좌표(미터) → costmap 그리드 좌표(셀)
+    // 1-2. AABB 범위 변환 : base_link 좌표(미터) → costmap 그리드 좌표(셀)
     int gx0, gy0, gx1, gy1;
     convertBaselinkToGrid(costmap, min_x - inflation, min_y - inflation, gx0, gy0);
     convertBaselinkToGrid(costmap, max_x + inflation, max_y + inflation, gx1, gy1);
@@ -291,7 +277,7 @@ void fillLShapePolygon(nav_msgs::OccupancyGrid &costmap,
     gx1 = min((int)costmap.info.width - 1, gx1);
     gy1 = min((int)costmap.info.height - 1, gy1);
 
-    // 2. 그리드 좌표로 변환된 꼭짓점들 (isPointInPolygon용)
+    // 2-1. OBB 꼭짓점 변환 : base_link 좌표(미터) -> costmap 그리드 좌표(셀)
     vector<pair<int, int>> grid_corners;
     for (const Point2D& c : corners) 
     {
@@ -300,14 +286,13 @@ void fillLShapePolygon(nav_msgs::OccupancyGrid &costmap,
         grid_corners.push_back({gx, gy});
     }
 
-    // 3. 채우기
-
-    // OBB의 꼭짓점들을 그리드 좌표로까지는 변환했는데, 왜 그리드 위에 OBB가 안 그려질까.
-    // OBB 위치 자체는 costmap 과 같은 좌표계로 변환됐는데? 아 당연히 costmap은 차량 중심을 원점으로 해서 그려지고, OBB는 아 shit 당연히 좌표계만 맞추면 안 그려지잖아 미친
+    // 3. AABB 범위 내에서 OBB 만 색칠
     for (int y = gy0; y <= gy1; ++y) 
     {
-        for (int x = gx0; x <= gx1; ++x) {
-            if (isPointInPolygon(x, y, grid_corners)) {
+        for (int x = gx0; x <= gx1; ++x) 
+        {
+            if (isPointInPolygon(x, y, grid_corners)) 
+            {
                 int idx = convertGridToIndex(costmap, x, y);
                 fillCostAtIndex(costmap, idx, cost_value);
             }
@@ -315,13 +300,15 @@ void fillLShapePolygon(nav_msgs::OccupancyGrid &costmap,
     }
 }
 
+
 // ========================================
 // 5. base_link 좌표(미터) → costmap 그리드 좌표(셀) // 한점을 변환 그래서 7번안 함수에서 호출됨
 // ========================================
 
 bool convertBaselinkToGrid(const nav_msgs::OccupancyGrid &costmap,
                            float baselink_x, float baselink_y,
-                           int &grid_x, int &grid_y) {
+                           int &grid_x, int &grid_y) 
+{
   grid_x = (int)floor((baselink_x - costmap.info.origin.position.x) / costmap.info.resolution);
   grid_y = (int)floor((baselink_y - costmap.info.origin.position.y) / costmap.info.resolution);
 
@@ -330,61 +317,28 @@ bool convertBaselinkToGrid(const nav_msgs::OccupancyGrid &costmap,
   return true;
 }
 
+
 // ========================================
 // 6. 2D grid 좌표 → 1D 배열 인덱스
 // ========================================
 
 int convertGridToIndex(const nav_msgs::OccupancyGrid &costmap,
-                       int grid_x, int grid_y) {
+                       int grid_x, int grid_y) 
+{
   if (grid_x < 0 || grid_x >= (int)costmap.info.width) return -1;
   if (grid_y < 0 || grid_y >= (int)costmap.info.height) return -1;
   return grid_y * (int)costmap.info.width + grid_x;
 }
 
-// ========================================
-// 7.2D AABB(미터) → costmap grid 영역
-// ========================================
-
-void projectAABBToGrid(const nav_msgs::OccupancyGrid &costmap,
-                       float min_x, float min_y,
-                       float max_x, float max_y,
-                       int &grid_x0, int &grid_y0,
-                       int &grid_x1, int &grid_y1,
-                       float inflation_radius) {
-  if (min_x > max_x) swap(min_x, max_x);
-  if (min_y > max_y) swap(min_y, max_y);
-
-  min_x -= inflation_radius;
-  min_y -= inflation_radius;
-  max_x += inflation_radius;
-  max_y += inflation_radius;
-
-  if (!convertBaselinkToGrid(costmap, min_x, min_y, grid_x0, grid_y0)) {
-    grid_x0 = (int)floor((min_x - costmap.info.origin.position.x) / costmap.info.resolution);
-    grid_y0 = (int)floor((min_y - costmap.info.origin.position.y) / costmap.info.resolution);
-  }
-
-  if (!convertBaselinkToGrid(costmap, max_x, max_y, grid_x1, grid_y1)) {
-    grid_x1 = (int)floor((max_x - costmap.info.origin.position.x) / costmap.info.resolution);
-    grid_y1 = (int)floor((max_y - costmap.info.origin.position.y) / costmap.info.resolution);
-  }
-
-  if (grid_x0 > grid_x1) swap(grid_x0, grid_x1);
-  if (grid_y0 > grid_y1) swap(grid_y0, grid_y1);
-
-  grid_x0 = clampToRange(grid_x0, 0, (int)costmap.info.width - 1);
-  grid_x1 = clampToRange(grid_x1, 0, (int)costmap.info.width - 1);
-  grid_y0 = clampToRange(grid_y0, 0, (int)costmap.info.height - 1);
-  grid_y1 = clampToRange(grid_y1, 0, (int)costmap.info.height - 1);
-}
 
 // ========================================
-// 8. costmap 셀 하나에 장애물 cost 기록
+// 7. costmap 셀 하나에 장애물 cost 기록
 // ========================================
 
 void fillCostAtIndex(nav_msgs::OccupancyGrid &costmap,
                      int idx,
-                     int8_t cost_value) {
+                     int8_t cost_value) 
+{
   if (idx < 0 || idx >= (int)costmap.data.size()) return;
   costmap.data[idx] = max(costmap.data[idx], cost_value);
 }
@@ -393,30 +347,27 @@ void fillCostAtIndex(nav_msgs::OccupancyGrid &costmap,
 // ========================================
 // final. costmap process 실행
 // ========================================
- 
-// 지금 /costmap 토픽 발행이 안 되고 있다
 
-void Costmap(const LidarCluster& st_LidarCluster) {
-    // 1. 좌표 변환 (라이다 -> 베이스링크)
-    transformLidarToBaselink(st_LidarCluster);   
-    cout << "transform success" << endl;
-
-    if (!state.tf_ok) {
-        cout << "tf 변환 실패" << endl;
-        return;
-    }
-
-    // 2. 초기화 
-    initializeCostmap(st_LidarCluster.header.stamp); 
+void Costmap(const Lidar& st_Lidar, const ros::Time& stamp) 
+{
+    initializeCostmap(stamp); 
     clearOriginArea();  
 
-    // 3. 중복 로직을 함수 하나로 대체
-    if (!state.baselink_cloud.vec_Corners.empty()) {
+    for (const LidarCluster& cluster : st_Lidar.vec_clusters)
+    {
+      transformLidarToBaselink(cluster);   
+      if (!state.tf_ok)
+      {
+        continue;
+      }
+
+      if (!state.baselink_cloud.vec_Corners.empty()) 
+      {
         fillLShapePolygon(state.costmap, 
                           state.baselink_cloud.vec_Corners, 
                           params.obstacle_cost, 
                           params.inflation_radius);
+      }
     }
-
     pub_costmap.publish(state.costmap);
 }

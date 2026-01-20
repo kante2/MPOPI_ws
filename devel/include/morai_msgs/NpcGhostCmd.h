@@ -130,12 +130,12 @@ struct MD5Sum< ::morai_msgs::NpcGhostCmd_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "c6e7b2bf7b39139412f4267889c871c6";
+    return "f46c55a2e9ac85bf40936cf393bdb14d";
   }
 
   static const char* value(const ::morai_msgs::NpcGhostCmd_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0xc6e7b2bf7b391394ULL;
-  static const uint64_t static_value2 = 0x12f4267889c871c6ULL;
+  static const uint64_t static_value1 = 0xf46c55a2e9ac85bfULL;
+  static const uint64_t static_value2 = 0x40936cf393bdb14dULL;
 };
 
 template<class ContainerAllocator>
@@ -181,11 +181,6 @@ struct Definition< ::morai_msgs::NpcGhostCmd_<ContainerAllocator> >
 "\n"
 "geometry_msgs/Vector3 position\n"
 "geometry_msgs/Vector3 rpy\n"
-"\n"
-"float32 steering_angle      # 조향 각도 ( degree )\n"
-"float32 vehicle_speed       # 차량 속력 (km/h)\n"
-"uint8 turn_signal           # 방향지시등 0: off, 1: left, 2: right, 3: hazard\n"
-"bool brake_light            # 브레이크등 (켜짐/꺼짐)\n"
 "\n"
 "================================================================================\n"
 "MSG: geometry_msgs/Vector3\n"

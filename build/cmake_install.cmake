@@ -146,12 +146,9 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/autonav/aim_ws/build/gtest/cmake_install.cmake")
-  include("/home/autonav/aim_ws/build/racecar/racecar/cmake_install.cmake")
   include("/home/autonav/aim_ws/build/MORAI-ROS_morai_msgs/cmake_install.cmake")
-  include("/home/autonav/aim_ws/build/roscpp_morai/cmake_install.cmake")
-  include("/home/autonav/aim_ws/build/racecar/ackermann_cmd_mux/cmake_install.cmake")
-  include("/home/autonav/aim_ws/build/carvision/cmake_install.cmake")
-  include("/home/autonav/aim_ws/build/lattice_planner_morai/cmake_install.cmake")
+  include("/home/autonav/aim_ws/build/main/src/PlanningControl/cmake_install.cmake")
+  include("/home/autonav/aim_ws/build/main/src/Lidar/cmake_install.cmake")
 
 endif()
 

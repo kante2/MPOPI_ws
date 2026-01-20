@@ -9,7 +9,7 @@ import struct
 import geometry_msgs.msg
 
 class NpcGhostInfo(genpy.Message):
-  _md5sum = "5d6fbe2aa28a8ec30f515b3c0325abac"
+  _md5sum = "3290c3d676866a67769dc5339863ab69"
   _type = "morai_msgs/NpcGhostInfo"
   _has_header = False  # flag to mark the presence of a Header object
   _full_text = """int32 unique_id
@@ -17,11 +17,6 @@ string name
 
 geometry_msgs/Vector3 position
 geometry_msgs/Vector3 rpy
-
-float32 steering_angle      # 조향 각도 ( degree )
-float32 vehicle_speed       # 차량 속력 (km/h)
-uint8 turn_signal           # 방향지시등 0: off, 1: left, 2: right, 3: hazard
-bool brake_light            # 브레이크등 (켜짐/꺼짐)
 
 ================================================================================
 MSG: geometry_msgs/Vector3
@@ -35,8 +30,8 @@ MSG: geometry_msgs/Vector3
 float64 x
 float64 y
 float64 z"""
-  __slots__ = ['unique_id','name','position','rpy','steering_angle','vehicle_speed','turn_signal','brake_light']
-  _slot_types = ['int32','string','geometry_msgs/Vector3','geometry_msgs/Vector3','float32','float32','uint8','bool']
+  __slots__ = ['unique_id','name','position','rpy']
+  _slot_types = ['int32','string','geometry_msgs/Vector3','geometry_msgs/Vector3']
 
   def __init__(self, *args, **kwds):
     """
@@ -46,7 +41,7 @@ float64 z"""
     changes.  You cannot mix in-order arguments and keyword arguments.
 
     The available fields are:
-       unique_id,name,position,rpy,steering_angle,vehicle_speed,turn_signal,brake_light
+       unique_id,name,position,rpy
 
     :param args: complete set of field values, in .msg order
     :param kwds: use keyword arguments corresponding to message field names
@@ -63,23 +58,11 @@ float64 z"""
         self.position = geometry_msgs.msg.Vector3()
       if self.rpy is None:
         self.rpy = geometry_msgs.msg.Vector3()
-      if self.steering_angle is None:
-        self.steering_angle = 0.
-      if self.vehicle_speed is None:
-        self.vehicle_speed = 0.
-      if self.turn_signal is None:
-        self.turn_signal = 0
-      if self.brake_light is None:
-        self.brake_light = False
     else:
       self.unique_id = 0
       self.name = ''
       self.position = geometry_msgs.msg.Vector3()
       self.rpy = geometry_msgs.msg.Vector3()
-      self.steering_angle = 0.
-      self.vehicle_speed = 0.
-      self.turn_signal = 0
-      self.brake_light = False
 
   def _get_types(self):
     """
@@ -102,7 +85,7 @@ float64 z"""
         length = len(_x)
       buff.write(struct.Struct('<I%ss'%length).pack(length, _x))
       _x = self
-      buff.write(_get_struct_6d2f2B().pack(_x.position.x, _x.position.y, _x.position.z, _x.rpy.x, _x.rpy.y, _x.rpy.z, _x.steering_angle, _x.vehicle_speed, _x.turn_signal, _x.brake_light))
+      buff.write(_get_struct_6d().pack(_x.position.x, _x.position.y, _x.position.z, _x.rpy.x, _x.rpy.y, _x.rpy.z))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -133,9 +116,8 @@ float64 z"""
         self.name = str[start:end]
       _x = self
       start = end
-      end += 58
-      (_x.position.x, _x.position.y, _x.position.z, _x.rpy.x, _x.rpy.y, _x.rpy.z, _x.steering_angle, _x.vehicle_speed, _x.turn_signal, _x.brake_light,) = _get_struct_6d2f2B().unpack(str[start:end])
-      self.brake_light = bool(self.brake_light)
+      end += 48
+      (_x.position.x, _x.position.y, _x.position.z, _x.rpy.x, _x.rpy.y, _x.rpy.z,) = _get_struct_6d().unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e)  # most likely buffer underfill
@@ -157,7 +139,7 @@ float64 z"""
         length = len(_x)
       buff.write(struct.Struct('<I%ss'%length).pack(length, _x))
       _x = self
-      buff.write(_get_struct_6d2f2B().pack(_x.position.x, _x.position.y, _x.position.z, _x.rpy.x, _x.rpy.y, _x.rpy.z, _x.steering_angle, _x.vehicle_speed, _x.turn_signal, _x.brake_light))
+      buff.write(_get_struct_6d().pack(_x.position.x, _x.position.y, _x.position.z, _x.rpy.x, _x.rpy.y, _x.rpy.z))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -189,9 +171,8 @@ float64 z"""
         self.name = str[start:end]
       _x = self
       start = end
-      end += 58
-      (_x.position.x, _x.position.y, _x.position.z, _x.rpy.x, _x.rpy.y, _x.rpy.z, _x.steering_angle, _x.vehicle_speed, _x.turn_signal, _x.brake_light,) = _get_struct_6d2f2B().unpack(str[start:end])
-      self.brake_light = bool(self.brake_light)
+      end += 48
+      (_x.position.x, _x.position.y, _x.position.z, _x.rpy.x, _x.rpy.y, _x.rpy.z,) = _get_struct_6d().unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e)  # most likely buffer underfill
@@ -200,12 +181,12 @@ _struct_I = genpy.struct_I
 def _get_struct_I():
     global _struct_I
     return _struct_I
-_struct_6d2f2B = None
-def _get_struct_6d2f2B():
-    global _struct_6d2f2B
-    if _struct_6d2f2B is None:
-        _struct_6d2f2B = struct.Struct("<6d2f2B")
-    return _struct_6d2f2B
+_struct_6d = None
+def _get_struct_6d():
+    global _struct_6d
+    if _struct_6d is None:
+        _struct_6d = struct.Struct("<6d")
+    return _struct_6d
 _struct_i = None
 def _get_struct_i():
     global _struct_i

@@ -1,2 +1,2 @@
-MORAI-ROS_morai_msgs:carvision:lattice_planner_morai:racecar/ackermann_cmd_mux:racecar/racecar:roscpp_morai
+MORAI-ROS_morai_msgs:main/src/Lidar:main/src/PlanningControl
 -DCATKIN_DEVEL_PREFIX=/home/autonav/aim_ws/devel -DCMAKE_INSTALL_PREFIX=/home/autonav/aim_ws/install -G Unix Makefiles

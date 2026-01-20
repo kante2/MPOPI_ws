@@ -1,4 +1,4 @@
-#include <Lidar/Euclidean/Euclidean.hpp>
+#include <Euclidean/Euclidean.hpp>
 #include <Visualizer/Visualizer.hpp>
 
 void Euclidean (Lidar &st_Lidar) 

@@ -215,8 +215,8 @@ void PublishOBBLineStrip (const ros::Publisher &pub_bounding_box,
             geometry_msgs::Point p;
             p.x = cluster.vec_Corners[j].x;
             p.y = cluster.vec_Corners[j].y;
-            // p.z = cluster.min_z; 
-            p.z = 1.5; 
+            p.z = cluster.min_z; 
+            // p.z = 1.5; 
 
             m.points.push_back(p);
         }

@@ -2,12 +2,12 @@
 #define LIDARPROCESS_HPP
 
 #include <Global/Global.hpp>
-#include <Lidar/RoiVoxel/RoiVoxel.hpp>
-#include <Lidar/Ransac/Ransac.hpp>
-#include <Lidar/Euclidean/Euclidean.hpp>
-#include <Lidar/Lshapefitting/Lshapefitting.hpp>
-#include <Lidar/Costmap/Costmap.hpp>
-#include <Lidar/Kalman/Kalman.hpp>
+#include <RoiVoxel/RoiVoxel.hpp>
+#include <Ransac/Ransac.hpp>
+#include <Euclidean/Euclidean.hpp>
+#include <Lshapefitting/Lshapefitting.hpp>
+#include <Costmap/Costmap.hpp>
+#include <Kalman/Kalman.hpp>
 
 // extern MultiObjectTracker g_tracker;
 

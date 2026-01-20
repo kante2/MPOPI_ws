@@ -29,21 +29,13 @@ struct NpcGhostInfo_
     : unique_id(0)
     , name()
     , position()
-    , rpy()
-    , steering_angle(0.0)
-    , vehicle_speed(0.0)
-    , turn_signal(0)
-    , brake_light(false)  {
+    , rpy()  {
     }
   NpcGhostInfo_(const ContainerAllocator& _alloc)
     : unique_id(0)
     , name(_alloc)
     , position(_alloc)
-    , rpy(_alloc)
-    , steering_angle(0.0)
-    , vehicle_speed(0.0)
-    , turn_signal(0)
-    , brake_light(false)  {
+    , rpy(_alloc)  {
   (void)_alloc;
     }
 
@@ -60,18 +52,6 @@ struct NpcGhostInfo_
 
    typedef  ::geometry_msgs::Vector3_<ContainerAllocator>  _rpy_type;
   _rpy_type rpy;
-
-   typedef float _steering_angle_type;
-  _steering_angle_type steering_angle;
-
-   typedef float _vehicle_speed_type;
-  _vehicle_speed_type vehicle_speed;
-
-   typedef uint8_t _turn_signal_type;
-  _turn_signal_type turn_signal;
-
-   typedef uint8_t _brake_light_type;
-  _brake_light_type brake_light;
 
 
 
@@ -105,11 +85,7 @@ bool operator==(const ::morai_msgs::NpcGhostInfo_<ContainerAllocator1> & lhs, co
   return lhs.unique_id == rhs.unique_id &&
     lhs.name == rhs.name &&
     lhs.position == rhs.position &&
-    lhs.rpy == rhs.rpy &&
-    lhs.steering_angle == rhs.steering_angle &&
-    lhs.vehicle_speed == rhs.vehicle_speed &&
-    lhs.turn_signal == rhs.turn_signal &&
-    lhs.brake_light == rhs.brake_light;
+    lhs.rpy == rhs.rpy;
 }
 
 template<typename ContainerAllocator1, typename ContainerAllocator2>
@@ -166,12 +142,12 @@ struct MD5Sum< ::morai_msgs::NpcGhostInfo_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "5d6fbe2aa28a8ec30f515b3c0325abac";
+    return "3290c3d676866a67769dc5339863ab69";
   }
 
   static const char* value(const ::morai_msgs::NpcGhostInfo_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0x5d6fbe2aa28a8ec3ULL;
-  static const uint64_t static_value2 = 0x0f515b3c0325abacULL;
+  static const uint64_t static_value1 = 0x3290c3d676866a67ULL;
+  static const uint64_t static_value2 = 0x769dc5339863ab69ULL;
 };
 
 template<class ContainerAllocator>
@@ -195,11 +171,6 @@ struct Definition< ::morai_msgs::NpcGhostInfo_<ContainerAllocator> >
 "\n"
 "geometry_msgs/Vector3 position\n"
 "geometry_msgs/Vector3 rpy\n"
-"\n"
-"float32 steering_angle      # 조향 각도 ( degree )\n"
-"float32 vehicle_speed       # 차량 속력 (km/h)\n"
-"uint8 turn_signal           # 방향지시등 0: off, 1: left, 2: right, 3: hazard\n"
-"bool brake_light            # 브레이크등 (켜짐/꺼짐)\n"
 "\n"
 "================================================================================\n"
 "MSG: geometry_msgs/Vector3\n"
@@ -235,10 +206,6 @@ namespace serialization
       stream.next(m.name);
       stream.next(m.position);
       stream.next(m.rpy);
-      stream.next(m.steering_angle);
-      stream.next(m.vehicle_speed);
-      stream.next(m.turn_signal);
-      stream.next(m.brake_light);
     }
 
     ROS_DECLARE_ALLINONE_SERIALIZER
@@ -273,22 +240,6 @@ struct Printer< ::morai_msgs::NpcGhostInfo_<ContainerAllocator> >
       s << std::endl;
     s << indent << "rpy: ";
     Printer< ::geometry_msgs::Vector3_<ContainerAllocator> >::stream(s, indent + "  ", v.rpy);
-    if (true || !indent.empty())
-      s << std::endl;
-    s << indent << "steering_angle: ";
-    Printer<float>::stream(s, indent + "  ", v.steering_angle);
-    if (true || !indent.empty())
-      s << std::endl;
-    s << indent << "vehicle_speed: ";
-    Printer<float>::stream(s, indent + "  ", v.vehicle_speed);
-    if (true || !indent.empty())
-      s << std::endl;
-    s << indent << "turn_signal: ";
-    Printer<uint8_t>::stream(s, indent + "  ", v.turn_signal);
-    if (true || !indent.empty())
-      s << std::endl;
-    s << indent << "brake_light: ";
-    Printer<uint8_t>::stream(s, indent + "  ", v.brake_light);
   }
 };
 

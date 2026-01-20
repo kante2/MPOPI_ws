@@ -11,7 +11,7 @@ import morai_msgs.msg
 import std_msgs.msg
 
 class NpcGhostCmd(genpy.Message):
-  _md5sum = "c6e7b2bf7b39139412f4267889c871c6"
+  _md5sum = "f46c55a2e9ac85bf40936cf393bdb14d"
   _type = "morai_msgs/NpcGhostCmd"
   _has_header = True  # flag to mark the presence of a Header object
   _full_text = """Header header
@@ -41,11 +41,6 @@ string name
 
 geometry_msgs/Vector3 position
 geometry_msgs/Vector3 rpy
-
-float32 steering_angle      # 조향 각도 ( degree )
-float32 vehicle_speed       # 차량 속력 (km/h)
-uint8 turn_signal           # 방향지시등 0: off, 1: left, 2: right, 3: hazard
-bool brake_light            # 브레이크등 (켜짐/꺼짐)
 
 ================================================================================
 MSG: geometry_msgs/Vector3
@@ -124,8 +119,6 @@ float64 z"""
         _v2 = val1.rpy
         _x = _v2
         buff.write(_get_struct_3d().pack(_x.x, _x.y, _x.z))
-        _x = val1
-        buff.write(_get_struct_2f2B().pack(_x.steering_angle, _x.vehicle_speed, _x.turn_signal, _x.brake_light))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -183,11 +176,6 @@ float64 z"""
         start = end
         end += 24
         (_x.x, _x.y, _x.z,) = _get_struct_3d().unpack(str[start:end])
-        _x = val1
-        start = end
-        end += 10
-        (_x.steering_angle, _x.vehicle_speed, _x.turn_signal, _x.brake_light,) = _get_struct_2f2B().unpack(str[start:end])
-        val1.brake_light = bool(val1.brake_light)
         self.npc_list.append(val1)
       return self
     except struct.error as e:
@@ -226,8 +214,6 @@ float64 z"""
         _v6 = val1.rpy
         _x = _v6
         buff.write(_get_struct_3d().pack(_x.x, _x.y, _x.z))
-        _x = val1
-        buff.write(_get_struct_2f2B().pack(_x.steering_angle, _x.vehicle_speed, _x.turn_signal, _x.brake_light))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -286,11 +272,6 @@ float64 z"""
         start = end
         end += 24
         (_x.x, _x.y, _x.z,) = _get_struct_3d().unpack(str[start:end])
-        _x = val1
-        start = end
-        end += 10
-        (_x.steering_angle, _x.vehicle_speed, _x.turn_signal, _x.brake_light,) = _get_struct_2f2B().unpack(str[start:end])
-        val1.brake_light = bool(val1.brake_light)
         self.npc_list.append(val1)
       return self
     except struct.error as e:
@@ -300,12 +281,6 @@ _struct_I = genpy.struct_I
 def _get_struct_I():
     global _struct_I
     return _struct_I
-_struct_2f2B = None
-def _get_struct_2f2B():
-    global _struct_2f2B
-    if _struct_2f2B is None:
-        _struct_2f2B = struct.Struct("<2f2B")
-    return _struct_2f2B
 _struct_3I = None
 def _get_struct_3I():
     global _struct_3I

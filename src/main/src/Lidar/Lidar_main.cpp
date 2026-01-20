@@ -1,7 +1,7 @@
 #include <Global/Global.hpp>
-#include <Lidar/LidarProcess/LidarProcess.hpp>
+#include <LidarProcess/LidarProcess.hpp>
 #include <Visualizer/Visualizer.hpp>
-#include <Lidar/Costmap/Costmap.hpp>
+#include <Costmap/Costmap.hpp>
 
 Lidar st_Lidar;
 LidarCluster st_LidarCluster;
@@ -16,14 +16,10 @@ ros::Publisher pub_bounding_box;
 ros::Publisher pub_OBB_bounding_box;
 // ros::Publisher pub_kalman;
 
-// ros::Publisher pub_costmap;
-
 ros::Subscriber sub;
 
 void LidarCallback (const sensor_msgs::PointCloud2ConstPtr& msg)
 {
-    // LidarCluster st_LidarCluster;
-
     pcl::fromROSMsg (*msg, *st_Lidar.pcl_input_cloud);
 
     LidarProcess(st_Lidar, st_LidarCluster, msg -> header);
@@ -45,7 +41,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "LidarNode");
     ros::NodeHandle nh;
 
-    initCostmapModule(nh); // 여기서 딱 한 번 초기화!
+    initCostmapModule(nh); 
 
     ros::Rate loop_rate(10);
 
@@ -59,8 +55,6 @@ int main(int argc, char** argv)
     pub_OBB_bounding_box = nh.advertise<visualization_msgs::MarkerArray>("/obb", 1);
     pub_costmap = nh.advertise<nav_msgs::OccupancyGrid>("/costmap", 1);
 
-
-    cout << "kalman" << endl;
     // pub_kalman = nh.advertise<visualization_msgs::MarkerArray>("/kalman", 1);
 
     sub = nh.subscribe("/lidar3D", 1, LidarCallback);
