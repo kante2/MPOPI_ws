@@ -1,5 +1,8 @@
-#include "coordinate.hpp"
+#include "global.hpp"
 #include <cmath>
+#include <algorithm>
+
+using namespace std;
 
 // ========================================
 // GPS 변환
@@ -96,4 +99,42 @@ void baselinkYawToGlobal(double yaw_baselink,
                         const VehicleState& ego,
                         double& out_yaw_global) {
     out_yaw_global = normalizeAngle(ego.yaw + yaw_baselink);
+}
+
+// ========================================
+// 거리 계산
+// ========================================
+
+double distance2D(double x1, double y1, double x2, double y2) {
+    double dx = x2 - x1;
+    double dy = y2 - y1;
+    return sqrt(dx*dx + dy*dy);
+}
+
+double distance2D(const Point2D& p1, const Point2D& p2) {
+    return distance2D(p1.x, p1.y, p2.x, p2.y);
+}
+
+// ========================================
+// 각도 변환
+// ========================================
+
+double deg2rad(double deg) {
+    return deg * M_PI / 180.0;
+}
+
+double rad2deg(double rad) {
+    return rad * 180.0 / M_PI;
+}
+
+// ========================================
+// Clamp
+// ========================================
+
+double clamp(double value, double min_val, double max_val) {
+    return std::max(min_val, std::min(max_val, value));
+}
+
+int clamp(int value, int min_val, int max_val) {
+    return std::max(min_val, std::min(max_val, value));
 }
