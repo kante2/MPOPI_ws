@@ -239,7 +239,7 @@ void latticeTestLoop(const ros::TimerEvent&) {
 }
 
 // ========================================
-// Main
+// Main.
 // ========================================
 
 int main(int argc, char** argv) {
