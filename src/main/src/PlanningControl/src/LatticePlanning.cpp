@@ -154,28 +154,25 @@ void computeAllPolynomialPaths(LatticeControl& lattice_ctrl) {
     for (const auto& bl_goal : lattice_ctrl.baselink_goals) {
         PolynomialCoefficients coeff = {0,0,0,0,0,0}; // 0으로 초기화
 
-        // --- 변수 가져오기 ---
+            ]
         double X = bl_goal.point.x;
         double Y = bl_goal.point.y;
-        double target_yaw = bl_goal.yaw; // (중요) normalizeAngle(Goal - Ego)된 값
+        double target_yaw = bl_goal.yaw; // normalizeAngle(Goal - Ego)된 값
 
-        // =========================================================
-        // [안전장치 1] 거리(X)가 너무 작으면 행렬 폭발 -> 스킵
-        // =========================================================
+
+        // 거리(X)가 너무 작으면 행렬 폭발 -> 스킵
         if (std::fabs(X) < 0.1) {
             // 너무 가까우면 경로 생성 안 함 (직전 경로 유지하거나 정지)
             lattice_ctrl.coefficients.push_back(coeff);
             continue; 
         }
 
-        // =========================================================
-        // [안전장치 2] 각도(yaw)가 90도면 tan() 폭발 -> 클램핑
-        // =========================================================
+        // 각도(yaw)가 90도면 tan() 폭발 -> 클램핑
         double limit = 85.0 * M_PI / 180.0; // 85도 제한
         if (target_yaw > limit) target_yaw = limit;
         if (target_yaw < -limit) target_yaw = -limit;
 
-        // --- 이제 안전하게 계산 ---
+        //안전하게 계산
         double yaw_prime = std::tan(target_yaw);
         
         // 5차 다항식 행렬 풀이 (start: x=0, y=0, yaw=0 가정)
@@ -221,7 +218,8 @@ void sampleAllCandidatePaths(LatticeControl& lattice_ctrl) {
         
         if (X < 0.1) {
             // 0.1m 보다 작으면 계산할 가치가 없음 -> 그냥 빈 경로 처리
-            lattice_ctrl.coefficients.push_back({0,0,0,0,0,0}); 
+            candidate.points.clear(); // 빈 경로
+            lattice_ctrl.candidates.push_back(candidate);
             continue;
         }
 
@@ -292,7 +290,9 @@ int getCostmapCost(double world_x, double world_y)
     return cost;
 }
 
-
+// ========================================
+// 경로 평가 (costmap query는 map 좌표로 변환 후)
+// ========================================
 void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
     for (auto& path : lattice_ctrl.candidates) {
         path.obstacle_cost = 0.0;
@@ -304,15 +304,16 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
         int valid_point_count = 0;
 
         for (const auto& pt_bl : path.points) {
-            //  baselink -> map 변환
-
+            // baselink -> costmap grid 변환
             int grid_x, grid_y;
             if (!BaseLinkToCostmap(pt_bl, grid_x, grid_y)) {
-                continue;
+                continue;  // costmap 범위 밖이면 스킵
             }
 
             valid_point_count++;
-            int cost = getCostmapCost(pt_bl.x, pt_bl.y);
+            
+            // 효율적으로 grid 좌표로 바로 cost 조회
+            int cost = getCostmapCostFromGrid(grid_x, grid_y);
 
             if (cost >= (int)planner_params.lethal_cost_threshold) {
                 lethal_count++;
@@ -321,12 +322,14 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             path.obstacle_cost += cost / 100.0;
         }
 
+        // Lethal cost가 있으면 경로 폐기
         if (lethal_count > 0) {
             path.valid = false;
             path.cost = 1e10;
             continue;
         }
 
+        // 평균 장애물 비용 계산
         if (valid_point_count > 0) {
             path.obstacle_cost /= valid_point_count;
         }
@@ -348,9 +351,11 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             }
         }
 
+        // Offset 비용
         path.offset_cost = std::fabs(path.offset) * 0.5;
         double offset_change_cost = std::fabs(path.offset - last_selected_offset) * 0.3;
 
+        // 총 비용 계산
         path.cost = path.obstacle_cost * 100.0 +
                     path.offset_cost +
                     path.curvature_cost * 10.0 +

@@ -93,6 +93,41 @@ bool BaseLinkToCostmap(const Point2D& pt_bl,
 
     return true;
 }
+
+// ========================================
+// Grid 좌표로 cost 조회 
+// ========================================
+int getCostmapCostFromGrid(int grid_x, int grid_y) {
+    if (!checkCostmapAvailable()) return 0;
+
+    const auto& cm = *costmap_info.msg;
+    const int width = (int)cm.info.width;
+    const int height = (int)cm.info.height;
+
+    // 범위 체크 (방어적 프로그래밍)
+    if (grid_x < 0 || grid_x >= width ||
+        grid_y < 0 || grid_y >= height) {
+        return (int)planner_params.lethal_cost_threshold;
+    }
+
+    const int idx = grid_y * width + grid_x;
+    
+    // 배열 인덱스 체크
+    if (idx < 0 || idx >= (int)cm.data.size()) {
+        return (int)planner_params.lethal_cost_threshold;
+    }
+
+    const int8_t raw = cm.data[idx];
+
+    // unknown은 중간값으로
+    if (raw < 0) return 30;
+
+    int cost = (int)raw;
+    if (cost < 0) cost = 0;
+    if (cost > 100) cost = 100;
+    return cost;
+}
+
 // ========================================
 // 각도 유틸
 // ========================================
