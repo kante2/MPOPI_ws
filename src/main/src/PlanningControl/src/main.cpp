@@ -28,9 +28,6 @@ ros::Publisher marker_pub;
 bool coord_ref_initialized = false;
 
 // ========================================
-// Waypoint 로드
-// ========================================
-// ========================================
 // Waypoint 로드 (절대경로 하드코딩: ref.txt + track csv)
 // ========================================
 bool loadWaypoints() {
