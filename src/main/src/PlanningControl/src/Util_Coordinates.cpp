@@ -53,7 +53,7 @@ double quaternionToYaw(double x, double y, double z, double w) {
 }
 
 // ========================================
-// Map ↔ Base_link 변환
+// Map -> Base_link 변환
 // ========================================
 
 void mapToBaseLink(const Point2D& map_point, 
@@ -69,16 +69,30 @@ void mapToBaseLink(const Point2D& map_point,
     out_baselink.y = -s * dx + c * dy;
 }
 
-void baselinkToMap(const Point2D& baselink_point,
-                   const VehicleState& ego,
-                   Point2D& out_map) {
-    double c = cos(ego.yaw);
-    double s = sin(ego.yaw);
+// ========================================
+// Base_link -> costmap 변환
+// ========================================
 
-    out_map.x = ego.x + c * baselink_point.x - s * baselink_point.y;
-    out_map.y = ego.y + s * baselink_point.x + c * baselink_point.y;
+bool BaseLinkToCostmap(const Point2D& pt_bl,
+                         int& grid_x, int& grid_y)
+{
+    if (!checkCostmapAvailable()) return false;
+
+    const auto& cm = *costmap_info.msg;
+
+    // resolution 0 보호
+    if (cm.info.resolution <= 1e-9) return false;
+
+    grid_x = (int)std::floor((pt_bl.x - cm.info.origin.position.x) / cm.info.resolution);
+    grid_y = (int)std::floor((pt_bl.y - cm.info.origin.position.y) / cm.info.resolution);
+
+    if (grid_x < 0 || grid_x >= (int)cm.info.width ||
+        grid_y < 0 || grid_y >= (int)cm.info.height) {
+        return false;
+    }
+
+    return true;
 }
-
 // ========================================
 // 각도 유틸
 // ========================================

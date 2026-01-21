@@ -110,7 +110,7 @@ void generateOffsetGoals(int goal_idx, LatticeControl& lattice_ctrl) {
     double norm_x = -dir_y;
     double norm_y = dir_x;
 
-    double yaw_global = std::atan2(dir_y, dir_x);
+    double yaw_global = std::atan2(dir_y, dir_x); //목표점 요값 ,, 여기가 잘못된거 같은게 목표점 요값 -차량 헤당값한거 뒤에 그걸로해야함
 
     for (int i = 0; i < planner_params.num_offsets; i++) {
         double offset = -planner_params.lateral_offset_step *
@@ -152,38 +152,53 @@ void computeAllPolynomialPaths(LatticeControl& lattice_ctrl) {
     lattice_ctrl.coefficients.clear();
 
     for (const auto& bl_goal : lattice_ctrl.baselink_goals) {
-        PolynomialCoefficients coeff;
+        PolynomialCoefficients coeff = {0,0,0,0,0,0}; // 0으로 초기화
+
+        // --- 변수 가져오기 ---
+        double X = bl_goal.point.x;
+        double Y = bl_goal.point.y;
+        double target_yaw = bl_goal.yaw; // (중요) normalizeAngle(Goal - Ego)된 값
+
+        // =========================================================
+        // [안전장치 1] 거리(X)가 너무 작으면 행렬 폭발 -> 스킵
+        // =========================================================
+        if (std::fabs(X) < 0.1) {
+            // 너무 가까우면 경로 생성 안 함 (직전 경로 유지하거나 정지)
+            lattice_ctrl.coefficients.push_back(coeff);
+            continue; 
+        }
+
+        // =========================================================
+        // [안전장치 2] 각도(yaw)가 90도면 tan() 폭발 -> 클램핑
+        // =========================================================
+        double limit = 85.0 * M_PI / 180.0; // 85도 제한
+        if (target_yaw > limit) target_yaw = limit;
+        if (target_yaw < -limit) target_yaw = -limit;
+
+        // --- 이제 안전하게 계산 ---
+        double yaw_prime = std::tan(target_yaw);
+        
+        // 5차 다항식 행렬 풀이 (start: x=0, y=0, yaw=0 가정)
+        double X2 = X*X, X3 = X2*X, X4 = X3*X, X5 = X4*X;
+
+        Eigen::Matrix3d A;
+        Eigen::Vector3d b;
+
+        A <<   X3,    X4,    X5,
+             3*X2,  4*X3,  5*X4,
+             6*X,  12*X2, 20*X3;
+
+        b << Y, yaw_prime, 0.0;
+
+        // FullPivLu가 역행렬 계산 시 가장 안정적임
+        Eigen::Vector3d sol = A.fullPivLu().solve(b);
 
         coeff.a0 = 0.0;
         coeff.a1 = 0.0;
         coeff.a2 = 0.0;
-
-        double X = bl_goal.point.x;
-        double Y = bl_goal.point.y;
-
-        if (std::fabs(X) < 1e-3) {
-            coeff.a3 = coeff.a4 = coeff.a5 = 0.0;
-        } else {
-            double yaw_prime = std::tan(bl_goal.yaw);
-            double X2 = X*X, X3 = X2*X, X4 = X3*X, X5 = X4*X;
-
-            Eigen::Matrix3d A;
-            Eigen::Vector3d b;
-
-            A(0,0) = X3;     A(0,1) = X4;      A(0,2) = X5;
-            b(0)   = Y;
-
-            A(1,0) = 3.0*X2; A(1,1) = 4.0*X3;  A(1,2) = 5.0*X4;
-            b(1)   = yaw_prime;
-
-            A(2,0) = 6.0*X;  A(2,1) = 12.0*X2; A(2,2) = 20.0*X3;
-            b(2)   = 0.0;
-
-            Eigen::Vector3d sol = A.colPivHouseholderQr().solve(b);
-            coeff.a3 = sol(0);
-            coeff.a4 = sol(1);
-            coeff.a5 = sol(2);
-        }
+        coeff.a3 = sol(0);
+        coeff.a4 = sol(1);
+        coeff.a5 = sol(2);
 
         lattice_ctrl.coefficients.push_back(coeff);
     }
@@ -203,6 +218,12 @@ void sampleAllCandidatePaths(LatticeControl& lattice_ctrl) {
         candidate.offset = bl_goal.offset;
 
         double X = bl_goal.point.x;
+        
+        if (X < 0.1) {
+            // 0.1m 보다 작으면 계산할 가치가 없음 -> 그냥 빈 경로 처리
+            lattice_ctrl.coefficients.push_back({0,0,0,0,0,0}); 
+            continue;
+        }
 
         if (std::fabs(X) < 1e-6) {
             candidate.points.push_back({0.0, 0.0});
@@ -230,36 +251,18 @@ void sampleAllCandidatePaths(LatticeControl& lattice_ctrl) {
 // ========================================
 // 경로 평가 (costmap query는 map 좌표로 변환 후)
 // ========================================
-
-bool worldToCostmapCoord(double world_x, double world_y,
-                         int& grid_x, int& grid_y)
-{
-    if (!checkCostmapAvailable()) return false;
-
-    const auto& cm = *costmap_info.msg;
-
-    // resolution 0 보호
-    if (cm.info.resolution <= 1e-9) return false;
-
-    grid_x = (int)std::floor((world_x - cm.info.origin.position.x) / cm.info.resolution);
-    grid_y = (int)std::floor((world_y - cm.info.origin.position.y) / cm.info.resolution);
-
-    if (grid_x < 0 || grid_x >= (int)cm.info.width ||
-        grid_y < 0 || grid_y >= (int)cm.info.height) {
-        return false;
-    }
-
-    return true;
-}
-
 int getCostmapCost(double world_x, double world_y)
 {
     if (!checkCostmapAvailable()) return 0;
 
     const auto& cm = *costmap_info.msg;
 
+    Point2D pt_query; 
+    pt_query.x = world_x;
+    pt_query.y = world_y;
+
     int grid_x, grid_y;
-    if (!worldToCostmapCoord(world_x, world_y, grid_x, grid_y)) {
+    if (!BaseLinkToCostmap(pt_query, grid_x, grid_y)) {
         // costmap 바깥은 위험으로 처리 (기존 로직 유지)
         return (int)planner_params.lethal_cost_threshold;
     }
@@ -302,16 +305,14 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
 
         for (const auto& pt_bl : path.points) {
             //  baselink -> map 변환
-            Point2D map_pt;
-            baselinkToMap(pt_bl, ego, map_pt);
 
             int grid_x, grid_y;
-            if (!worldToCostmapCoord(map_pt.x, map_pt.y, grid_x, grid_y)) {
+            if (!BaseLinkToCostmap(pt_bl, grid_x, grid_y)) {
                 continue;
             }
 
             valid_point_count++;
-            int cost = getCostmapCost(map_pt.x, map_pt.y);
+            int cost = getCostmapCost(pt_bl.x, pt_bl.y);
 
             if (cost >= (int)planner_params.lethal_cost_threshold) {
                 lethal_count++;

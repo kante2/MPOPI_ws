@@ -28,10 +28,11 @@ void wgs84ToENU(double lat, double lon, double h,
                 const CoordinateReference& ref,
                 double& x_enu, double& y_enu, double& z_enu);
 
-void baselinkToMap(const Point2D& base_pt, const VehicleState& ego, Point2D& map_pt);
+v
 void mapToBaseLink(const Point2D& map_pt, const VehicleState& ego, Point2D& base_pt);
 void globalYawToBaselink(double yaw_global, const VehicleState& ego, double& yaw_base);
 
 // costmap helpers (어딘가에 구현돼 있어야 링크됨)
-bool worldToCostmapCoord(double wx, double wy, int& gx, int& gy);
+bool BaseLinkToCostmap(const Point2D& pt_bl,
+                         int& grid_x, int& grid_y)
 int getCostmapCost(double wx, double wy);
