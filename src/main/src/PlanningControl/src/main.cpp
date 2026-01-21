@@ -185,9 +185,9 @@ void publishCandidatePaths() {
         const auto& candidate = lattice_ctrl.candidates[i];
         
         visualization_msgs::Marker marker;
-        
-        // [중요 1] 내부에서 좌표를 Map 기준으로 변환하므로, 프레임도 "map"이어야 안 밀립니다.
-        marker.header.frame_id = "map"; 
+
+        // [중요 1] 내부에서 좌표를 Map 기준으로 변환하므로, 프레임도 "bas"이어야 안 밀립니다.
+        marker.header.frame_id = "base_link"; 
         marker.header.stamp = ros::Time::now();
         marker.ns = "candidate_paths";
         marker.id = i;
@@ -219,12 +219,6 @@ void publishCandidatePaths() {
         
         // 포인트 좌표 변환 및 입력
         for (const auto& pt : candidate.points) {
-            Point2D map_pt;
-            
-            // [핵심] 차량 기준 좌표(pt)를 지도 기준 좌표(map_pt)로 변환
-            // 이 함수를 쓰기 때문에 위에서 frame_id를 "map"으로 한 것입니다.
-            baselinkToMap(pt, ego, map_pt);
-            
             geometry_msgs::Point p;
             p.x = map_pt.x;
             p.y = map_pt.y;
