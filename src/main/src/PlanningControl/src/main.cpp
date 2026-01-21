@@ -220,8 +220,8 @@ void publishCandidatePaths() {
         // 포인트 좌표 변환 및 입력
         for (const auto& pt : candidate.points) {
             geometry_msgs::Point p;
-            p.x = map_pt.x;
-            p.y = map_pt.y;
+            p.x = pt.x;
+            p.y = pt.y;
             // Best 경로는 겹침 방지를 위해 살짝 띄움
             p.z = is_best ? 0.1 : 0.0; 
             marker.points.push_back(p);
