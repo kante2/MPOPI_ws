@@ -129,7 +129,7 @@ struct LidarCluster
 struct CostmapParams {
   float resolution = 0.05f;
   float width = 50.0f;
-  float height = 50.0f;
+  float height = 28.0f;
   int8_t unknown_cost = -1;
   int8_t free_cost = 0;
   int8_t obstacle_cost = 100;

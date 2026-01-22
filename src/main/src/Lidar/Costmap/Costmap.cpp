@@ -1,4 +1,4 @@
-#include <Costmap/Costmap.hpp>
+#include <Lidar/Costmap/Costmap.hpp>
 
 CostmapState state;
 CostmapParams params;
@@ -114,7 +114,7 @@ void transformLidarToBaselink(const LidarCluster& st_LidarCluster)
         {
             geometry_msgs::Point c_in, c_out;
             
-            // lidar_link
+            // lidar_link 
             c_in.x = corner.x;
             c_in.y = corner.y;
             c_in.z = 0;
@@ -165,8 +165,8 @@ void initializeCostmap(const ros::Time &stamp)
   state.costmap.info.resolution = params.resolution;
 
   // 1. 가로 세로 픽셀 수 계산
-  const uint32_t w = static_cast<uint32_t>(round(params.width / params.resolution));
   const uint32_t h = static_cast<uint32_t>(round(params.height / params.resolution));
+  const uint32_t w = static_cast<uint32_t>(round(params.width/ params.resolution));
 
   // 크기가 바뀔 때만 메모리를 재할당하거나 정보를 갱신 (선택 사항)
   state.costmap.info.width = w;
