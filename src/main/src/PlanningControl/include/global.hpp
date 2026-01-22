@@ -136,7 +136,7 @@ struct PlannerParams {
     int num_offsets = 9;
     double lateral_offset_step = 0.5;
     double sample_spacing = 0.2;
-    double lethal_cost_threshold = 90.0;
+    double lethal_cost_threshold = 70.0;
     double vehicle_front_offset = 4.0;
 };
 
