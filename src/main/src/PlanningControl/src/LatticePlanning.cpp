@@ -154,7 +154,7 @@ void computeAllPolynomialPaths(LatticeControl& lattice_ctrl) {
     for (const auto& bl_goal : lattice_ctrl.baselink_goals) {
         PolynomialCoefficients coeff = {0,0,0,0,0,0}; // 0으로 초기화
 
-            ]
+    
         double X = bl_goal.point.x;
         double Y = bl_goal.point.y;
         double target_yaw = bl_goal.yaw; // normalizeAngle(Goal - Ego)된 값
@@ -246,54 +246,16 @@ void sampleAllCandidatePaths(LatticeControl& lattice_ctrl) {
         lattice_ctrl.candidates.push_back(candidate);
     }
 }
-// ========================================
-// 경로 평가 (costmap query는 map 좌표로 변환 후)
-// ========================================
-int getCostmapCost(double world_x, double world_y)
-{
-    if (!checkCostmapAvailable()) return 0;
 
-    const auto& cm = *costmap_info.msg;
-
-    Point2D pt_query; 
-    pt_query.x = world_x;
-    pt_query.y = world_y;
-
-    int grid_x, grid_y;
-    if (!BaseLinkToCostmap(pt_query, grid_x, grid_y)) {
-        // costmap 바깥은 위험으로 처리 (기존 로직 유지)
-        return (int)planner_params.lethal_cost_threshold;
-    }
-
-    const int width = (int)cm.info.width;
-    const int height = (int)cm.info.height;
-
-    // data 크기 sanity
-    const int expected = width * height;
-    if ((int)cm.data.size() < expected || expected <= 0) {
-        return (int)planner_params.lethal_cost_threshold;
-    }
-
-    const int idx = grid_y * width + grid_x;
-    if (idx < 0 || idx >= (int)cm.data.size()) {
-        return (int)planner_params.lethal_cost_threshold;
-    }
-
-    const int8_t raw = cm.data[idx];
-
-    // -1: unknown (ROS occupancygrid 관례)
-    if (raw < 0) return 30;  // 기존처럼 medium cost
-
-    int cost = (int)raw;
-    if (cost < 0) cost = 0;
-    if (cost > 100) cost = 100;
-    return cost;
-}
 
 // ========================================
 // 경로 평가 (costmap query는 map 좌표로 변환 후)
 // ========================================
 void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
+    // 차량 앞 범퍼 오프셋 (global.hpp의 planner_params에 정의된 값 사용)
+    // 만약 파라미터가 없다면 여기서 const double VEHICLE_FRONT_OFFSET = 1.3; 처럼 선언해서 쓰세요.
+    double front_offset = planner_params.vehicle_front_offset;
+
     for (auto& path : lattice_ctrl.candidates) {
         path.obstacle_cost = 0.0;
         path.curvature_cost = 0.0;
@@ -304,28 +266,49 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
         int valid_point_count = 0;
 
         for (const auto& pt_bl : path.points) {
-            // baselink -> costmap grid 변환
+            // ------------------------------------
+            // 1. 뒷바퀴(Base_link) 위치 체크
+            // ------------------------------------
             int grid_x, grid_y;
-            if (!BaseLinkToCostmap(pt_bl, grid_x, grid_y)) {
-                continue;  // costmap 범위 밖이면 스킵
+            bool is_rear_valid = BaseLinkToCostmap(pt_bl, grid_x, grid_y);
+
+            // ------------------------------------
+            // 2. 앞 범퍼(Front Bumper) 위치 체크
+            // ------------------------------------
+            // 경로의 진행 방향(Heading)을 몰라도, Lattice 경로는 차체 정렬이 되어있으므로 
+            // 단순히 x축 방향으로 offset을 더해도 근사적으로 맞습니다.
+            Point2D pt_front;
+            pt_front.x = pt_bl.x + front_offset;
+            pt_front.y = pt_bl.y;
+
+            int grid_fx, grid_fy;
+            bool is_front_valid = BaseLinkToCostmap(pt_front, grid_fx, grid_fy);
+
+            // 둘 다 맵 밖이면 스킵
+            if (!is_rear_valid && !is_front_valid) {
+                continue;  
             }
 
             valid_point_count++;
             
-            // 효율적으로 grid 좌표로 바로 cost 조회
-            int cost = getCostmapCostFromGrid(grid_x, grid_y);
+            // 비용 조회: 맵 안인 경우만 조회, 아니면 0
+            int cost_rear = is_rear_valid ? getCostmapCostFromGrid(grid_x, grid_y) : 0;
+            int cost_front = is_front_valid ? getCostmapCostFromGrid(grid_fx, grid_fy) : 0;
 
-            if (cost >= (int)planner_params.lethal_cost_threshold) {
+            // 둘 중 더 위험한 비용 선택 (보수적 판단)
+            int max_cost = std::max(cost_rear, cost_front);
+
+            if (max_cost >= (int)planner_params.lethal_cost_threshold) {
                 lethal_count++;
             }
 
-            path.obstacle_cost += cost / 100.0;
+            path.obstacle_cost += max_cost / 100.0;
         }
 
-        // Lethal cost가 있으면 경로 폐기
+        // Lethal cost(충돌)가 있으면 경로 폐기
         if (lethal_count > 0) {
             path.valid = false;
-            path.cost = 1e10;
+            path.cost = 1e10; // 비용 무한대
             continue;
         }
 
@@ -334,7 +317,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             path.obstacle_cost /= valid_point_count;
         }
 
-        // 곡률 비용 (baselink 기준으로 계산해도 OK)
+        // 곡률 비용
         if (path.points.size() >= 3) {
             for (size_t i = 1; i < path.points.size() - 1; i++) {
                 double x0 = path.points[i-1].x, y0 = path.points[i-1].y;
@@ -343,7 +326,6 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
 
                 double dx1 = x1 - x0, dy1 = y1 - y0;
                 double dx2 = x2 - x1, dy2 = y2 - y1;
-
                 double denom = (std::sqrt(dx1*dx1 + dy1*dy1) * std::sqrt(dx2*dx2 + dy2*dy2) + 1e-6);
                 double curvature = std::fabs((dx1*dy2 - dy1*dx2) / denom);
 
@@ -351,7 +333,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             }
         }
 
-        // Offset 비용
+        // 오프셋 비용
         path.offset_cost = std::fabs(path.offset) * 0.5;
         double offset_change_cost = std::fabs(path.offset - last_selected_offset) * 0.3;
 
@@ -362,7 +344,6 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
                     offset_change_cost;
     }
 }
-
 // ========================================
 // 최적 경로 선택
 // ========================================

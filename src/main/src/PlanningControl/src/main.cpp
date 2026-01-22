@@ -154,6 +154,7 @@ void gpsCallback(const morai_msgs::GPSMessage::ConstPtr& msg) {
     double x, y, z;
     wgs84ToENU(msg->latitude, msg->longitude, msg->altitude,
                coord_ref, x, y, z);
+// [수정된 루프 함수] 중복 없이 이거 하나만 있어야 합니다!
     ego.x = x;
     ego.y = y;
 }
@@ -172,56 +173,67 @@ void imuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
 // ========================================
 // RViz 시각화
 // ========================================
+// main.cpp
+
 void publishCandidatePaths() {
     visualization_msgs::MarkerArray marker_array;
     
-    // 현재 선택된 최적 경로의 offset (비교 및 시각화용)
+    // 현재 선택된 최적 경로의 offset
     double best_offset = lattice_ctrl.best_path.offset;
     
+    // [파라미터 가져오기] 앞 범퍼 길이 (4.0m)
+    double front_offset = planner_params.vehicle_front_offset;
+
     for (size_t i = 0; i < lattice_ctrl.candidates.size(); i++) {
         const auto& candidate = lattice_ctrl.candidates[i];
         
         visualization_msgs::Marker marker;
-
-        // [중요 1] 내부에서 좌표를 Map 기준으로 변환하므로, 프레임도 "bas"이어야 안 밀립니다.
         marker.header.frame_id = "base_link"; 
         marker.header.stamp = ros::Time::now();
-        marker.ns = "candidate_paths";
+        marker.ns = "candidate_paths"; // 기존과 동일
         marker.id = i;
         marker.type = visualization_msgs::Marker::LINE_STRIP;
         marker.action = visualization_msgs::Marker::ADD;
         
-        // [중요 2] 쿼터니언 초기화 (이게 없으면 RViz에서 안 보임)
-        marker.pose.orientation.x = 0.0;
-        marker.pose.orientation.y = 0.0;
-        marker.pose.orientation.z = 0.0;
         marker.pose.orientation.w = 1.0; 
         
-        // 색상 및 굵기 설정 (Best 경로는 빨간색/두껍게, 나머지는 초록색/얇게)
-        bool is_best = (fabs(candidate.offset - best_offset) < 0.01);
-        
-        if (is_best) {
+        // [색상 설정]
+        if (!candidate.valid) {
+            // 충돌한 경로는 회색
+            marker.scale.x = 0.03; 
+            marker.color.r = 0.5; marker.color.g = 0.5; marker.color.b = 0.5; marker.color.a = 0.5;
+        } 
+        else if (fabs(candidate.offset - best_offset) < 0.01) {
+            // Best 경로는 빨간색
             marker.scale.x = 0.15; 
-            marker.color.r = 1.0;
-            marker.color.g = 0.0;
-            marker.color.b = 0.0;
-            marker.color.a = 1.0;
-        } else {
-            marker.scale.x = 0.05;
-            marker.color.r = 0.0;
-            marker.color.g = 1.0;
-            marker.color.b = 0.0;
-            marker.color.a = 0.6;
+            marker.color.r = 1.0; marker.color.g = 0.0; marker.color.b = 0.0; marker.color.a = 1.0;
+        } 
+        else {
+            // 나머지 후보는 초록색
+            marker.scale.x = 0.05; 
+            marker.color.r = 0.0; marker.color.g = 1.0; marker.color.b = 0.0; marker.color.a = 0.6;
         }
         
-        // 포인트 좌표 변환 및 입력
-        for (const auto& pt : candidate.points) {
-            geometry_msgs::Point p;
-            p.x = pt.x;
-            p.y = pt.y;
-            // Best 경로는 겹침 방지를 위해 살짝 띄움
-            p.z = is_best ? 0.1 : 0.0; 
-            marker.points.push_back(p);
+        // [핵심 수정] 포인트 좌표를 '앞 범퍼 위치'로 변환해서 입력
+        for (size_t j = 0; j < candidate.points.size(); j++) {
+            double cx = candidate.points[j].x;
+            double cy = candidate.points[j].y;
+
+            // 현재 점에서의 헤딩(Heading) 계산
+            double heading = 0.0;
+            if (j + 1 < candidate.points.size()) {
+                heading = atan2(candidate.points[j+1].y - cy, candidate.points[j+1].x - cx);
+            } else if (j > 0) {
+                heading = atan2(cy - candidate.points[j-1].y, cx - candidate.points[j-1].x);
+            }
+
+            // 시각화용 포인트 생성 (앞쪽으로 offset만큼 이동)
+            geometry_msgs::Point p_visual;
+            p_visual.x = cx + front_offset * cos(heading);
+            p_visual.y = cy + front_offset * sin(heading);
+            p_visual.z = 0.0; 
+            
+            marker.points.push_back(p_visual);
         }
         
         marker_array.markers.push_back(marker);
@@ -229,10 +241,46 @@ void publishCandidatePaths() {
     
     marker_pub.publish(marker_array);
 }
+// [추가된 함수] 내 차(노란 박스) 그리기
+void publishVehicleFootprint() {
+    visualization_msgs::Marker car_marker;
+    car_marker.header.frame_id = "base_link";
+    car_marker.header.stamp = ros::Time::now();
+    car_marker.ns = "ego_shape";
+    car_marker.id = 0;
+    car_marker.type = visualization_msgs::Marker::CUBE; // 박스 모양
+    car_marker.action = visualization_msgs::Marker::ADD;
+
+    // 파라미터 적용 확인 (4.0m)
+    double front_len = planner_params.vehicle_front_offset; 
+    double rear_len  = 1.0; 
+    double width     = 2.0; 
+
+    // 박스 중심 위치 (Base_link 기준)
+    car_marker.pose.position.x = (front_len - rear_len) / 2.0;
+    car_marker.pose.position.y = 0.0;
+    car_marker.pose.position.z = 0.5; 
+    car_marker.pose.orientation.w = 1.0;
+
+    car_marker.scale.x = front_len + rear_len; 
+    car_marker.scale.y = width;
+    car_marker.scale.z = 1.5; 
+
+    car_marker.color.r = 1.0; // 노란색
+    car_marker.color.g = 1.0;
+    car_marker.color.b = 0.0;
+    car_marker.color.a = 0.5; 
+
+    visualization_msgs::MarkerArray arr;
+    arr.markers.push_back(car_marker);
+    marker_pub.publish(arr);
+}
+
 
 void latticeTestLoop(const ros::TimerEvent&) {
-    LatticePlanningProcess();
-    publishCandidatePaths();
+    LatticePlanningProcess();     // 1. 경로 계산
+    publishCandidatePaths();      // 2. 경로 그리기
+    publishVehicleFootprint();    // 3. 내 차 박스 그리기 (New!)
 }
 
 // ========================================
@@ -258,6 +306,11 @@ int main(int argc, char** argv) {
     planner_params.lateral_offset_step = 0.5;
     planner_params.sample_spacing = 0.2;
     planner_params.lethal_cost_threshold = 90.0;
+    planner_params.vehicle_front_offset = 4.0; 
+    
+    ROS_INFO("========================================");
+    ROS_INFO("[Params] Front Offset: %.2fm (Check This!)", planner_params.vehicle_front_offset);
+    ROS_INFO("========================================");
     
     ROS_INFO("[Params] Offsets: %d, Step: %.2fm", 
              planner_params.num_offsets, 

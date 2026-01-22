@@ -137,9 +137,10 @@ struct PlannerParams {
     double lateral_offset_step = 0.5;
     double sample_spacing = 0.2;
     double lethal_cost_threshold = 90.0;
+    double vehicle_front_offset = 4.0;
 };
 
-// Costmap 정보 (✅ 안전: shared_ptr 보관)
+// Costmap 정보 (안전: shared_ptr 보관)
 struct CostmapInfo {
     nav_msgs::OccupancyGrid::ConstPtr msg;  // holds latest costmap safely
     double origin_x = 0.0;
