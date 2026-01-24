@@ -6,8 +6,18 @@
 
 #IncludeRegexTransform: 
 
+/home/autonav/aim_ws/src/main/src/Lidar/Costmap/Costmap.cpp
+Costmap/Costmap.hpp
+-
+
 /home/autonav/aim_ws/src/main/src/Lidar/Costmap/Costmap.hpp
 Global/Global.hpp
+-
+
+/home/autonav/aim_ws/src/main/src/Lidar/Euclidean/Euclidean.cpp
+Euclidean/Euclidean.hpp
+-
+Visualizer/Visualizer.hpp
 -
 
 /home/autonav/aim_ws/src/main/src/Lidar/Euclidean/Euclidean.hpp
@@ -82,6 +92,8 @@ pcl_ros/transforms.h
 tf2/utils.h
 -
 
+/home/autonav/aim_ws/src/main/src/Lidar/Kalman/Kalman.cpp
+
 /home/autonav/aim_ws/src/main/src/Lidar/Kalman/Kalman.hpp
 
 /home/autonav/aim_ws/src/main/src/Lidar/LidarProcess/LidarProcess.cpp
@@ -114,16 +126,32 @@ Visualizer/Visualizer.hpp
 Costmap/Costmap.hpp
 -
 
+/home/autonav/aim_ws/src/main/src/Lidar/Lshapefitting/Lshapefitting.cpp
+Lshapefitting/Lshapefitting.hpp
+-
+
 /home/autonav/aim_ws/src/main/src/Lidar/Lshapefitting/Lshapefitting.hpp
 Global/Global.hpp
+-
+
+/home/autonav/aim_ws/src/main/src/Lidar/Ransac/Ransac.cpp
+Ransac/Ransac.hpp
 -
 
 /home/autonav/aim_ws/src/main/src/Lidar/Ransac/Ransac.hpp
 Global/Global.hpp
 -
 
+/home/autonav/aim_ws/src/main/src/Lidar/RoiVoxel/RoiVoxel.cpp
+RoiVoxel/RoiVoxel.hpp
+-
+
 /home/autonav/aim_ws/src/main/src/Lidar/RoiVoxel/RoiVoxel.hpp
 Global/Global.hpp
+-
+
+/home/autonav/aim_ws/src/main/src/Lidar/Visualizer/Visualizer.cpp
+Visualizer/Visualizer.hpp
 -
 
 /home/autonav/aim_ws/src/main/src/Lidar/Visualizer/Visualizer.hpp

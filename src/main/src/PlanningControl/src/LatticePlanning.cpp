@@ -7,7 +7,7 @@
 #include <Eigen/Dense>
 
 // ========================================
-// Entry
+// LatticePlanningProcess
 // ========================================
 void LatticePlanningProcess() {
 

@@ -171,16 +171,16 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatus.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatus.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatus.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatus.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatus.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatus.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatus.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating C++ code from morai_msgs/EgoVehicleStatus.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatus.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
 
 /home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatusExtended.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatusExtended.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatusExtended.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatusExtended.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatusExtended.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatusExtended.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/EgoVehicleStatusExtended.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating C++ code from morai_msgs/EgoVehicleStatusExtended.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatusExtended.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -201,9 +201,9 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusList.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusList.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatusList.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusList.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusList.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusList.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusList.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusList.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusList.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Generating C++ code from morai_msgs/ObjectStatusList.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatusList.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -225,10 +225,10 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusListExtended.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusListExtended.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatusListExtended.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusListExtended.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusListExtended.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatusExtended.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusListExtended.h: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusListExtended.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusListExtended.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/ObjectStatusListExtended.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Generating C++ code from morai_msgs/ObjectStatusListExtended.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatusListExtended.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -275,9 +275,9 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/CollisionData.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/CollisionData.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/CollisionData.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/CollisionData.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/CollisionData.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/CollisionData.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/CollisionData.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/CollisionData.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/CollisionData.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Generating C++ code from morai_msgs/CollisionData.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/CollisionData.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -347,18 +347,18 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/ReplayInfo.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/ReplayInfo.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ReplayInfo.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/ReplayInfo.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/ReplayInfo.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/ReplayInfo.h: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/ReplayInfo.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/ReplayInfo.h: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/ReplayInfo.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/ReplayInfo.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Generating C++ code from morai_msgs/ReplayInfo.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ReplayInfo.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
 
 /home/autonav/aim_ws/devel/include/morai_msgs/EventInfo.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/EventInfo.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EventInfo.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/EventInfo.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/EventInfo.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Lamps.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/EventInfo.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/EventInfo.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Generating C++ code from morai_msgs/EventInfo.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EventInfo.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -385,9 +385,9 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/NpcGhostCmd.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/NpcGhostCmd.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/NpcGhostCmd.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/NpcGhostCmd.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/NpcGhostCmd.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/NpcGhostInfo.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/NpcGhostCmd.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/NpcGhostCmd.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/NpcGhostCmd.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Generating C++ code from morai_msgs/NpcGhostCmd.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/NpcGhostCmd.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -401,10 +401,10 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/VehicleCollisionData.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/VehicleCollisionData.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleCollisionData.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/VehicleCollisionData.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/VehicleCollisionData.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/VehicleCollisionData.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/VehicleCollisionData.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/VehicleCollisionData.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleCollision.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/VehicleCollisionData.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/VehicleCollisionData.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Generating C++ code from morai_msgs/VehicleCollisionData.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleCollisionData.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -433,8 +433,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 /home/autonav/aim_ws/devel/include/morai_msgs/WaitForTickResponse.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/WaitForTickResponse.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/WaitForTickResponse.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/WaitForTickResponse.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatus.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/WaitForTickResponse.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/WaitForTickResponse.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/WaitForTickResponse.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/WaitForTickResponse.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Generating C++ code from morai_msgs/WaitForTickResponse.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/WaitForTickResponse.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -510,9 +510,9 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/RadarDetections.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/RadarDetections.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/RadarDetections.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/RadarDetections.h: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/RadarDetections.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/RadarDetection.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/RadarDetections.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/RadarDetections.h: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/RadarDetections.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_50) "Generating C++ code from morai_msgs/RadarDetections.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/RadarDetections.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -544,8 +544,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/SkateboardStatus.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/SkateboardStatus.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SkateboardStatus.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/SkateboardStatus.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/SkateboardStatus.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/SkateboardStatus.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/SkateboardStatus.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_55) "Generating C++ code from morai_msgs/SkateboardStatus.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SkateboardStatus.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -558,8 +558,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/SkidSteer6wUGVStatus.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/SkidSteer6wUGVStatus.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SkidSteer6wUGVStatus.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/SkidSteer6wUGVStatus.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/SkidSteer6wUGVStatus.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/SkidSteer6wUGVStatus.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/SkidSteer6wUGVStatus.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_57) "Generating C++ code from morai_msgs/SkidSteer6wUGVStatus.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SkidSteer6wUGVStatus.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -610,8 +610,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjection_Response.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjection_Response.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjection_Response.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjection_Response.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjection_Response.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjection_Response.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjection_Response.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_65) "Generating C++ code from morai_msgs/FaultInjection_Response.msg"
@@ -652,10 +652,10 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultStatusInfo.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultStatusInfo.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultStatusInfo.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultStatusInfo.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultStatusInfo.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultStatusInfo.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultStatusInfo.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultStatusInfo.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultStatusInfo.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_71) "Generating C++ code from morai_msgs/FaultStatusInfo.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
@@ -675,20 +675,20 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/Obstacle.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/Obstacle.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Obstacle.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/Obstacle.h: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/Obstacle.h: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/Obstacle.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/Obstacle.h: /opt/ros/noetic/share/geometry_msgs/msg/Pose.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/Obstacle.h: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/Obstacle.h: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/Obstacle.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_74) "Generating C++ code from morai_msgs/Obstacle.msg"
 	cd /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs && /home/autonav/aim_ws/build/catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Obstacle.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/include/morai_msgs -e /opt/ros/noetic/share/gencpp/cmake/..
 
 /home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Obstacles.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Obstacle.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /opt/ros/noetic/share/geometry_msgs/msg/Pose.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/Obstacles.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_75) "Generating C++ code from morai_msgs/Obstacles.msg"
@@ -696,10 +696,10 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/Transforms.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/Transforms.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Transforms.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/Transforms.h: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/Transforms.h: /opt/ros/noetic/share/geometry_msgs/msg/TransformStamped.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/Transforms.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/Transforms.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/Transforms.h: /opt/ros/noetic/share/geometry_msgs/msg/TransformStamped.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/Transforms.h: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/Transforms.h: /opt/ros/noetic/share/geometry_msgs/msg/Transform.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/Transforms.h: /opt/ros/noetic/share/gencpp/msg.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_76) "Generating C++ code from morai_msgs/Transforms.msg"
@@ -805,8 +805,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiTLInfoSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiTLInfoSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiTLInfoSrv.srv
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiTLInfoSrv.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/MoraiTLInfoSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MoraiTLIndex.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiTLInfoSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MoraiTLInfo.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/MoraiTLInfoSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MoraiTLIndex.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiTLInfoSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiTLInfoSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_92) "Generating C++ code from morai_msgs/MoraiTLInfoSrv.srv"
@@ -815,8 +815,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiEventCmdSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiEventCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiEventCmdSrv.srv
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiEventCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EventInfo.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/MoraiEventCmdSrv.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiEventCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Lamps.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/MoraiEventCmdSrv.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiEventCmdSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiEventCmdSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_93) "Generating C++ code from morai_msgs/MoraiEventCmdSrv.srv"
@@ -834,8 +834,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCmdSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSyncModeCmdSrv.srv
-/home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeCmd.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeCmdResponse.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeCmd.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCmdSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCmdSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_95) "Generating C++ code from morai_msgs/MoraiSyncModeCmdSrv.srv"
@@ -843,11 +843,11 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiWaitForTickSrv.srv
+/home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatus.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/WaitForTickResponse.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/WaitForTick.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatus.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/WaitForTickResponse.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiWaitForTickSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_96) "Generating C++ code from morai_msgs/MoraiWaitForTickSrv.srv"
@@ -855,8 +855,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiMapSpecSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiMapSpecSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiMapSpecSrv.srv
-/home/autonav/aim_ws/devel/include/morai_msgs/MoraiMapSpecSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MapSpec.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiMapSpecSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MapSpecIndex.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/MoraiMapSpecSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MapSpec.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiMapSpecSrv.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiMapSpecSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiMapSpecSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
@@ -865,9 +865,9 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCtrlCmdSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCtrlCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSyncModeCtrlCmdSrv.srv
-/home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCtrlCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/CtrlCmd.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCtrlCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeResultResponse.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCtrlCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeCtrlCmd.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCtrlCmdSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/CtrlCmd.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCtrlCmdSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeCtrlCmdSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_98) "Generating C++ code from morai_msgs/MoraiSyncModeCtrlCmdSrv.srv"
@@ -875,8 +875,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeSetGearSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeSetGearSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSyncModeSetGearSrv.srv
-/home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeSetGearSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeSetGear.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeSetGearSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeResultResponse.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeSetGearSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeSetGear.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeSetGearSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeSetGearSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_99) "Generating C++ code from morai_msgs/MoraiSyncModeSetGearSrv.srv"
@@ -901,8 +901,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeAddObjectSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeAddObjectSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSyncModeAddObjectSrv.srv
-/home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeAddObjectSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeAddObject.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeAddObjectSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeResultResponse.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeAddObjectSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeAddObject.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeAddObjectSrv.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeAddObjectSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/MoraiSyncModeAddObjectSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
@@ -920,8 +920,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/MultiPlayEventSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/MultiPlayEventSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MultiPlayEventSrv.srv
-/home/autonav/aim_ws/devel/include/morai_msgs/MultiPlayEventSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MultiPlayEventRequest.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MultiPlayEventSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MultiPlayEventResponse.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/MultiPlayEventSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MultiPlayEventRequest.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/MultiPlayEventSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/MultiPlayEventSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_104) "Generating C++ code from morai_msgs/MultiPlayEventSrv.srv"
@@ -938,11 +938,11 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/FaultInjectionCtrlSrv.srv
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Controller.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionCtrlSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_106) "Generating C++ code from morai_msgs/FaultInjectionCtrlSrv.srv"
@@ -950,12 +950,12 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/FaultInjectionSensorSrv.srv
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Sensor.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Sensor.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionSensorSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_107) "Generating C++ code from morai_msgs/FaultInjectionSensorSrv.srv"
@@ -963,11 +963,11 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp: /home/autonav/
 
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /opt/ros/noetic/lib/gencpp/gen_cpp.py
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/FaultInjectionTireSrv.srv
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Tire.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
-/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
+/home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Tire.msg
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /opt/ros/noetic/share/gencpp/msg.h.template
 /home/autonav/aim_ws/devel/include/morai_msgs/FaultInjectionTireSrv.h: /opt/ros/noetic/share/gencpp/srv.h.template
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_108) "Generating C++ code from morai_msgs/FaultInjectionTireSrv.srv"

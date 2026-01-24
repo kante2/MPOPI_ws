@@ -9,6 +9,43 @@
 // ========================================
 // 재밍 구조체
 // ========================================
+struct LaneData
+{
+    double offset;
+    double vector_x;
+    double vector_y;
+    double angle;
+    double target_x;
+    double target_y;
+};
+
+struct GPSGammingState {
+    bool is_gamming = false;
+    ros::Time last_valid_gps_time;
+    ros::Time gamming_start_time;
+
+    double gps_timeout_threshold = 0.3;
+
+    int gamming_count = 0;
+    double total_gamming_duration = 0.0; // total duration
+    double current_gamming_duration = 0.0; //실시간 duration
+    //segment = 구간 / 조각 / 덩어리
+    //GPS gamming이 발생했던 시간 구간
+    //언제부터 끊겼고 언제 복구됐는지를 한 쌍으로 묶은 것.
+};
+struct JammingParams
+{
+    const double Ld = 30.0;
+    double norm;
+    double x_t, y_t;
+    const float wheel_base = 3.0;
+    double gps_steering = 0.0;
+    const double gps_alpha = 0.1; 
+    const double gps_k_p = 0.3;
+    const double gps_k_d = 0.05; 
+    const double dt = 0.02;
+
+};
 
 
 
@@ -32,10 +69,8 @@ struct Waypoint {
     double curvature;
 };
 
-// ========================================
-// 차량 상태
-// ========================================
 
+// 차량 상태
 struct VehicleState {
     double x = 0.0;
     double y = 0.0;
@@ -44,10 +79,8 @@ struct VehicleState {
     double max_curvature = 0.0;
 };
 
-// ========================================
-// Control 구조체 (Base Planning용)
-// ========================================
 
+// Control 구조체 (Base Planning용)
 struct ControlData {
     int close_idx = 0;
     int target_idx = 0;
@@ -59,10 +92,7 @@ struct ControlData {
     double ld = 0.0;
 };
 
-// ========================================
 // 좌표 변환용
-// ========================================
-
 struct CoordinateReference {
     double lat0 = 0.0;
     double lon0 = 0.0;
@@ -153,6 +183,12 @@ struct CostmapInfo {
 // ========================================
 // 전역 변수 (extern) 
 // ========================================
+
+//재밍용
+extern GPSGammingState gps_state;
+extern LaneData lane;
+extern JammingParams jamming_params;
+
 
 extern std::vector<Waypoint> waypoints;
 extern VehicleState ego;
