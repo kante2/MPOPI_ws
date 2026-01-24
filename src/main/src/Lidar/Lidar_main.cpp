@@ -6,7 +6,7 @@
 Lidar st_Lidar;
 LidarCluster st_LidarCluster;
 
-ros::Publisher pub_filtered_height;
+// ros::Publisher pub_filtered_height;
 ros::Publisher pub_filtered_range;
 ros::Publisher pub_cropbox;
 ros::Publisher pub_voxel;
@@ -24,7 +24,7 @@ void LidarCallback (const sensor_msgs::PointCloud2ConstPtr& msg)
 
     LidarProcess(st_Lidar, st_LidarCluster, msg -> header);
 
-    PublishPointCloud (pub_filtered_height, st_Lidar.pcl_input_cloud, msg -> header);
+    // PublishPointCloud (pub_filtered_height, st_Lidar.pcl_input_cloud, msg -> header);
     PublishPointCloud (pub_filtered_range, st_Lidar.pcl_filterrange_cloud, msg -> header);
     PublishPointCloud (pub_cropbox, st_Lidar.pcl_cropbox_cloud, msg -> header);
     PublishPointCloud (pub_voxel, st_Lidar.pcl_voxel_cloud, msg -> header);
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 
     ros::Rate loop_rate(10);
 
-    pub_filtered_height = nh.advertise<sensor_msgs::PointCloud2>("/filtered_height", 1);
+    // pub_filtered_height = nh.advertise<sensor_msgs::PointCloud2>("/filtered_height", 1);
     pub_filtered_range = nh.advertise<sensor_msgs::PointCloud2>("/filtered_range", 1);
     pub_cropbox = nh.advertise<sensor_msgs::PointCloud2>("/cropbox", 1);
     pub_voxel = nh.advertise<sensor_msgs::PointCloud2>("/voxel", 1);

@@ -66,9 +66,12 @@ struct Point2D
 struct LidarParam
 {
   // lidar prefilter
-  float min_height = -10.0f; // ransac에 방해되지 않도록
-  float max_height = 5.0f;
-  float lidar_range = 25.0f;
+  float lidar_range_xmin = -25.0f;
+  float lidar_range_xmax = 25.0f;
+  float lidar_range_ymin = -7.0f;
+  float lidar_range_ymax = 7.0f;
+  float lidar_range_zmin = -10.0f;
+  float lidar_range_zmax = 5.0f;
 
   // ego 제거 ROI (cropbox) 
   float ego_xmin = - 1.0f; 
@@ -82,9 +85,9 @@ struct LidarParam
   float voxel_leaf = 0.10f;
 
   // RANSAC
-  float ransac_dist_thresh = 0.30f; // 평면에서 0.30m 이내면 지면(inlier)로 간주
-  float ransac_eps_angle_deg = 12.0f; // 지면 평면의 법선이 z축에서 10도 이내면 지면으로 인정 
-  int ransac_max_iter = 200; 
+  float ransac_dist_thresh = 0.2f; // 평면에서 0.30m 이내면 지면(inlier)로 간주
+  float ransac_eps_angle_deg = 15.0f; // 지면 평면의 법선이 z축에서 *도 이내면 지면으로 인정 
+  int ransac_max_iter = 300; 
 
   // clustering
   float euclidean_tolerance = 0.8f; 
@@ -128,12 +131,12 @@ struct LidarCluster
 // ========================================
 struct CostmapParams {
   float resolution = 0.05f;
-  float width = 50.0f;
-  float height = 28.0f;
+  float width = 50.0f; //차량 전방 방향
+  float height = 15.0f; //차량 좌우 방향
   int8_t unknown_cost = -1;
   int8_t free_cost = 0;
   int8_t obstacle_cost = 100;
-  float inflation_radius = 0.0f;
+  float inflation_radius = 2.0f;
 };
 
 // ========================================
@@ -212,7 +215,7 @@ struct Lidar
   // 중간 처리 단계별 PointCloud
   // ========================
 
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_filterheight_cloud;
+  // pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_filterheight_cloud;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_filterrange_cloud;
 
   pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cropbox_cloud;
@@ -225,7 +228,7 @@ struct Lidar
   {
     pcl_input_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
   
-    pcl_filterheight_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
+    // pcl_filterheight_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pcl_filterrange_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
 
     pcl_cropbox_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);

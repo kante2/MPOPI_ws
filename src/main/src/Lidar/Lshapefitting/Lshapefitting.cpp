@@ -1,4 +1,4 @@
-#include <Lidar/Lshapefitting/Lshapefitting.hpp>
+#include <Lshapefitting/Lshapefitting.hpp>
 
 class LshapefittingProcess
 {

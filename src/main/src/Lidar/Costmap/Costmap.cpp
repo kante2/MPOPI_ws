@@ -1,4 +1,4 @@
-#include <Lidar/Costmap/Costmap.hpp>
+#include <Costmap/Costmap.hpp>
 
 CostmapState state;
 CostmapParams params;

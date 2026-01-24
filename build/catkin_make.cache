@@ -1,2 +1,2 @@
-MORAI-ROS_morai_msgs:main/src/Lidar:main/src/PlanningControl
+main/src/Lidar:main/src/PlanningControl
 -DCATKIN_DEVEL_PREFIX=/home/autonav/aim_ws/devel -DCMAKE_INSTALL_PREFIX=/home/autonav/aim_ws/install -G Unix Makefiles

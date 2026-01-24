@@ -4,7 +4,7 @@
 
 void LidarProcess(Lidar& st_Lidar, LidarCluster& st_LidarCluster, const std_msgs::Header& header) 
 {
-    FilterHeight(st_Lidar);
+    // FilterHeight(st_Lidar);
     FilterRange(st_Lidar);
     CropBox(st_Lidar);
     Voxel(st_Lidar);

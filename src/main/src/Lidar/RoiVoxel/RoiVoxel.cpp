@@ -1,33 +1,33 @@
 #include <RoiVoxel/RoiVoxel.hpp>
 
-void FilterHeight (Lidar& st_Lidar)
-{
-    pcl::PassThrough<pcl::PointXYZI> filterheight;
+// void FilterHeight (Lidar& st_Lidar)
+// {
+//     pcl::PassThrough<pcl::PointXYZI> filterheight;
 
-    LidarParam st_LidarParam = st_Lidar.st_LidarParam;
+//     LidarParam st_LidarParam = st_Lidar.st_LidarParam;
 
-    filterheight.setInputCloud(st_Lidar.pcl_input_cloud);
-    filterheight.setFilterFieldName("z");
-    filterheight.setFilterLimits(st_LidarParam.min_height, st_LidarParam.max_height);
-    filterheight.filter(*st_Lidar.pcl_filterheight_cloud);
-} 
+//     filterheight.setInputCloud(st_Lidar.pcl_input_cloud);
+//     filterheight.setFilterFieldName("z");
+//     filterheight.setFilterLimits(st_LidarParam.min_height, st_LidarParam.max_height);
+//     filterheight.filter(*st_Lidar.pcl_filterheight_cloud);
+// } 
 
-void FilterRange (Lidar& st_Lidar)
-{
+// void FilterRange (Lidar& st_Lidar)
+// {
     
-    LidarParam st_LidarParam = st_Lidar.st_LidarParam;
-    st_Lidar.pcl_filterrange_cloud -> clear();
+//     LidarParam st_LidarParam = st_Lidar.st_LidarParam;
+//     st_Lidar.pcl_filterrange_cloud -> clear();
 
-    st_Lidar.pcl_filterrange_cloud -> reserve(st_Lidar.pcl_filterheight_cloud->size());
-    for (const pcl::PointXYZI &point : *(st_Lidar.pcl_filterheight_cloud))
-    {
-        float distance = std::sqrt(point.x * point.x + point.y * point.y);
-        if (distance <= st_LidarParam.lidar_range)
-        {
-            st_Lidar.pcl_filterrange_cloud->push_back(point);
-        }
-    }
-}
+//     st_Lidar.pcl_filterrange_cloud -> reserve(st_Lidar.pcl_filterheight_cloud->size());
+//     for (const pcl::PointXYZI &point : *(st_Lidar.pcl_filterheight_cloud))
+//     {
+//         float distance = std::sqrt(point.x * point.x + point.y * point.y);
+//         if (distance <= st_LidarParam.lidar_range)
+//         {
+//             st_Lidar.pcl_filterrange_cloud->push_back(point);
+//         }
+//     }
+// }
 
 // void Passthrough (Lidar& st_Lidar)
 // {
@@ -54,6 +54,24 @@ void FilterRange (Lidar& st_Lidar)
 
 //     *st_Lidar.pcl_passthrough_cloud += *st_Lidar.x_outside;
 // }
+
+void FilterRange (Lidar& st_Lidar)
+{
+    pcl::CropBox<pcl::PointXYZI> cropbox;
+    LidarParam st_LidarParam = st_Lidar.st_LidarParam;
+
+    cropbox.setInputCloud(st_Lidar.pcl_input_cloud);
+
+    Eigen::Vector4f min_pt(st_LidarParam.lidar_range_xmin, st_LidarParam.lidar_range_ymin, st_LidarParam.lidar_range_zmin, 1.0f);
+    cropbox.setMin(min_pt);
+
+    Eigen::Vector4f max_pt(st_LidarParam.lidar_range_xmax, st_LidarParam.lidar_range_ymax, st_LidarParam.lidar_range_zmax, 1.0f);
+    cropbox.setMax(max_pt);
+
+    cropbox.setNegative(false);
+
+    cropbox.filter(*st_Lidar.pcl_filterrange_cloud);
+}
 
 void CropBox (Lidar& st_Lidar)
 {

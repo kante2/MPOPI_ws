@@ -3,7 +3,7 @@
 #include <Global/Global.hpp>
 
 
-void FilterHeight(Lidar& st_Lidar);
+// void FilterHeight(Lidar& st_Lidar);
 void FilterRange(Lidar& st_Lidar);
 // void Passthrough(Lidar& st_Lidar);
 void CropBox(Lidar& st_Lidar);
