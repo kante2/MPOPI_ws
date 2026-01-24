@@ -386,7 +386,7 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
 // Lattice 경로를 Global waypoints로 변환
 // ========================================
 void ConvertBestPathToWaypoints(LatticeControl& lattice_ctrl, 
-                                 std::vector<Waypoint>& lattice_waypoints) {
+                                 std::vector<Waypoint>& waypoints) { 
 
     if (!lattice_ctrl.best_path.valid ||
         lattice_ctrl.best_path.points.empty()) {
@@ -396,32 +396,32 @@ void ConvertBestPathToWaypoints(LatticeControl& lattice_ctrl,
     
     // 경로 교체 시 index 리셋
     static bool first_lattice_path = true;
-    bool path_changed = (lattice_waypoints.size() != lattice_ctrl.best_path.points.size());
+    bool path_changed = (waypoints.size() != lattice_ctrl.best_path.points.size());  
     
     // baselink → global 변환
-    lattice_waypoints.clear();
+    waypoints.clear(); 
 
     for (const auto& pt : lattice_ctrl.best_path.points) {
         Point2D global_pt;
         BaseLinkToMap(pt, global_pt);
 
-        lattice_waypoints.push_back({global_pt.x, global_pt.y, 0.0});
+        waypoints.push_back({global_pt.x, global_pt.y, 0.0}); 
     }
     
     // 곡률 재계산
-    if (lattice_waypoints.size() >= 3) {
-        for (int i = 1; i < lattice_waypoints.size() - 1; i++) {
-            double dx1 = lattice_waypoints[i].x - lattice_waypoints[i-1].x;
-            double dy1 = lattice_waypoints[i].y - lattice_waypoints[i-1].y;
-            double dx2 = lattice_waypoints[i+1].x - lattice_waypoints[i].x;
-            double dy2 = lattice_waypoints[i+1].y - lattice_waypoints[i].y;
+    if (waypoints.size() >= 3) { 
+        for (int i = 1; i < waypoints.size() - 1; i++) { 
+            double dx1 = waypoints[i].x - waypoints[i-1].x;
+            double dy1 = waypoints[i].y - waypoints[i-1].y;
+            double dx2 = waypoints[i+1].x - waypoints[i].x;
+            double dy2 = waypoints[i+1].y - waypoints[i].y;
 
             double alpha1 = atan2(dy1, dx1);
             double alpha2 = atan2(dy2, dx2);
-            lattice_waypoints[i].curvature = fabs(alpha1 - alpha2);
+            waypoints[i].curvature = fabs(alpha1 - alpha2); 
         }
-        lattice_waypoints[0].curvature = lattice_waypoints[1].curvature;
-        lattice_waypoints.back().curvature = lattice_waypoints[lattice_waypoints.size()-2].curvature;
+        waypoints[0].curvature = waypoints[1].curvature;  
+        waypoints.back().curvature = waypoints[waypoints.size()-2].curvature; 
     }
     
     // 경로 변경 시 ctrl.close_idx 리셋
@@ -432,5 +432,5 @@ void ConvertBestPathToWaypoints(LatticeControl& lattice_ctrl,
     }
     
     ROS_INFO("[Lattice] Converted %zu baselink points to global waypoints", 
-             lattice_waypoints.size());
+             waypoints.size()); 
 }

@@ -94,32 +94,6 @@ void DecisionMaking() {
     }
 }
 
-// ========================================
-// Costmap에서 장애물 감지
-// ========================================
-
-bool CheckObstacleInCostmap() {
-    
-    // Costmap 유효성 체크
-    if (!checkCostmapAvailable()) {
-        ROS_WARN_THROTTLE(2.0, "[CheckObstacle] Costmap unavailable");
-        return false;
-    }
-    
-    const int LETHAL_THRESHOLD = 50;  // 장애물 임계값 (낮춤)
-    
-    // 전체 코스트맵 스캔
-    for (int i = 0; i < costmap_info.msg->data.size(); i++) {
-        int cost = (int)costmap_info.msg->data[i];
-        
-        if (cost >= LETHAL_THRESHOLD) {
-            ROS_INFO_THROTTLE(1.0, "[CheckObstacle] Obstacle detected (cost: %d)", cost);
-            return true;  // 하나라도 발견 즉시 리턴
-        }
-    }
-    
-    return false;
-}
 
 // ========================================
 // GetMillisecond (시간 함수)
@@ -169,158 +143,69 @@ void SelectMission() {
 // ========================================
 // 가까운 인덱스잡기
 // ========================================
-void closeWaypointsIdx(const VehicleState& ego, int& out_idx) { 
+void closeWaypointsIdx(const VehicleState& ego, int& out_idx){
 
-    // 미션별 waypoints 선택
-    const std::vector<Waypoint>* target_waypoints = nullptr;
-    
-    if (current_mission == Mission::NORMAL) {
-        target_waypoints = &waypoints;
-    } 
-    else if (current_mission == Mission::LATTICE) {
-        target_waypoints = &lattice_waypoints;
-    } 
-    else {
-        // JAMMING, END 등 waypoints 사용 안 하는 미션
-        out_idx = 0;
-        return;
-    }
-    
-    // 빈 경로 체크
-    if (target_waypoints->empty()) {
-        ROS_WARN("[closeWaypointsIdx] No waypoints available!");
-        out_idx = 0;
-        return;
-    }
-    
-    // Static 변수를 미션별로 분리
-    static int last_close_idx_normal = 0;
-    static int last_close_idx_lattice = 0;
-    
-    int& last_close_idx = (current_mission == Mission::NORMAL) 
-                          ? last_close_idx_normal 
-                          : last_close_idx_lattice;
-    
-    // 범위 안전 체크
-    if (last_close_idx >= target_waypoints->size()) {
-        last_close_idx = 0;
-    }
-    
-    // 탐색
-    double best_close_dist = 1e10;
+    static int last_close_idx = 0;
+    double best_close_dist = 10000000000;
     int close_idx = last_close_idx;
-    int start = std::max(0, last_close_idx - 10);
-    int end = std::min((int)target_waypoints->size() - 1, last_close_idx + 30);
-
-    for (int i = start; i <= end; ++i) {
-        double dx = (*target_waypoints)[i].x - ego.x;
-        double dy = (*target_waypoints)[i].y - ego.y;
+    int start = std::max(0,last_close_idx - 10);
+    int end = std::min((int)waypoints.size() - 1,last_close_idx + 30);
+    for(int i = start; i <= end ; ++i){
+        double dx = waypoints[i].x - ego.x;
+        double dy = waypoints[i].y - ego.y;
         double dist = sqrt(dx*dx + dy*dy);
-        
-        if (dist < best_close_dist) {
-            best_close_dist = dist;
-            close_idx = i;
+        if (dist < best_close_dist){
+                best_close_dist = dist;
+                close_idx = i;
+            }
+           
         }
-    }
-    
     last_close_idx = close_idx;
     out_idx = close_idx;
-    
-    ROS_INFO_THROTTLE(1.0, "[%s] close_idx: %d / %zu", 
-                     (current_mission == Mission::NORMAL) ? "NORMAL" : "LATTICE",
-                     close_idx, target_waypoints->size());
+    ROS_INFO("close_idx: %d",close_idx);
 }
 // ========================================
 // 타겟 인덱스 잡기
 // ========================================
-void getTargetwaypoint(const VehicleState& ego, int close_idx, 
-                       int& out_target_idx, double& ld) {
-    
-    // 미션별 waypoints 선택
-    const std::vector<Waypoint>* target_waypoints = nullptr;
-    
-    if (current_mission == Mission::NORMAL) {
-        target_waypoints = &waypoints;
-    } 
-    else if (current_mission == Mission::LATTICE) {
-        target_waypoints = &lattice_waypoints;
-    } 
-    else {
-        out_target_idx = close_idx;
-        ld = 5.0;
-        return;
-    }
-    
-    if (target_waypoints->empty()) {
-        out_target_idx = close_idx;
-        ld = 5.0;
-        return;
-    }
-    
+void getTargetwaypoint(const VehicleState& ego, int close_idx, int& out_target_idx, double& ld){
     ld = 5.0 + ld_gain * ego.vel;
     int target_idx = close_idx;
-    
-    for (int i = close_idx; i < target_waypoints->size(); ++i) {
-        double dx = (*target_waypoints)[i].x - ego.x;
-        double dy = (*target_waypoints)[i].y - ego.y;
+    int i = close_idx;
+    for(; i <= waypoints.size()-1; ++i ){
+        double dx = waypoints[i].x-ego.x;
+        double dy = waypoints[i].y-ego.y;
         double dist = sqrt(dx*dx + dy*dy);
-        
-        if (dist >= ld) {
+        if(dist > ld){
             target_idx = i;
             break;
+          }
         }
-    }
-    
     out_target_idx = target_idx;
 }
+
 // ========================================
 // 최대 곡률 계산
 // ========================================
-void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature) {
-    
-    const std::vector<Waypoint>* target_waypoints = nullptr;
-    
-    if (current_mission == Mission::NORMAL) {
-        target_waypoints = &waypoints;
-    } 
-    else if (current_mission == Mission::LATTICE) {
-        target_waypoints = &lattice_waypoints;
-    } 
-    else {
-        max_curvature = 0.0;
-        return;
-    }
-    
-    if (target_waypoints->empty()) {
-        max_curvature = 0.0;
-        return;
-    }
+void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
     
     double max_kappa = 0.0;
-    int end_idx = std::min((int)target_waypoints->size(), close_idx + lookahead_idx);
-    
+    int end_idx = min((int)waypoints.size(), close_idx + lookahead_idx);
+    // close_idx부터 end_idx 전까지만 탐색
     for (int i = close_idx; i < end_idx; ++i) {
-        double now_kappa = (*target_waypoints)[i].curvature;
+        double now_kappa = waypoints[i].curvature; 
         if (now_kappa > max_kappa) {
             max_kappa = now_kappa;
         }
-    }
-    
+    } 
     max_curvature = max_kappa;
+
 }
 // ========================================
 // 타겟 속도
 // ========================================
 void getTargetSpeed(double max_curvature, double& out_target_vel){
-
-    if (current_mission == Mission::NORMAL) {
-        if(max_curvature > curve_standard){
-            out_target_vel = curve_vel;
-        }
-        else {out_target_vel = target_vel;}
+    if(max_curvature > curve_standard){
+        out_target_vel = curve_vel;
     }
-
-    if (current_mission == Mission::LATTICE) {
-        out_target_vel = obstacle_vel;
-    }
+    else {out_target_vel = target_vel;}
 }

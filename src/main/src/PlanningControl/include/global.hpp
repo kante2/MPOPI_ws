@@ -102,7 +102,6 @@ struct CoordinateReference {
 
 // Mission 추가
 enum Mission {
-    NORMAL,
     LATTICE,
     JAMMING,
     END
@@ -202,7 +201,6 @@ extern CoordinateReference coord_ref;
 extern Mission current_mission;
 
 // Lattice용
-extern std::vector<Waypoint> lattice_waypoints;
 extern LatticeControl lattice_ctrl;
 extern PlannerParams planner_params;
 extern CostmapInfo costmap_info;
