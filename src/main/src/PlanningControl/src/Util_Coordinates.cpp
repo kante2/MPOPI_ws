@@ -56,7 +56,6 @@ double quaternionToYaw(double x, double y, double z, double w) {
 // ========================================
 // Map -> Base_link 변환
 // ========================================
-
 void mapToBaseLink(const Point2D& map_point, 
                    const VehicleState& ego,
                    Point2D& out_baselink) {
@@ -70,6 +69,16 @@ void mapToBaseLink(const Point2D& map_point,
     out_baselink.y = -s * dx + c * dy;
 }
 
+// ========================================
+// Baselink → Map 변환
+// ========================================
+void BaseLinkToMap(const Point2D& bl_pt, Point2D& map_pt) {
+    double cos_yaw = cos(ego.yaw);
+    double sin_yaw = sin(ego.yaw);
+    
+    map_pt.x = ego.x + bl_pt.x * cos_yaw - bl_pt.y * sin_yaw;
+    map_pt.y = ego.y + bl_pt.x * sin_yaw + bl_pt.y * cos_yaw;
+}
 // ========================================
 // Base_link -> costmap 변환
 // ========================================

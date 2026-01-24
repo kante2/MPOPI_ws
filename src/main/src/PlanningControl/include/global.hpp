@@ -47,8 +47,6 @@ struct JammingParams
 
 };
 
-
-
 // ========================================
 // 기본 구조체
 // ========================================
@@ -100,6 +98,14 @@ struct CoordinateReference {
     double x0_ecef = 0.0;
     double y0_ecef = 0.0;
     double z0_ecef = 0.0;
+};
+
+// Mission 추가
+enum Mission {
+    NORMAL,
+    LATTICE,
+    JAMMING,
+    END
 };
 
 // ========================================
@@ -189,13 +195,15 @@ extern GPSGammingState gps_state;
 extern LaneData lane;
 extern JammingParams jamming_params;
 
-
+//기본
 extern std::vector<Waypoint> waypoints;
 extern VehicleState ego;
 extern LatticeControl lattice_ctrl;
 extern CoordinateReference coord_ref;
+extern Mission current_mission;
 
 // Lattice용
+extern std::vector<Waypoint> lattice_waypoints;
 extern PlannerParams planner_params;
 extern CostmapInfo costmap_info;
 extern double last_selected_offset;

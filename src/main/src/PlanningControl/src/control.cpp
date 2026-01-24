@@ -8,17 +8,24 @@ using namespace std;
 // ========================================
 // Control Process
 // ========================================
-void ControlProcess(VehicleState& ego, ControlData& ctrl)
-{
+void ControlProcess() {
+
+    if (current_mission == Mission::JAMMING) return;  // Jamming은 Planning에서 제어까지 함
+    if (current_mission == Mission::END) {
+        PublishStopCommand();
+        return;
+    }
     getsteering(ego, ctrl);
     computePID(ego.vel, ctrl.target_vel, ctrl.accel, ctrl.brake);
     pubCmd(ctrl);
     
-    ROS_INFO("| ego_V: %.2f | Acc: %.2f | Brk: %.2f | Steer: %.2f", 
-             ego.vel, ctrl.accel, ctrl.brake, ctrl.steering);
-    ROS_INFO("| Max_K: %.4f | Ld: %.1f |", 
-             ego.max_curvature, ctrl.ld);
+    // 로깅
+    ROS_INFO_THROTTLE(1.0, "[Control] V:%.1f(%.1f) | Steer:%.2f | Acc:%.2f | Brk:%.2f", 
+                     ego.vel, ctrl.target_vel, ctrl.steering, 
+                     ctrl.accel, ctrl.brake);
 }
+
+//--------------- 함수정의 ---------------------------------------------------------
 
 // ========================================
 // 조향각 계산 (Stanley)
@@ -41,41 +48,63 @@ void getsteering(const VehicleState& ego, ControlData& ctrl)
 // ========================================
 // Lateral Path Error
 // ========================================
-double lateralPathError(int target_idx, double x, double y)
-{
-    int i = target_idx;
-    if (i < waypoints.size() - 1) {
-        double a = waypoints[i].x;
-        double b = waypoints[i].y;
-        double B = waypoints[i+1].x - waypoints[i].x;
-        double A = waypoints[i+1].y - waypoints[i].y;
-        double C = -a*A + b*B;
-        
-        if (A == 0 && B == 0) {
-            return 0.0;
-        }
-        
-        return (x*A - y*B + C) / sqrt(A*A + B*B);
-    } else {
+double lateralPathError(int target_idx, double x, double y) {
+    
+    const std::vector<Waypoint>* target_waypoints = nullptr;
+    
+    if (current_mission == Mission::NORMAL) {
+        target_waypoints = &waypoints;
+    } 
+    else if (current_mission == Mission::LATTICE) {
+        target_waypoints = &lattice_waypoints;
+    } 
+    else {
         return 0.0;
     }
+    
+    if (target_waypoints->empty() || target_idx >= target_waypoints->size() - 1) {
+        return 0.0;
+    }
+    
+    int i = target_idx;
+    double a = (*target_waypoints)[i].x;
+    double b = (*target_waypoints)[i].y;
+    double B = (*target_waypoints)[i+1].x - (*target_waypoints)[i].x;
+    double A = (*target_waypoints)[i+1].y - (*target_waypoints)[i].y;
+    double C = -a*A + b*B;
+    
+    if (A == 0 && B == 0) return 0.0;
+    
+    return (x*A - y*B + C) / sqrt(A*A + B*B);
 }
-
 // ========================================
 // Heading Error
 // ========================================
-double headingError(double yaw, int target_idx)
-{
-    int i = target_idx;
-    if (i < waypoints.size() - 1) {
-        double dx = waypoints[i+1].x - waypoints[i].x;
-        double dy = waypoints[i+1].y - waypoints[i].y;
-        double path_heading = atan2(dy, dx);
-        double diff = path_heading - yaw;
-        return atan2(sin(diff), cos(diff));
-    } else {
+double headingError(double yaw, int target_idx) {
+    
+    const std::vector<Waypoint>* target_waypoints = nullptr;
+    
+    if (current_mission == Mission::NORMAL) {
+        target_waypoints = &waypoints;
+    } 
+    else if (current_mission == Mission::LATTICE) {
+        target_waypoints = &lattice_waypoints;
+    } 
+    else {
         return 0.0;
     }
+    
+    if (target_waypoints->empty() || target_idx >= target_waypoints->size() - 1) {
+        return 0.0;
+    }
+    
+    int i = target_idx;
+    double dx = (*target_waypoints)[i+1].x - (*target_waypoints)[i].x;
+    double dy = (*target_waypoints)[i+1].y - (*target_waypoints)[i].y;
+    double path_heading = atan2(dy, dx);
+    double diff = path_heading - yaw;
+    
+    return atan2(sin(diff), cos(diff));
 }
 
 // ========================================

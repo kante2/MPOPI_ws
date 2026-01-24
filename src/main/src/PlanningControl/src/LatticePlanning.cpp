@@ -16,7 +16,6 @@ void LatticePlanningProcess() {
         return;
     }
 
-    // main 기준: lattice_ctrl 사용
     findClosestWaypoint(ego, lattice_ctrl.close_idx);
     findLookaheadGoal(ego, lattice_ctrl.close_idx, lattice_ctrl.target_idx, lattice_ctrl.ld);
 
@@ -26,7 +25,11 @@ void LatticePlanningProcess() {
     sampleAllCandidatePaths(lattice_ctrl);
     evaluateAllCandidates(lattice_ctrl);
     selectBestPath(lattice_ctrl);
+    ConvertBestPathToWaypoints(lattice_ctrl, waypoints);
 }
+
+//--------------------------함수 정의----------------------------------------------------------
+
 
 // ========================================
 // Costmap ready check ( msg ptr 방식)
@@ -47,6 +50,7 @@ void findClosestWaypoint(const VehicleState& ego, int& out_idx) {
     int end   = std::min((int)waypoints.size() - 1, last_idx + 50);
 
     for (int i = start; i <= end; i++) {
+
         double dx = waypoints[i].x - ego.x;
         double dy = waypoints[i].y - ego.y;
         double dist = std::sqrt(dx*dx + dy*dy);
@@ -377,4 +381,59 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
 
     lattice_ctrl.best_path = lattice_ctrl.candidates[best_idx];
     last_selected_offset = lattice_ctrl.best_path.offset;
+}
+
+// ========================================
+// Lattice 경로를 Global waypoints로 변환
+// ========================================
+void ConvertBestPathToWaypoints(LatticeControl& lattice_ctrl, 
+                                 std::vector<Waypoint>& lattice_waypoints) {
+
+    if (!lattice_ctrl.best_path.valid ||
+        lattice_ctrl.best_path.points.empty()) {
+        ROS_WARN("[Lattice] No valid best path to convert!");
+        return;
+    }
+    
+    // 경로 교체 시 index 리셋
+    static bool first_lattice_path = true;
+    bool path_changed = (lattice_waypoints.size() != lattice_ctrl.best_path.points.size());
+    
+    // baselink → global 변환
+    lattice_waypoints.clear();
+
+    for (const auto& pt : lattice_ctrl.best_path.points) {
+        Point2D global_pt;
+        BaseLinkToMap(pt, global_pt);
+
+        lattice_waypoints.push_back({global_pt.x, global_pt.y, 0.0});
+    }
+    
+    // 곡률 재계산
+    if (lattice_waypoints.size() >= 3) {
+        for (int i = 1; i < lattice_waypoints.size() - 1; i++) {
+            double dx1 = lattice_waypoints[i].x - lattice_waypoints[i-1].x;
+            double dy1 = lattice_waypoints[i].y - lattice_waypoints[i-1].y;
+            double dx2 = lattice_waypoints[i+1].x - lattice_waypoints[i].x;
+            double dy2 = lattice_waypoints[i+1].y - lattice_waypoints[i].y;
+
+            double alpha1 = atan2(dy1, dx1);
+            double alpha2 = atan2(dy2, dx2);
+            lattice_waypoints[i].curvature = fabs(alpha1 - alpha2);
+        }
+        lattice_waypoints[0].curvature = lattice_waypoints[1].curvature;
+        lattice_waypoints.back().curvature = lattice_waypoints[lattice_waypoints.size()-2].curvature;
+    }
+    
+    // ========================================
+    // [중요] 경로 변경 시 ctrl.close_idx 리셋
+    // ========================================
+    if (path_changed || first_lattice_path) {
+        ctrl.close_idx = 0;
+        first_lattice_path = false;
+        ROS_WARN("[Lattice] Path changed! Reset close_idx to 0");
+    }
+    
+    ROS_INFO("[Lattice] Converted %zu baselink points to global waypoints", 
+             lattice_waypoints.size());
 }
