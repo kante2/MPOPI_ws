@@ -91,7 +91,7 @@ void printGPSGammingStatistics() {
 }
 
 // ====================== TIMER CALLBACK ======================
-void gammingTimerCallback(const ros::TimerEvent&) {
+void jammingTimerCallback(const ros::TimerEvent&) {
     
     ros::Time current_time = ros::Time::now();
     double gps_dt = (current_time - gps_state.last_valid_gps_time).toSec();
@@ -99,31 +99,31 @@ void gammingTimerCallback(const ros::TimerEvent&) {
     //.toSec() : ros::Duration → double (초)
 
     if (gps_dt > gps_state.gps_timeout_threshold) {
-        if (!gps_state.is_gamming) { // is_gamming 이 false일때 
-            gps_state.is_gamming = true;
-            gps_state.gamming_start_time = gps_state.last_valid_gps_time; 
+        if (!gps_state.is_jamming) { // is_jamming 이 false일때
+            gps_state.is_jamming = true;
+            gps_state.jamming_start_time = gps_state.last_valid_gps_time;
             //last_valid_gps_time : GPS가 마지막으로 정상 수신된 시각
-            gps_state.gamming_count++;
-            gps_state.current_gamming_duration = 0.0;
+            gps_state.jamming_count++;
+            gps_state.current_jamming_duration = 0.0;
 
-            ROS_WARN("[GPS GAMMING] ===== GPS SIGNAL LOST =====");
-            ROS_WARN("[GPS GAMMING] Count: %d", gps_state.gamming_count);
+            ROS_WARN("[GPS JAMMING] ===== GPS SIGNAL LOST =====");
+            ROS_WARN("[GPS JAMMING] Count: %d", gps_state.jamming_count);
         }
-        else {//이미 is_gamming = true 일때 
-            gps_state.current_gamming_duration =
-                (current_time - gps_state.gamming_start_time).toSec();
-                //gamming 시작 시점부터 지금까지 경과한 시간 계산
+        else {//이미 is_jamming = true 일때
+            gps_state.current_jamming_duration =
+                (current_time - gps_state.jamming_start_time).toSec();
+                //jamming 시작 시점부터 지금까지 경과한 시간 계산
         }
     }
     // ---- GPS RECOVER ----
-    else { 
-        if (gps_state.is_gamming) {
-            gps_state.is_gamming = false; //false =정상상태로 전환 
+    else {
+        if (gps_state.is_jamming) {
+            gps_state.is_jamming = false; //false =정상상태로 전환
 
             double duration =
-                (current_time - gps_state.gamming_start_time).toSec();
+                (current_time - gps_state.jamming_start_time).toSec();
 
-            gps_state.total_gamming_duration += duration;
+            gps_state.total_jamming_duration += duration;
 
             gps_state.current_gamming_duration = 0.0;
 

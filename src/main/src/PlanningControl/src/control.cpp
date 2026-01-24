@@ -10,22 +10,30 @@ using namespace std;
 // ========================================
 void ControlProcess() {
 
-    if (current_mission == Mission::JAMMING) return;  // Jamming은 Planning에서 제어까지 함
-    if (current_mission == Mission::END) {
-        PublishStopCommand();
-        return;
-    }
     getsteering(ego, ctrl);
     computePID(ego.vel, ctrl.target_vel, ctrl.accel, ctrl.brake);
     pubCmd(ctrl);
     
-    // 로깅
     ROS_INFO_THROTTLE(1.0, "[Control] V:%.1f(%.1f) | Steer:%.2f | Acc:%.2f | Brk:%.2f", 
                      ego.vel, ctrl.target_vel, ctrl.steering, 
                      ctrl.accel, ctrl.brake);
 }
 
 //--------------- 함수정의 ---------------------------------------------------------
+
+// ========================================
+// Mission::END -> 멈추기
+// ========================================
+void PublishStopCommand() {
+    morai_msgs::CtrlCmd cmd;
+    cmd.longlCmdType = 1;
+    cmd.accel = 0.0;
+    cmd.brake = 1.0;
+    cmd.steering = 0.0;
+    
+    cmd_pub.publish(cmd);
+    ROS_WARN_THROTTLE(1.0, "[Control] STOP - Mission END");
+}
 
 // ========================================
 // 조향각 계산 (Stanley)

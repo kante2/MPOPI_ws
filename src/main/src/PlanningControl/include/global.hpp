@@ -19,16 +19,16 @@ struct LaneData
     double target_y;
 };
 
-struct GPSGammingState {
-    bool is_gamming = false;
+struct GPSJammingState {
+    bool is_jamming = false;
     ros::Time last_valid_gps_time;
-    ros::Time gamming_start_time;
+    ros::Time jamming_start_time;
 
     double gps_timeout_threshold = 0.3;
 
-    int gamming_count = 0;
-    double total_gamming_duration = 0.0; // total duration
-    double current_gamming_duration = 0.0; //실시간 duration
+    int jamming_count = 0;
+    double total_jamming_duration = 0.0; // total duration
+    double current_jamming_duration = 0.0; //실시간 duration
     //segment = 구간 / 조각 / 덩어리
     //GPS gamming이 발생했던 시간 구간
     //언제부터 끊겼고 언제 복구됐는지를 한 쌍으로 묶은 것.
@@ -191,31 +191,34 @@ struct CostmapInfo {
 // ========================================
 
 //재밍용
-extern GPSGammingState gps_state;
+extern GPSJammingState gps_state;
 extern LaneData lane;
 extern JammingParams jamming_params;
 
 //기본
 extern std::vector<Waypoint> waypoints;
 extern VehicleState ego;
-extern LatticeControl lattice_ctrl;
 extern CoordinateReference coord_ref;
 extern Mission current_mission;
 
 // Lattice용
 extern std::vector<Waypoint> lattice_waypoints;
+extern LatticeControl lattice_ctrl;
 extern PlannerParams planner_params;
 extern CostmapInfo costmap_info;
 extern double last_selected_offset;
 
-// (안 쓰면 제거해도 됨)
+// 임시
 extern ControlData ctrl;
 extern double Kp, Ki, Kd;
 extern double k_gain;
 extern double ld_gain;
 extern double target_vel;
+extern double obstacle_vel;
 extern double curve_vel;
 extern double curve_standard;
 extern int lookahead_idx;
+
+extern ros::Publisher cmd_pub;
 
 #endif // GLOBAL_HPP

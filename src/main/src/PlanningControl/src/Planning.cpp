@@ -6,46 +6,33 @@
 // ========================================
 
 void PlanningProcess() {
-    DecisionMaking
-    SelectMission(lattice_ctrl, current_mission);
+    
+    DecisionMaking();
+    SelectMission();
+    if (current_mission == Mission::JAMMING || current_mission == Mission::END) return;
     closeWaypointsIdx(ego, ctrl.close_idx);
     getTargetwaypoint(ego, ctrl.close_idx, ctrl.target_idx, ctrl.ld);
     getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx, ego.max_curvature);
     getTargetSpeed(ego.max_curvature, ctrl.target_vel);
 }
 
-//--------------- 함수정의 ---------------------------------------------------------
-
+//--------------- 함수정의 ------------------------------------------------------
 
 // ========================================
-// 미션 결정 (Costmap 기반)
+// 미션 결정
 // ========================================
 void DecisionMaking() {
-    
+
     if (current_mission == Mission::END) {
         return;
     }
     
     Mission determined_mission;
   
-    // GPS Jamming 체크
+    // GPS Jamming 우선체크
     if (gps_state.is_jamming) {
         determined_mission = Mission::JAMMING;
-        
-        // Stopline 0.5초 이상 감지 시 종료
-        static uint32_t stopline_detect_time = 0;
-        
-        if (lane.stopline_detected) {  // 카메라에서 stopline 감지 (구조체 필드명은 실제에 맞게 수정)
-            if (stopline_detect_time == 0) {
-                stopline_detect_time = GetMillisecond();
-            }
-            else if (GetMillisecond() - stopline_detect_time >= 500) {
-                determined_mission = Mission::END;
-            }
-        }
-        else {
-            stopline_detect_time = 0;  // stopline 미감지 시 타이머 리셋
-        }
+            ROS_WARN("[DecisionMaking] GPS Jamming detected");
     }
     // Costmap 기반 장애물 감지
     else {
@@ -110,6 +97,7 @@ void DecisionMaking() {
 // ========================================
 // Costmap에서 장애물 감지
 // ========================================
+
 bool CheckObstacleInCostmap() {
     
     // Costmap 유효성 체크
@@ -118,58 +106,15 @@ bool CheckObstacleInCostmap() {
         return false;
     }
     
-    const double CHECK_DISTANCE = 30.0;      // 전방 30m 확인
-    const double PATH_WIDTH = 2.5;           // 차량 폭 + 여유 (2.5m)
-    const int LETHAL_THRESHOLD = 70;         // 장애물로 판단할 cost 임계값
-    const int MIN_OBSTACLE_POINTS = 10;      // 최소 장애물 포인트 개수
+    const int LETHAL_THRESHOLD = 50;  // 장애물 임계값 (낮춤)
     
-    // 현재 위치에서 전방 체크 포인트 생성
-    int num_check_points = (int)(CHECK_DISTANCE / 0.5);  // 0.5m 간격
-    int obstacle_count = 0;
-    
-    for (int i = 0; i < num_check_points; i++) {
-        // 차량 기준 전방 거리
-        double forward_dist = 0.5 * i;
+    // 전체 코스트맵 스캔
+    for (int i = 0; i < costmap_info.msg->data.size(); i++) {
+        int cost = (int)costmap_info.msg->data[i];
         
-        // 차량 좌표계에서 전방 점
-        Point2D baselink_pt = {forward_dist, 0.0};
-        
-        // Global 좌표계로 변환
-        Point2D global_pt;
-        BaseLinkToMap(baselink_pt, global_pt);
-        
-        // Costmap grid 좌표로 변환
-        int gx, gy;
-        if (!MapToCostmap(global_pt, gx, gy)) {
-            continue;  // Costmap 범위 밖
-        }
-        
-        // 좌우 확장 체크 (차량 폭 고려)
-        int lateral_cells = (int)(PATH_WIDTH / (2.0 * costmap_info.resolution));
-        
-        for (int dy = -lateral_cells; dy <= lateral_cells; dy++) {
-            int check_x = gx;
-            int check_y = gy + dy;
-            
-            // 범위 체크
-            if (check_x < 0 || check_x >= costmap_info.width ||
-                check_y < 0 || check_y >= costmap_info.height) {
-                continue;
-            }
-            
-            // Cost 확인
-            int cost = getCostmapCostFromGrid(check_x, check_y);
-            
-            if (cost >= LETHAL_THRESHOLD) {
-                obstacle_count++;
-                
-                // 일정 개수 이상 감지 시 장애물 있음으로 판단
-                if (obstacle_count >= MIN_OBSTACLE_POINTS) {
-                    ROS_INFO_THROTTLE(1.0, "[CheckObstacle] Obstacle detected at %.1fm (count: %d)",
-                             forward_dist, obstacle_count);
-                    return true;
-                }
-            }
+        if (cost >= LETHAL_THRESHOLD) {
+            ROS_INFO_THROTTLE(1.0, "[CheckObstacle] Obstacle detected (cost: %d)", cost);
+            return true;  // 하나라도 발견 즉시 리턴
         }
     }
     
@@ -201,7 +146,7 @@ std::string MissionToString(Mission mission) {
 // ========================================
 // 미션 고르기
 // ========================================
-void SelectMission(const LatticeControl& lattice_ctrl, const Mission& current_mission) {
+void SelectMission() {
 
     switch (current_mission) {
         case Mission::NORMAL: 

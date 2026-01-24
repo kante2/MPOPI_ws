@@ -18,7 +18,6 @@ void LatticePlanningProcess() {
 
     findClosestWaypoint(ego, lattice_ctrl.close_idx);
     findLookaheadGoal(ego, lattice_ctrl.close_idx, lattice_ctrl.target_idx, lattice_ctrl.ld);
-
     generateOffsetGoals(lattice_ctrl.target_idx, lattice_ctrl);
     transformOffsetGoalsToBaselink(lattice_ctrl, ego);
     computeAllPolynomialPaths(lattice_ctrl);
@@ -425,9 +424,7 @@ void ConvertBestPathToWaypoints(LatticeControl& lattice_ctrl,
         lattice_waypoints.back().curvature = lattice_waypoints[lattice_waypoints.size()-2].curvature;
     }
     
-    // ========================================
-    // [중요] 경로 변경 시 ctrl.close_idx 리셋
-    // ========================================
+    // 경로 변경 시 ctrl.close_idx 리셋
     if (path_changed || first_lattice_path) {
         ctrl.close_idx = 0;
         first_lattice_path = false;

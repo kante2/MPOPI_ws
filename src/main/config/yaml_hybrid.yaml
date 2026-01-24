@@ -4,6 +4,7 @@
 
 target_vel: 60.0
 curve_vel: 40.0
+obstacle_vel: 30.0
 # curve_standard: 0.0045
 curve_standard: 0.1
 lookahead_idx: 50
