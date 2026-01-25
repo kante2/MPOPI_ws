@@ -197,8 +197,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusList.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusList.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatusList.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusList.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusList.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusList.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusList.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Generating Javascript code from morai_msgs/ObjectStatusList.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatusList.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
@@ -219,8 +219,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusListExtended.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatusListExtended.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusListExtended.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatusExtended.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusListExtended.js: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusListExtended.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusListExtended.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ObjectStatusListExtended.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Generating Javascript code from morai_msgs/ObjectStatusListExtended.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatusListExtended.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
@@ -261,8 +261,8 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/CollisionData.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/CollisionData.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/CollisionData.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/CollisionData.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/CollisionData.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/CollisionData.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/CollisionData.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Generating Javascript code from morai_msgs/CollisionData.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/CollisionData.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
@@ -321,10 +321,10 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ReplayInfo.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ReplayInfo.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ReplayInfo.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ReplayInfo.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ReplayInfo.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ReplayInfo.js: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ReplayInfo.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/ReplayInfo.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Generating Javascript code from morai_msgs/ReplayInfo.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ReplayInfo.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
@@ -354,9 +354,9 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/NpcGhostCmd.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/NpcGhostCmd.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/NpcGhostCmd.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/NpcGhostCmd.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/NpcGhostInfo.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/NpcGhostCmd.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/NpcGhostCmd.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/NpcGhostCmd.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/NpcGhostInfo.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Generating Javascript code from morai_msgs/NpcGhostCmd.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/NpcGhostCmd.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
@@ -368,17 +368,17 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollisionData.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollisionData.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleCollisionData.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollisionData.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollisionData.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollisionData.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleCollision.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollisionData.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollisionData.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Generating Javascript code from morai_msgs/VehicleCollisionData.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleCollisionData.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollision.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollision.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleCollision.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollision.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollision.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/VehicleCollision.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/ObjectStatus.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Generating Javascript code from morai_msgs/VehicleCollision.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleCollision.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
@@ -395,9 +395,9 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/WaitForTickResponse.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/WaitForTickResponse.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/WaitForTickResponse.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/WaitForTickResponse.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatus.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/WaitForTickResponse.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/WaitForTickResponse.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/WaitForTickResponse.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatus.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Generating Javascript code from morai_msgs/WaitForTickResponse.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/WaitForTickResponse.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
@@ -461,9 +461,9 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/RadarDetections.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/RadarDetections.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/RadarDetections.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/RadarDetections.js: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/RadarDetections.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/RadarDetection.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/RadarDetections.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/RadarDetections.js: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_50) "Generating Javascript code from morai_msgs/RadarDetections.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/RadarDetections.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
@@ -546,9 +546,9 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultInjection_Response.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultInjection_Response.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultInjection_Response.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultInjection_Response.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultInjection_Response.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultInjection_Response.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_65) "Generating Javascript code from morai_msgs/FaultInjection_Response.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
@@ -582,10 +582,10 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultStatusInfo.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultStatusInfo.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultStatusInfo.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultStatusInfo.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultStatusInfo.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultStatusInfo.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultStatusInfo.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/FaultStatusInfo.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_71) "Generating Javascript code from morai_msgs/FaultStatusInfo.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
@@ -602,29 +602,29 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacle.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacle.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Obstacle.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacle.js: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacle.js: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacle.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacle.js: /opt/ros/noetic/share/geometry_msgs/msg/Pose.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacle.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacle.js: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_74) "Generating Javascript code from morai_msgs/Obstacle.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Obstacle.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacles.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacles.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Obstacles.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacles.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Obstacle.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacles.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacles.js: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacles.js: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacles.js: /opt/ros/noetic/share/geometry_msgs/msg/Pose.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacles.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacles.js: /opt/ros/noetic/share/geometry_msgs/msg/Point.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Obstacles.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Obstacle.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_75) "Generating Javascript code from morai_msgs/Obstacles.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Obstacles.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Transforms.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Transforms.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Transforms.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Transforms.js: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Transforms.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Transforms.js: /opt/ros/noetic/share/geometry_msgs/msg/TransformStamped.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Transforms.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Transforms.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Transforms.js: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg/Transforms.js: /opt/ros/noetic/share/geometry_msgs/msg/Transform.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_76) "Generating Javascript code from morai_msgs/Transforms.msg"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Transforms.msg -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/msg
@@ -704,15 +704,15 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSimProcSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSimProcSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSimProcSrv.srv
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSimProcSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MoraiSimProcHandle.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSimProcSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MoraiSrvResponse.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSimProcSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MoraiSimProcHandle.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_91) "Generating Javascript code from morai_msgs/MoraiSimProcSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSimProcSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiTLInfoSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiTLInfoSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiTLInfoSrv.srv
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiTLInfoSrv.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiTLInfoSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MoraiTLInfo.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiTLInfoSrv.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiTLInfoSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MoraiTLIndex.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_92) "Generating Javascript code from morai_msgs/MoraiTLInfoSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiTLInfoSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
@@ -720,49 +720,49 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiEventCmdSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiEventCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiEventCmdSrv.srv
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiEventCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EventInfo.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiEventCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Lamps.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiEventCmdSrv.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiEventCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/Lamps.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_93) "Generating Javascript code from morai_msgs/MoraiEventCmdSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiEventCmdSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiVehicleSpecSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiVehicleSpecSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiVehicleSpecSrv.srv
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiVehicleSpecSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleSpec.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiVehicleSpecSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleSpecIndex.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiVehicleSpecSrv.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiVehicleSpecSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleSpecIndex.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_94) "Generating Javascript code from morai_msgs/MoraiVehicleSpecSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiVehicleSpecSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCmdSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSyncModeCmdSrv.srv
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeCmdResponse.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeCmd.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeCmdResponse.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_95) "Generating Javascript code from morai_msgs/MoraiSyncModeCmdSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSyncModeCmdSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiWaitForTickSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiWaitForTickSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiWaitForTickSrv.srv
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiWaitForTickSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatus.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiWaitForTickSrv.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiWaitForTickSrv.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiWaitForTickSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/WaitForTick.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiWaitForTickSrv.js: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiWaitForTickSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/EgoVehicleStatus.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiWaitForTickSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/WaitForTickResponse.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiWaitForTickSrv.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_96) "Generating Javascript code from morai_msgs/MoraiWaitForTickSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiWaitForTickSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiMapSpecSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiMapSpecSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiMapSpecSrv.srv
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiMapSpecSrv.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiMapSpecSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MapSpecIndex.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiMapSpecSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/MapSpec.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiMapSpecSrv.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_97) "Generating Javascript code from morai_msgs/MoraiMapSpecSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiMapSpecSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCtrlCmdSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCtrlCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSyncModeCtrlCmdSrv.srv
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCtrlCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeResultResponse.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCtrlCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeCtrlCmd.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCtrlCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/CtrlCmd.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeCtrlCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeResultResponse.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_98) "Generating Javascript code from morai_msgs/MoraiSyncModeCtrlCmdSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSyncModeCtrlCmdSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
@@ -788,9 +788,9 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeAddObjectSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeAddObjectSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSyncModeAddObjectSrv.srv
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeAddObjectSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeResultResponse.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeAddObjectSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeAddObject.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeAddObjectSrv.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/MoraiSyncModeAddObjectSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/SyncModeResultResponse.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_102) "Generating Javascript code from morai_msgs/MoraiSyncModeAddObjectSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/MoraiSyncModeAddObjectSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
@@ -810,39 +810,39 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_nodejs: /home/auton
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/WoowaDillyEventCmdSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/WoowaDillyEventCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/WoowaDillyEventCmdSrv.srv
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/WoowaDillyEventCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/DillyCmdResponse.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/WoowaDillyEventCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/DillyCmd.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/WoowaDillyEventCmdSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/DillyCmdResponse.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_105) "Generating Javascript code from morai_msgs/WoowaDillyEventCmdSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/WoowaDillyEventCmdSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionCtrlSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionCtrlSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/FaultInjectionCtrlSrv.srv
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionCtrlSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionCtrlSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Controller.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionCtrlSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionCtrlSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionCtrlSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionCtrlSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionCtrlSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_106) "Generating Javascript code from morai_msgs/FaultInjectionCtrlSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/FaultInjectionCtrlSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/FaultInjectionSensorSrv.srv
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Sensor.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionSensorSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_107) "Generating Javascript code from morai_msgs/FaultInjectionSensorSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/FaultInjectionSensorSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionTireSrv.js: /opt/ros/noetic/lib/gennodejs/gen_nodejs.py
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionTireSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/FaultInjectionTireSrv.srv
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionTireSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionTireSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionTireSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Overall.msg
-/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionTireSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
 /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionTireSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Tire.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionTireSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultInjection_Response.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionTireSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Sensor.msg
+/home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv/FaultInjectionTireSrv.js: /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/FaultStatusInfo_Vehicle.msg
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_108) "Generating Javascript code from morai_msgs/FaultInjectionTireSrv.srv"
 	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/srv/FaultInjectionTireSrv.srv -Imorai_msgs:/home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p morai_msgs -o /home/autonav/aim_ws/devel/share/gennodejs/ros/morai_msgs/srv
 

@@ -14,11 +14,11 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3 REQUIRED)
 
 catkin_package(
-  INCLUDE_DIRS include
+  INCLUDE_DIRS global
 )
 
 include_directories(
-  include
+  global
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
 )
@@ -27,9 +27,6 @@ add_executable(lattice_test_node
   src/main.cpp
   src/LatticePlanning.cpp
   src/Util_Coordinates.cpp
-
-  # 만약 변환/유틸 구현 cpp가 따로 있으면 여기에 추가!
-  # src/transform_utils.cpp
 )
 
 target_link_libraries(lattice_test_node

@@ -19,11 +19,12 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "/home/autonav/aim_ws/src/main/src/PlanningControl/include"
+  "/home/autonav/aim_ws/src/main/src/PlanningControl/global"
   "/home/autonav/aim_ws/devel/include"
   "/opt/ros/noetic/include"
   "/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"
   "/usr/include/eigen3"
+  "/home/autonav/aim_ws/src/main/src/PlanningControl/include"
   )
 
 # Targets to which this target links.

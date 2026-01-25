@@ -1,6 +1,7 @@
 #ifndef GLOBAL_HPP
 #define GLOBAL_HPP
 
+#include <ros/ros.h>
 #include <vector>
 #include <string>
 #include <cmath>
@@ -29,24 +30,25 @@ struct GPSJammingState {
     int jamming_count = 0;
     double total_jamming_duration = 0.0; // total duration
     double current_jamming_duration = 0.0; //실시간 duration
-    //segment = 구간 / 조각 / 덩어리
-    //GPS gamming이 발생했던 시간 구간
-    //언제부터 끊겼고 언제 복구됐는지를 한 쌍으로 묶은 것.
 };
+
+struct Jamming_offset{
+    double filtered_offset =0.0;
+    double pp_steering ;
+    double offset_steering ;
+    double last_offset = 0.0;
+};
+
 struct JammingParams
 {
     const double Ld = 30.0;
-    double norm;
-    double x_t, y_t;
     const float wheel_base = 3.0;
     double gps_steering = 0.0;
     const double gps_alpha = 0.1; 
     const double gps_k_p = 0.3;
     const double gps_k_d = 0.05; 
     const double dt = 0.02;
-
 };
-
 // ========================================
 // 기본 구조체
 // ========================================
@@ -100,12 +102,12 @@ struct CoordinateReference {
     double z0_ecef = 0.0;
 };
 
-// Mission 추가
-enum Mission {
-    LATTICE,
-    JAMMING,
-    END
-};
+// // Mission 추가
+// enum Mission {
+//     LATTICE,
+//     JAMMING,
+//     END
+// };
 
 // ========================================
 // Lattice Planning 구조체
@@ -164,6 +166,8 @@ struct LatticeControl {
 
     std::vector<CandidatePath> candidates;
     CandidatePath best_path;
+
+    Point2D lookahead_point;  
 };
 
 // Planner 파라미터
@@ -193,6 +197,8 @@ struct CostmapInfo {
 extern GPSJammingState gps_state;
 extern LaneData lane;
 extern JammingParams jamming_params;
+extern Jamming_offset offset;
+extern bool gps_first_received;
 
 //기본
 extern std::vector<Waypoint> waypoints;

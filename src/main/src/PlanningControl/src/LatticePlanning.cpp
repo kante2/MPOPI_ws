@@ -24,7 +24,6 @@ void LatticePlanningProcess() {
     sampleAllCandidatePaths(lattice_ctrl);
     evaluateAllCandidates(lattice_ctrl);
     selectBestPath(lattice_ctrl);
-    ConvertBestPathToWaypoints(lattice_ctrl, waypoints);
 }
 
 //--------------------------함수 정의----------------------------------------------------------
@@ -260,7 +259,6 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
     double width = 2.0; // 차폭
     double half_width = width / 2.0;
 
-    // [튜닝 1] 경로 변경 페널티 강화 (기존 0.3 -> 50.0)
     double consistency_weight = 50.0; 
 
     for (auto& path : lattice_ctrl.candidates) {
@@ -270,20 +268,22 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
         int valid_point_count = 0;
 
         for (size_t i = 0; i < path.points.size(); ++i) {
-            Point2D pt_rear = path.points[i]; // 뒷바퀴 위치
+            Point2D pt_rear = path.points[i]; // base_link 좌표
 
             // 헤딩 계산
             double heading = 0.0;
             if (i + 1 < path.points.size()) {
-                heading = atan2(path.points[i+1].y - pt_rear.y, path.points[i+1].x - pt_rear.x);
+                heading = atan2(path.points[i+1].y - pt_rear.y, 
+                               path.points[i+1].x - pt_rear.x);
             } else if (i > 0) {
-                heading = atan2(pt_rear.y - path.points[i-1].y, pt_rear.x - path.points[i-1].x);
+                heading = atan2(pt_rear.y - path.points[i-1].y, 
+                               pt_rear.x - path.points[i-1].x);
             }
             double c = cos(heading);
             double s = sin(heading);
 
             // ====================================================
-            // [핵심 수정] 몸통 전체 검사 (Body Collision Check)
+            // [핵심 수정] 몸통 전체 검사 - 첫 번째 코드 스타일
             // ====================================================
             int max_cost_in_step = 0;
             bool inside_map = false;
@@ -295,18 +295,26 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
                 double cx = pt_rear.x + d * c;
                 double cy = pt_rear.y + d * s;
 
-                // 좌/우/중앙 3점 검사 (std::vector 사용)
-                std::vector<Point2D> body_points; // <--- 여기 수정됨 (std:: 추가)
+                // 좌/우/중앙 3점 검사
+                std::vector<Point2D> body_points;
                 body_points.push_back({cx, cy}); // 중앙
                 body_points.push_back({cx - half_width * s, cy + half_width * c}); // 왼쪽
                 body_points.push_back({cx + half_width * s, cy - half_width * c}); // 오른쪽
 
+                // 핵심: 직접 costmap 조회 (변환 함수 없음)
                 for (const auto& p : body_points) {
-                    int gx, gy;
-                    if (BaseLinkToCostmap(p, gx, gy)) {
+                    int grid_x, grid_y;
+                    
+                    // base_link → grid 직접 계산
+                    if (worldToCostmapCoord(p.x, p.y, grid_x, grid_y)) {
                         inside_map = true;
-                        int cost = getCostmapCostFromGrid(gx, gy);
-                        if (cost > max_cost_in_step) max_cost_in_step = cost;
+                        
+                        // grid에서 직접 비용 읽기
+                        int cost = getCostmapCost(p.x, p.y);
+                        
+                        if (cost > max_cost_in_step) {
+                            max_cost_in_step = cost;
+                        }
                     }
                 }
             }
@@ -315,7 +323,6 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
 
             valid_point_count++;
 
-            // [튜닝 2] 충돌 임계값 확인
             if (max_cost_in_step >= (int)planner_params.lethal_cost_threshold) {
                 lethal_count++;
             }
@@ -328,9 +335,11 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             continue;
         }
 
-        if (valid_point_count > 0) path.obstacle_cost /= valid_point_count;
+        if (valid_point_count > 0) {
+            path.obstacle_cost /= valid_point_count;
+        }
         
-        // ... (곡률 비용 계산 로직 등은 유지) ...
+        // 곡률 비용 계산
         if (path.points.size() >= 3) {
             for (size_t i = 1; i < path.points.size() - 1; i++) {
                 double x0 = path.points[i-1].x, y0 = path.points[i-1].y;
@@ -340,7 +349,8 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
                 double dx1 = x1 - x0, dy1 = y1 - y0;
                 double dx2 = x2 - x1, dy2 = y2 - y1;
 
-                double denom = (std::sqrt(dx1*dx1 + dy1*dy1) * std::sqrt(dx2*dx2 + dy2*dy2) + 1e-6);
+                double denom = (std::sqrt(dx1*dx1 + dy1*dy1) * 
+                               std::sqrt(dx2*dx2 + dy2*dy2) + 1e-6);
                 double curvature = std::fabs((dx1*dy2 - dy1*dx2) / denom);
 
                 path.curvature_cost = std::max(path.curvature_cost, curvature);
@@ -349,7 +359,6 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
 
         path.offset_cost = std::fabs(path.offset) * 0.5;
         
-        // [적용] 강력해진 변덕 방지 비용
         double offset_change_cost = std::fabs(path.offset - last_selected_offset) * consistency_weight;
 
         path.cost = path.obstacle_cost * 100.0 + 
@@ -382,55 +391,3 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
     last_selected_offset = lattice_ctrl.best_path.offset;
 }
 
-// ========================================
-// Lattice 경로를 Global waypoints로 변환
-// ========================================
-void ConvertBestPathToWaypoints(LatticeControl& lattice_ctrl, 
-                                 std::vector<Waypoint>& waypoints) { 
-
-    if (!lattice_ctrl.best_path.valid ||
-        lattice_ctrl.best_path.points.empty()) {
-        ROS_WARN("[Lattice] No valid best path to convert!");
-        return;
-    }
-    
-    // 경로 교체 시 index 리셋
-    static bool first_lattice_path = true;
-    bool path_changed = (waypoints.size() != lattice_ctrl.best_path.points.size());  
-    
-    // baselink → global 변환
-    waypoints.clear(); 
-
-    for (const auto& pt : lattice_ctrl.best_path.points) {
-        Point2D global_pt;
-        BaseLinkToMap(pt, global_pt);
-
-        waypoints.push_back({global_pt.x, global_pt.y, 0.0}); 
-    }
-    
-    // 곡률 재계산
-    if (waypoints.size() >= 3) { 
-        for (int i = 1; i < waypoints.size() - 1; i++) { 
-            double dx1 = waypoints[i].x - waypoints[i-1].x;
-            double dy1 = waypoints[i].y - waypoints[i-1].y;
-            double dx2 = waypoints[i+1].x - waypoints[i].x;
-            double dy2 = waypoints[i+1].y - waypoints[i].y;
-
-            double alpha1 = atan2(dy1, dx1);
-            double alpha2 = atan2(dy2, dx2);
-            waypoints[i].curvature = fabs(alpha1 - alpha2); 
-        }
-        waypoints[0].curvature = waypoints[1].curvature;  
-        waypoints.back().curvature = waypoints[waypoints.size()-2].curvature; 
-    }
-    
-    // 경로 변경 시 ctrl.close_idx 리셋
-    if (path_changed || first_lattice_path) {
-        ctrl.close_idx = 0;
-        first_lattice_path = false;
-        ROS_WARN("[Lattice] Path changed! Reset close_idx to 0");
-    }
-    
-    ROS_INFO("[Lattice] Converted %zu baselink points to global waypoints", 
-             waypoints.size()); 
-}

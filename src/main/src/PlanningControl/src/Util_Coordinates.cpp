@@ -70,6 +70,55 @@ void mapToBaseLink(const Point2D& map_point,
 }
 
 // ========================================
+// base_link -> costmap grid로 변환
+// ========================================
+
+bool worldToCostmapCoord(double world_x, double world_y, int& grid_x, int& grid_y) {
+    if (costmap_info.msg == nullptr) return false;
+    
+    // base_link 좌표 → grid 인덱스 계산
+    grid_x = (int)std::floor((world_x - costmap_info.origin_x) / costmap_info.resolution);
+    grid_y = (int)std::floor((world_y - costmap_info.origin_y) / costmap_info.resolution);
+    
+    // 범위 체크
+    if (grid_x < 0 || grid_x >= (int)costmap_info.width ||
+        grid_y < 0 || grid_y >= (int)costmap_info.height) {
+        return false;
+    }
+    
+    return true;
+}
+// ========================================
+// costmap에서 비용 읽기
+// ========================================
+int getCostmapCost(double world_x, double world_y) {
+    if (costmap_info.msg == nullptr) return 0;
+    
+    int grid_x, grid_y;
+    if (!worldToCostmapCoord(world_x, world_y, grid_x, grid_y)) {
+        return (int)planner_params.lethal_cost_threshold; 
+    }
+    
+    // 1차원 인덱스 계산
+    int idx = grid_y * (int)costmap_info.width + grid_x;
+    if (idx < 0 || idx >= (int)costmap_info.msg->data.size()) {
+        return (int)planner_params.lethal_cost_threshold;
+    }
+    
+    int8_t raw = costmap_info.msg->data[idx];
+    
+    // unknown이면 중간값
+    if (raw < 0) return 30;
+    
+    // 클램프
+    int cost = (int)raw;
+    if (cost < 0) cost = 0;
+    if (cost > 100) cost = 100;
+    return cost;
+}
+
+
+// ========================================
 // Baselink → Map 변환
 // ========================================
 void BaseLinkToMap(const Point2D& bl_pt, Point2D& map_pt) {

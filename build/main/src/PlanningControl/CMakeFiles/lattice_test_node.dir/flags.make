@@ -6,5 +6,5 @@ CXX_FLAGS =   -std=c++14
 
 CXX_DEFINES = -DROSCONSOLE_BACKEND_LOG4CXX -DROS_BUILD_SHARED_LIBS=1 -DROS_PACKAGE_NAME=\"lattice_test\"
 
-CXX_INCLUDES = -I/home/autonav/aim_ws/src/main/src/PlanningControl/include -I/home/autonav/aim_ws/devel/include -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp -I/usr/include/eigen3 
+CXX_INCLUDES = -I/home/autonav/aim_ws/src/main/src/PlanningControl/global -I/home/autonav/aim_ws/devel/include -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp -I/usr/include/eigen3 -I/home/autonav/aim_ws/src/main/src/PlanningControl/include 
 

@@ -91,9 +91,9 @@ endif()
 # flag project as catkin-based to distinguish if a find_package()-ed project is a catkin project
 set(lattice_test_FOUND_CATKIN_PROJECT TRUE)
 
-if(NOT "/home/autonav/aim_ws/src/main/src/PlanningControl/include " STREQUAL " ")
+if(NOT "/home/autonav/aim_ws/src/main/src/PlanningControl/global " STREQUAL " ")
   set(lattice_test_INCLUDE_DIRS "")
-  set(_include_dirs "/home/autonav/aim_ws/src/main/src/PlanningControl/include")
+  set(_include_dirs "/home/autonav/aim_ws/src/main/src/PlanningControl/global")
   if(NOT " " STREQUAL " ")
     set(_report "Check the issue tracker '' and consider creating a ticket if the problem has not been reported yet.")
   elseif(NOT " " STREQUAL " ")
