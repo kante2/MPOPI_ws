@@ -56,6 +56,7 @@ struct JammingParams
 struct Point2D {
     double x;
     double y;
+    double curvature;
 };
 
 struct Point3D {
@@ -204,10 +205,11 @@ extern bool gps_first_received;
 extern std::vector<Waypoint> waypoints;
 extern VehicleState ego;
 extern CoordinateReference coord_ref;
-extern Mission current_mission;
+// extern Mission current_mission;
 
 // Lattice용
 extern LatticeControl lattice_ctrl;
+extern Point2D best_waypoint;
 extern PlannerParams planner_params;
 extern CostmapInfo costmap_info;
 extern double last_selected_offset;

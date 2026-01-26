@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <Eigen/Dense>
+using namespace std;
 
 // ========================================
 // LatticePlanningProcess
@@ -24,6 +25,14 @@ void LatticePlanningProcess() {
     sampleAllCandidatePaths(lattice_ctrl);
     evaluateAllCandidates(lattice_ctrl);
     selectBestPath(lattice_ctrl);
+
+    // closeWaypointsIdx(ego, ctrl.close_idx); => getLocalPathIdx 로 변경
+    getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);
+    // getTargetWaypoint(ego, ctrl.close_idx, ctrl.target_idx, ctrl.ld);
+    getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx, ego.max_curvature);
+    getTargetSpeed(ego.max_curvature, ctrl.target_vel);
+    
+
 }
 
 //--------------------------함수 정의----------------------------------------------------------
@@ -387,7 +396,100 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
         }
     }
 
+
     lattice_ctrl.best_path = lattice_ctrl.candidates[best_idx];
     last_selected_offset = lattice_ctrl.best_path.offset;
+    
+    // lattice_ctrl.best_path.points.back() -> 가장 마지막 웨이포인트가 나옴..
+    // best_waypoint = lattice_ctrl.best_path.points.back();
+    // ROS_INFO("Best waypoint: (%.2f, %.2f)", best_waypoint.x, best_waypoint.y);
 }
 
+// lattice_ctrl.best_path.points == local_path
+// local path 에서 일정 ld이상인 index 인 out_idx 생성 ==> closewaypointsIdx 대체 
+//
+void getTargetLocalPathIdx(LatticeControl& lattice_ctrl, double ld, int& out_idx){
+    int target_idx = 0;
+    for(int i = 0; i < lattice_ctrl.best_path.points.size(); ++i){
+        double dx = lattice_ctrl.best_path.points[i].x;
+        double dy = lattice_ctrl.best_path.points[i].y;
+        double dist = sqrt(dx*dx + dy*dy);
+        if(dist > ld){
+            target_idx = i;
+            break;
+        }
+    }
+    out_idx = target_idx;
+}
+
+
+// ========================================
+// 가까운 인덱스잡기
+// ========================================
+// void closeWaypointsIdx(const VehicleState& ego, int& out_idx){
+
+//     static int last_close_idx = 0;
+//     double best_close_dist = 10000000000;
+//     int close_idx = last_close_idx;
+//     int start = std::max(0,last_close_idx - 10);
+//     int end = std::min((int)waypoints.size() - 1,last_close_idx + 30);
+//     for(int i = start; i <= end ; ++i){
+//         double dx = waypoints[i].x - ego.x;
+//         double dy = waypoints[i].y - ego.y;
+//         double dist = sqrt(dx*dx + dy*dy);
+//         if (dist < best_close_dist){
+//                 best_close_dist = dist;
+//                 close_idx = i;
+//             }
+           
+//         }
+//     last_close_idx = close_idx;
+//     out_idx = close_idx;
+//     ROS_INFO("close_idx: %d",close_idx);
+// }
+// ========================================
+// 타겟 인덱스 잡기lattice_ctrl.best_path.points
+// ========================================
+
+// void getTargetWaypoint(const VehicleState& ego, int close_idx, int& out_target_idx, double& ld){
+//     ld = 5.0 + ld_gain * ego.vel;
+//     int target_idx = close_idx;
+//     int i = close_idx;
+//     for(; i <= waypoints.size()-1; ++i ){
+//         double dx = waypoints[i].x-ego.x;
+//         double dy = waypoints[i].y-ego.y;
+//         double dist = sqrt(dx*dx + dy*dy);
+//         if(dist > ld){
+//             target_idx = i;
+//             break;
+//           }
+//         }
+//     out_target_idx = target_idx;
+// }
+
+// ========================================
+// 최대 곡률 계산
+// ========================================
+void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
+    
+    double max_kappa = 0.0;
+    int end_idx = min((int)lattice_ctrl.best_path.points.size(), close_idx + lookahead_idx);
+    // close_idx부터 end_idx 전까지만 탐색
+    for (int i = close_idx; i < end_idx; ++i) {
+        double now_kappa = lattice_ctrl.best_path.points[i].curvature;
+        if (now_kappa > max_kappa) {
+            max_kappa = now_kappa;
+        }
+    } 
+    max_curvature = max_kappa;
+
+}
+// ========================================
+// 타겟 속도
+// ========================================
+void getTargetSpeed(double max_curvature, double& out_target_vel){
+    if(max_curvature > curve_standard){
+        out_target_vel = curve_vel;
+    }
+    else {out_target_vel = target_vel;}
+}

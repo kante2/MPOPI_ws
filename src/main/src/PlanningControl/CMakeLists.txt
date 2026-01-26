@@ -27,6 +27,7 @@ add_executable(lattice_test_node
   src/main.cpp
   src/LatticePlanning.cpp
   src/Util_Coordinates.cpp
+  src/control.cpp
 )
 
 target_link_libraries(lattice_test_node

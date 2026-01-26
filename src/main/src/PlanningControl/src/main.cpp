@@ -1,5 +1,7 @@
 #include "global.hpp"
 #include "Planning.hpp"
+
+#include <nav_msgs/Path.h>
 #include <ros/ros.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <morai_msgs/GPSMessage.h>
@@ -8,6 +10,7 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <fstream>
 #include <sstream>
+#include <morai_msgs/CtrlCmd.h>
 
 using namespace std;
 
@@ -24,8 +27,23 @@ CostmapInfo costmap_info;
 double last_selected_offset = 0.0;
 
 ros::Publisher marker_pub;
+ros::Publisher local_path_pub;
 
 bool coord_ref_initialized = false;
+
+// =========================================================
+// [추가 2] 링킹 에러 해결을 위한 변수 실체 정의 (여기 꼭 필요!)
+// =========================================================
+ControlData ctrl;          // 제어 데이터
+double Kp = 1.0;           // PID 게인 초기값
+double Ki = 0.0;
+double Kd = 0.0;
+double k_gain = 1.0;       // 조향 게인
+double curve_standard = 0.0;
+double curve_vel = 10.0;
+double target_vel = 20.0;   // 목표 속도
+
+ros::Publisher cmd_pub;    // 제어 명령 Publisher
 
 // ========================================
 // Waypoint 로드 (절대경로 하드코딩: ref.txt + track csv)
@@ -278,7 +296,10 @@ void publishVehicleFootprint() {
 
 
 void latticeTestLoop(const ros::TimerEvent&) {
+    // planning -> coontrol
     LatticePlanningProcess();     // 1. 경로 계산
+    ControlProcess();             // 1-2. 제어 계산
+    // rviz,, 
     publishCandidatePaths();      // 2. 경로 그리기
     publishVehicleFootprint();    // 3. 내 차 박스 그리기 (New!)
 }
@@ -330,7 +351,9 @@ int main(int argc, char** argv) {
     
     // Publisher
     marker_pub = nh.advertise<visualization_msgs::MarkerArray>("/lattice/paths", 1);
-    
+    local_path_pub = nh.advertise<nav_msgs::Path>("/local_path", 1);
+    cmd_pub = nh.advertise<morai_msgs::CtrlCmd>("/ctrl_cmd_0", 1);
+
     // Timer (10Hz)
     ros::Timer timer = nh.createTimer(ros::Duration(0.1), latticeTestLoop);
     
