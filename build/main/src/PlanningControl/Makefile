@@ -686,6 +686,33 @@ src/Util_Coordinates.cpp.s:
 	cd /home/autonav/aim_ws/build && $(MAKE) -f main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/build.make main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/src/Util_Coordinates.cpp.s
 .PHONY : src/Util_Coordinates.cpp.s
 
+src/control.o: src/control.cpp.o
+
+.PHONY : src/control.o
+
+# target to build an object file
+src/control.cpp.o:
+	cd /home/autonav/aim_ws/build && $(MAKE) -f main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/build.make main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/src/control.cpp.o
+.PHONY : src/control.cpp.o
+
+src/control.i: src/control.cpp.i
+
+.PHONY : src/control.i
+
+# target to preprocess a source file
+src/control.cpp.i:
+	cd /home/autonav/aim_ws/build && $(MAKE) -f main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/build.make main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/src/control.cpp.i
+.PHONY : src/control.cpp.i
+
+src/control.s: src/control.cpp.s
+
+.PHONY : src/control.s
+
+# target to generate assembly for a file
+src/control.cpp.s:
+	cd /home/autonav/aim_ws/build && $(MAKE) -f main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/build.make main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/src/control.cpp.s
+.PHONY : src/control.cpp.s
+
 src/main.o: src/main.cpp.o
 
 .PHONY : src/main.o
@@ -763,6 +790,9 @@ help:
 	@echo "... src/Util_Coordinates.o"
 	@echo "... src/Util_Coordinates.i"
 	@echo "... src/Util_Coordinates.s"
+	@echo "... src/control.o"
+	@echo "... src/control.i"
+	@echo "... src/control.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
