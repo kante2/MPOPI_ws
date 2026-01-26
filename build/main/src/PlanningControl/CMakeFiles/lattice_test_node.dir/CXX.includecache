@@ -94,26 +94,6 @@ cmath
 Eigen/Dense
 -
 
-/home/autonav/aim_ws/src/main/src/PlanningControl/src/Util_Coordinates.cpp
-global.hpp
-/home/autonav/aim_ws/src/main/src/PlanningControl/src/global.hpp
-Planning.hpp
-/home/autonav/aim_ws/src/main/src/PlanningControl/src/Planning.hpp
-cmath
--
-algorithm
--
-
-/home/autonav/aim_ws/src/main/src/PlanningControl/src/control.cpp
-Planning.hpp
-/home/autonav/aim_ws/src/main/src/PlanningControl/src/Planning.hpp
-morai_msgs/CtrlCmd.h
--
-cmath
--
-algorithm
--
-
 /home/autonav/aim_ws/src/main/src/PlanningControl/src/main.cpp
 global.hpp
 /home/autonav/aim_ws/src/main/src/PlanningControl/src/global.hpp

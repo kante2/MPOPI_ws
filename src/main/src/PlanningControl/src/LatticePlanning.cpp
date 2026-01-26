@@ -25,6 +25,7 @@ void LatticePlanningProcess() {
     sampleAllCandidatePaths(lattice_ctrl);
     evaluateAllCandidates(lattice_ctrl);
     selectBestPath(lattice_ctrl);
+    ctrl.ld = 5.0;
 
     // closeWaypointsIdx(ego, ctrl.close_idx); => getLocalPathIdx 로 변경
     getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);
