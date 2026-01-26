@@ -51,8 +51,8 @@ ros::Publisher cmd_pub;    // 제어 명령 Publisher
 bool loadWaypoints() {
     waypoints.clear();
 
-    const std::string ref_file_name  = "/home/autonav/aim_ws/src/main/config/ref.txt";
-    const std::string path_file_name = "/home/autonav/aim_ws/src/main/config/track_log_recorded_right.csv";
+    const std::string ref_file_name  = "../config/ref.txt";
+    const std::string path_file_name = "../config/track_log_recorded_right.csv";
 
     // -------------------------
     // 1) 기준점(ref.txt) 읽기
