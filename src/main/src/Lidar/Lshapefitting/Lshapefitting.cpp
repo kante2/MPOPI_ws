@@ -181,8 +181,22 @@ void LshapefittingProcess::Calculate_Closeness (
 // struct에 있는 중간 계산 함수들 포함해서 클러스터 1개에서 진행되는 계산 총괄
 // ===============================================================
 
+// =========================
+// 직전 프레임의 OBB 정보 저장 구조체
+// =========================
+struct PrevClusterInfo 
+{
+    float x;
+    float y;
+    float heading_theta;
+};
+
+static std::vector <PrevClusterInfo> vec_prev_clusters_info;
+
+
 void LshapefittingProcess::Calculate_Process (LidarCluster& st_LidarCluster)
 {
+    
     // =========================
     // 1. Point2D 변환 
     // =========================
@@ -269,13 +283,29 @@ void LshapefittingProcess::Calculate_Process (LidarCluster& st_LidarCluster)
         {BestMaxX, BestMinY}
     };
 
-    float w = BestMaxX - BestMinX;
-    float l = BestMaxY - BestMinY;
+    // === ** 변수명 수정 필요 ** ===
+    // 수정 사항 : x 값을 length로 나타내게끔
+
+    float w = BestMaxX - BestMinX; // l
+    float l = BestMaxY - BestMinY; // w
+
+    if (w > l) {
+        st_LidarCluster.heading_theta = BestTheta; // rviz의 x축 (length) 이 길면 그대로
+    }
+    else {
+        st_LidarCluster.heading_theta = BestTheta + M_PI_2; // y축(width) 이 길면 90도 회전
+    }
 
     st_LidarCluster.width = min( w, l);
     st_LidarCluster.length = max( w, l);
+
+    // 여기까지 w 는 rviz의 x축값. w 가 내가 생각한 length 인 것. 차량 정면 방향. 그래서 heading = BestTheta. 
     
-    if (!((st_LidarCluster.width > 0.01f && st_LidarCluster.width < 1.5f ) && st_LidarCluster.length > 3.0f)) 
+    // 지금 차량 전방, 후방 방향이 고정되어 있지 않아서 방향 벡터가 앞뒤로 막 튄다. 
+    // 방향 자체는 잘 잡으니깐, 어디가 차량 전방인지만 고정하면 된다. 
+    // -> 거리 기반 데이터 연관 구현. "지금 이 위치에 있는 클러스터는, 이전 프레임에서 가장 가까운 곳에 있던 클러스터와 같은 클러스터일 것이다."
+    
+    if (!((st_LidarCluster.width > 0.01f && st_LidarCluster.width < 1.0f ) && st_LidarCluster.length > 3.0f)) 
     {
         for (int i = 0; i < 4; i++) 
         {
@@ -297,7 +327,75 @@ void LshapefittingProcess::Calculate_Process (LidarCluster& st_LidarCluster)
     st_LidarCluster.centroid_x = local_centroid_x * Cos - local_centroid_y * Sin;
     st_LidarCluster.centroid_y = local_centroid_x * Sin + local_centroid_y * Cos;
 
+    // ===================================================================
+    // 방향 벡터를 차량 전방방향으로 고정하기 위한 이전/현재 프레임 중심점 위치 변화 이용 
+    // ===================================================================
 
+    // 1. 현재 OBB 정보
+    float curr_centroid_x = st_LidarCluster.centroid_x;
+    float curr_centroid_y = st_LidarCluster.centroid_y;
+    float curr_heading_theta = st_LidarCluster.heading_theta;
+
+    float final_heading_theta = curr_heading_theta; // 최종 결정될 각도
+    float min_dist = 1.0f; // 1m 이내만 같은 물체로 간주
+    int matched_idx = -1;
+
+    // 2. 이전 프레임 기록들 중 가장 가까운 OBB 찾기
+    for (int i = 0; i < vec_prev_clusters_info.size(); ++i) 
+    {
+        float dx = curr_centroid_x - vec_prev_clusters_info[i].x;
+        float dy = curr_centroid_y - vec_prev_clusters_info[i].y;
+        float dist = sqrt(dx*dx + dy*dy);
+
+        if (dist < min_dist) 
+        {
+            min_dist = dist;
+            matched_idx = i;
+        }
+    }
+
+    // 3. 매칭된 이전 OBB 정보가 없다면
+    if (matched_idx != -1)
+    {
+        float move_dx = curr_centroid_x - vec_prev_clusters_info[matched_idx].x;
+        float move_dy = curr_centroid_y - vec_prev_clusters_info[matched_idx].y;
+        float move_dist = sqrt(move_dx*move_dx + move_dy*move_dy); 
+
+        // (A) 움직임이 어느 정도 있을 때 (0.2m 이상): 이동 방향(Vector) 우선
+        if (move_dist > 0.2f) 
+        {
+            float dot = move_dx * cos(curr_heading_theta) + move_dy * sin(curr_heading_theta);
+            if (dot > 0) 
+            {
+                final_heading_theta += M_PI; // 이동 방향과 반대면 180도 반전
+            }
+        } 
+        // (B) 정지 상태일 때: 이전 프레임의 각도 유지
+        else 
+        {
+            float prev_heading_theta = vec_prev_clusters_info[matched_idx].heading_theta;
+            float dot = cos(prev_heading_theta) * cos(curr_heading_theta) + sin(prev_heading_theta) * sin(curr_heading_theta);
+            if (dot < 0) 
+            {
+                final_heading_theta += M_PI; // 이전 각도와 너무 차이나면 반전
+            }
+        }
+    }
+
+    // 각도를 [-PI, PI] 범위로 정규화
+    while (final_heading_theta > M_PI)  final_heading_theta -= 2.0f * M_PI;
+    while (final_heading_theta < -M_PI) final_heading_theta += 2.0f * M_PI;
+
+    // 보정된 각도를 클러스터에 최종 저장 (LShapeFitting에서 백업할 때 이 값을 사용함)
+    st_LidarCluster.heading_theta = final_heading_theta;
+
+    // 차량 전방 방향으로 고정된 헤딩 벡터 계산
+    st_LidarCluster.heading_direction_x = cos(final_heading_theta);
+    st_LidarCluster.heading_direction_y = sin(final_heading_theta);
+
+    // -------- data 확인 -----------
+    cout << st_LidarCluster.heading_direction_x << endl;
+    cout << st_LidarCluster.heading_direction_y << endl;
 }
 
 // ===============================================================================
@@ -315,45 +413,15 @@ void LShapeFitting (Lidar& st_Lidar)
         func_Process.Calculate_Process(vec_Clusters[i]);
     }
 
-    // // 2. 칼만 필터 업데이트를 위한 데이터 변환 (LidarCluster -> ForKalman)
-    // std::vector<ForKalman> detections;
-    // for (int i = 0; i < vec_Clusters.size(); i++)
-    // {
-    //     ForKalman det;
-    //     det.x = vec_Clusters[i].center_x;
-    //     det.y = vec_Clusters[i].center_y;
-    //     det.yaw = vec_Clusters[i].theta;
-    //     det.w = vec_Clusters[i].width;
-    //     det.l = vec_Clusters[i].length;
-    //     det.cluster_idx = i; // 원본 인덱스 저장
-    //     detections.push_back(det);
-    // }
+    vec_prev_clusters_info.clear(); 
+    for (int i = 0; i < vec_Clusters.size(); i++)
+    {
+        if (vec_Clusters[i].pcl_cluster_point->size() < 3) continue;
 
-    // // 3. 칼만 필터 트래킹 실행 (현재 시간 timestamp 필요)
-    // double current_time = /* 현재 시스템 시간 또는 센서 시간 */;
-    // g_tracker.updateTracks(detections, current_time);
-
-    // // 4. 트래커의 결과를 다시 LidarCluster 구조체에 반영
-    // // 트래커 내부에 저장된 ID와 속도 정보를 원본 클러스터에 매칭
-    // for (auto& track : g_tracker.tracks)
-    // {
-    //     // track.last_cluster_idx 등을 활용하거나 
-    //     // 가장 가까운 클러스터를 찾아 ID와 속도를 부여
-    //     for (auto& cluster : vec_Clusters)
-    //     {
-    //         float dist = sqrt(pow(cluster.center_x - track.x(0), 2) + 
-    //                           pow(cluster.center_y - track.x(1), 2));
-            
-    //         if (dist < 0.5) { // 50cm 이내면 동일 객체로 판단
-    //             cluster.id = track.id;
-    //             cluster.velocity = track.x(3); // EKF로 추정된 선속도
-    //             cluster.is_updated = true;
-                
-    //             // 필터링된 값으로 좌표 보정 (선택 사항)
-    //             // cluster.center_x = track.x(0); 
-    //             // cluster.center_y = track.x(1);
-    //         }
-    //     }
-    // }
-
+        PrevClusterInfo prev_cluster_info; 
+        prev_cluster_info.x = vec_Clusters[i].centroid_x;
+        prev_cluster_info.y = vec_Clusters[i].centroid_y;
+        prev_cluster_info.heading_theta = vec_Clusters[i].heading_theta;
+        vec_prev_clusters_info.push_back(prev_cluster_info);
+    }
 }
