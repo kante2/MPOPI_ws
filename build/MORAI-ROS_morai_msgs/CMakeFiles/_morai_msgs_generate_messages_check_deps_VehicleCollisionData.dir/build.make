@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/autonav/aim_ws/build
 include MORAI-ROS_morai_msgs/CMakeFiles/_morai_msgs_generate_messages_check_deps_VehicleCollisionData.dir/progress.make
 
 MORAI-ROS_morai_msgs/CMakeFiles/_morai_msgs_generate_messages_check_deps_VehicleCollisionData:
-	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genmsg/cmake/../../../lib/genmsg/genmsg_check_deps.py morai_msgs /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleCollisionData.msg geometry_msgs/Vector3:morai_msgs/VehicleCollision:std_msgs/Header:morai_msgs/ObjectStatus
+	cd /home/autonav/aim_ws/build/MORAI-ROS_morai_msgs && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genmsg/cmake/../../../lib/genmsg/genmsg_check_deps.py morai_msgs /home/autonav/aim_ws/src/MORAI-ROS_morai_msgs/msg/VehicleCollisionData.msg geometry_msgs/Vector3:morai_msgs/ObjectStatus:std_msgs/Header:morai_msgs/VehicleCollision
 
 _morai_msgs_generate_messages_check_deps_VehicleCollisionData: MORAI-ROS_morai_msgs/CMakeFiles/_morai_msgs_generate_messages_check_deps_VehicleCollisionData
 _morai_msgs_generate_messages_check_deps_VehicleCollisionData: MORAI-ROS_morai_msgs/CMakeFiles/_morai_msgs_generate_messages_check_deps_VehicleCollisionData.dir/build.make

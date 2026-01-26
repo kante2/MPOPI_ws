@@ -1603,7 +1603,7 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages.dir/all: MORAI-ROS_
 
 # Build rule for subdir invocation for target.
 MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/autonav/aim_ws/build/CMakeFiles 97
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/autonav/aim_ws/build/CMakeFiles 96
 	$(MAKE) -f CMakeFiles/Makefile2 MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/autonav/aim_ws/build/CMakeFiles 0
 .PHONY : MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages.dir/rule
@@ -2409,12 +2409,12 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp.dir/all: MORAI-
 MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp.dir/all: MORAI-ROS_morai_msgs/CMakeFiles/_morai_msgs_generate_messages_check_deps_FaultInjectionCtrlSrv.dir/all
 	$(MAKE) -f MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp.dir/build.make MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp.dir/depend
 	$(MAKE) -f MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp.dir/build.make MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 "Built target morai_msgs_generate_messages_cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 "Built target morai_msgs_generate_messages_cpp"
 .PHONY : MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp.dir/all
 
 # Build rule for subdir invocation for target.
 MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/autonav/aim_ws/build/CMakeFiles 20
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/autonav/aim_ws/build/CMakeFiles 19
 	$(MAKE) -f CMakeFiles/Makefile2 MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/autonav/aim_ws/build/CMakeFiles 0
 .PHONY : MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_generate_messages_cpp.dir/rule
@@ -4659,7 +4659,7 @@ MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_gencpp.dir/all: MORAI-ROS_morai_msgs/
 
 # Build rule for subdir invocation for target.
 MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_gencpp.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/autonav/aim_ws/build/CMakeFiles 20
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/autonav/aim_ws/build/CMakeFiles 19
 	$(MAKE) -f CMakeFiles/Makefile2 MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_gencpp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/autonav/aim_ws/build/CMakeFiles 0
 .PHONY : MORAI-ROS_morai_msgs/CMakeFiles/morai_msgs_gencpp.dir/rule
@@ -4725,7 +4725,7 @@ main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/all: main/src/Planning
 main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/all: main/src/PlanningControl/CMakeFiles/visualization_msgs_generate_messages_lisp.dir/all
 	$(MAKE) -f main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/build.make main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/depend
 	$(MAKE) -f main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/build.make main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num= "Built target lattice_test_node"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/autonav/aim_ws/build/CMakeFiles --progress-num=4 "Built target lattice_test_node"
 .PHONY : main/src/PlanningControl/CMakeFiles/lattice_test_node.dir/all
 
 # Build rule for subdir invocation for target.
