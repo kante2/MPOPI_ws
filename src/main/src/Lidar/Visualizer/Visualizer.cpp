@@ -177,28 +177,15 @@ void PublishOBBLineStrip (const ros::Publisher &pub_bounding_box,
     delete_all_marker.action = visualization_msgs::Marker::DELETEALL;
     msg_marker_array.markers.push_back(delete_all_marker);
 
-    // 필터링 임계값 설정
-    // const float max_limit = 9.0f; // 6m 이상 구조물 제외
-    // const float min_limit = 0.1f; // 너무 작은 노이즈 제외
-
     for (size_t i = 0; i < st_Lidar.vec_clusters.size(); ++i) 
-    {
+    {  
         const LidarCluster& cluster = st_Lidar.vec_clusters[i];
         
         if (cluster.pcl_cluster_point->empty()) continue;
 
-        // OBB 기준 실제 크기 계산
-        // float rotate_size_x = cluster.rotate_rect_max_x - cluster.rotate_rect_min_x;
-        // float rotate_size_y = cluster.rotate_rect_max_y - cluster.rotate_rect_min_y;
-        // float rotate_size_z = cluster.max_z - cluster.min_z;
-
-        // if (size_x > max_limit || size_y > max_limit) continue; // 너무 긴 가드레일이나 건물
-        // if (rotate_size_z < min_limit) continue;                       // 바닥 노이즈
-
         visualization_msgs::Marker m;
         m.header = header;
-        // m.header.frame_id = "Lidar3D";
-        m.header.frame_id = "base_link";
+        m.header.frame_id = "Lidar3D";
 
         m.ns = "obb_filtered";
         m.id = i;
@@ -228,81 +215,157 @@ void PublishOBBLineStrip (const ros::Publisher &pub_bounding_box,
 }
 
 // =========================================================
+// OBB heading vector 시각화
+// =========================================================
+
+void PublishHeading(const ros::Publisher& pub_heading, 
+                    Lidar& st_Lidar, 
+                    const std_msgs::Header& header)
+{
+    visualization_msgs::MarkerArray msg_marker_array;
+
+    //1. 이전 마커 삭제
+
+    visualization_msgs::Marker delete_marker;
+    delete_marker.header.frame_id = "Lidar3D"; 
+    delete_marker.header.stamp = ros::Time::now();
+    delete_marker.action = visualization_msgs::Marker::DELETEALL;
+    msg_marker_array.markers.push_back(delete_marker);
+
+    for (int i = 0; i < st_Lidar.vec_clusters.size(); ++i)
+    {
+      const LidarCluster& cluster = st_Lidar.vec_clusters[i];
+      visualization_msgs::Marker arrow;
+      arrow.points.clear();
+
+      // ------- data 출력 확인 ----------
+      // cout << "heading 시각화 : " << cluster.heading_direction_x << endl; 
+      // gooood
+
+      if (cluster.pcl_cluster_point->empty()) continue;
+      
+      arrow.header.frame_id = "Lidar3D"; 
+      arrow.header.stamp = ros::Time::now();
+      arrow.ns = "heading_arrows";
+      arrow.id = i;
+      arrow.type = visualization_msgs::Marker::ARROW;
+      arrow.action = visualization_msgs::Marker::ADD;
+
+      arrow.pose.orientation.w = 1.0;
+
+      // 1. 화살표의 시작점 (OBB의 중심점)
+      geometry_msgs::Point start;
+      start.x = cluster.centroid_x;
+      start.y = cluster.centroid_y;
+      start.z = 0.5; // 바닥에 묻히지 않게 살짝 띄움
+
+      // 2. 화살표의 끝점 (중심점에서 heading 방향)
+      geometry_msgs::Point end;
+      end.x = start.x + cluster.heading_direction_x * cluster.length * 0.5;
+      end.y = start.y + cluster.heading_direction_y * cluster.length * 0.5;
+      end.z = 0.5;
+
+      arrow.points.push_back(start);
+      arrow.points.push_back(end);
+
+      // ------- data 출력 확인 ----------
+      // cout << "arrow point : " << arrow << endl;
+      // goooood
+
+      // 3. 화살표 두께 및 색상 설정
+      arrow.scale.x = 0.1; // 축 두께
+      arrow.scale.y = 0.2; // 화살표 머리 두께
+      arrow.scale.z = 0.2; // 화살표 머리 길이
+      
+      arrow.color.r = 1.0f; // 빨간색 화살표
+      arrow.color.g = 1.0f;
+      arrow.color.b = 0.0f;
+      arrow.color.a = 1.0f;
+
+      msg_marker_array.markers.push_back(arrow);
+
+    }
+    pub_heading.publish(msg_marker_array);
+
+    // ------- data 출력 확인 ----------
+    // cout << "pub_heading (visualizer.cpp) : " << msg_marker_array << endl;
+    // goood
+}
+
+// =========================================================
 // kalman tracking 시각화
 // =========================================================
 
-// void PublishKalman(const ros::Publisher& pub, 
-//                   const std::vector<KalmanDetection>& detections, 
-//                   const std_msgs::Header& header) 
-// {
+void PublishKalman(const ros::Publisher& pub_kalman, 
+                  const std::vector<KalmanDetection>& detections, 
+                  const std_msgs::Header& header) 
+{
+    if (detections.empty()) return;
 
-//     ROS_INFO("Detections size: %ld", detections.size()); 
-
-//     if (detections.empty()) return; // 데이터가 없으면 바로 리턴
-
+    visualization_msgs::MarkerArray marker_array;
+    ros::Time now = ros::Time::now();
     
-//     visualization_msgs::MarkerArray marker_array;
-    
-//     // 이전에 그려진 마커들을 지우기 위해 '전체 삭제' 액션을 먼저 보낼 수도 있습니다.
-//     // 하지만 ID 기반 업데이트를 위해 바로 ADD를 수행합니다.
-
-//     for (const auto& det : detections) 
-//     {
-//         // --- 1. ID 및 속도 텍스트 마커 ---
-//         visualization_msgs::Marker text_marker;
-//         text_marker.header = header;
-//         text_marker.ns = "track_info";
-//         text_marker.id = det.id; // 고유 ID 부여
-//         text_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-//         text_marker.action = visualization_msgs::Marker::ADD;
+    for (const KalmanDetection& det : detections) 
+    {
+        // --- 1. 장애물 본체 마커 (CUBE) ---
+        visualization_msgs::Marker cube_marker;
+        cube_marker.header = header;
+        cube_marker.header.frame_id = "Lidar3D";
+        cube_marker.header.stamp = now;
+        cube_marker.ns = "track_cube";
+        cube_marker.id = det.id; 
+        cube_marker.type = visualization_msgs::Marker::CUBE;
+        cube_marker.action = visualization_msgs::Marker::ADD;
         
-//         // 위치: 객체 위쪽 (z축으로 약간 띄움)
-//         text_marker.pose.position.x = det.x;
-//         text_marker.pose.position.y = det.y;
-//         text_marker.pose.position.z = 1.0; 
+        // 위치 설정
+        cube_marker.pose.position.x = det.x;
+        cube_marker.pose.position.y = det.y;
+        cube_marker.pose.position.z = 0.5; // 지면에서 0.5m 높이
         
-//         text_marker.scale.z = 0.6; // 글자 크기
-//         text_marker.color.r = 1.0; text_marker.color.g = 1.0; text_marker.color.b = 1.0; // 흰색
-//         text_marker.color.a = 1.0;
+        // 방향 설정 (Yaw 반영)
+        tf2::Quaternion q;
+        q.setRPY(0, 0, det.yaw);
+        cube_marker.pose.orientation = tf2::toMsg(q);
+
+        // 크기 설정 (가로, 세로, 높이 0.6m)
+        cube_marker.scale.x = 0.6; cube_marker.scale.y = 0.6; cube_marker.scale.z = 0.6;
+        // 크기를 OBB 그대로 가져와서. 
         
-//         // 표시할 텍스트 (ID와 추정 속도)
-//         text_marker.text = "ID: " + std::to_string(det.id) + " | V: " + std::to_string(det.v).substr(0,4) + " m/s";
-//         marker_array.markers.push_back(text_marker);
+        // 색상 (확정 트랙은 초록색 계열)
+        cube_marker.color.r = 0.0; cube_marker.color.g = 1.0; cube_marker.color.b = 0.0;
+        cube_marker.color.a = 0.6; // 약간 투명하게
+        
+        cube_marker.lifetime = ros::Duration(0.1);
+        marker_array.markers.push_back(cube_marker);
 
-//         // --- 2. 진행 방향 및 속도 화살표 마커 ---
-//         if (std::abs(det.v) > 0.1) // 어느 정도 속도가 있을 때만 표시
-//         {
-//             visualization_msgs::Marker arrow_marker;
-//             arrow_marker.header = header;
-//             arrow_marker.ns = "velocity_arrow";
-//             arrow_marker.id = det.id + 1000; // ID 중복 방지
-//             arrow_marker.type = visualization_msgs::Marker::ARROW;
-//             arrow_marker.action = visualization_msgs::Marker::ADD;
-            
-//             arrow_marker.pose.position.x = det.x;
-//             arrow_marker.pose.position.y = det.y;
-//             arrow_marker.pose.position.z = 0.2; // 바닥보다 살짝 위
-
-//             // Yaw 각도를 쿼터니언으로 변환하여 방향 설정
-//             tf2::Quaternion q;
-//             q.setRPY(0, 0, det.yaw);
-//             // 에러 방지를 위해 직접 값 대입
-//             arrow_marker.pose.orientation.x = q.x();
-//             arrow_marker.pose.orientation.y = q.y();
-//             arrow_marker.pose.orientation.z = q.z();
-//             arrow_marker.pose.orientation.w = q.w();
-
-//             // 화살표 크기 (x는 길이, y/z는 두께)
-//             arrow_marker.scale.x = det.v * 1.5; // 속도에 비례한 길이
-//             arrow_marker.scale.y = 0.15;
-//             arrow_marker.scale.z = 0.15;
-
-//             // 색상 (움직이는 물체는 노란색 계열)
-//             arrow_marker.color.r = 1.0; arrow_marker.color.g = 0.8; arrow_marker.color.a = 1.0;
-
-//             marker_array.markers.push_back(arrow_marker);
-//         }
-//     }
-
-//     pub.publish(marker_array);
-// }
+        // --- 2. 정보 텍스트 마커 (ID & 속도) ---
+        visualization_msgs::Marker text_marker;
+        text_marker.header = header;
+        text_marker.header.frame_id = "Lidar3D";
+        text_marker.header.stamp = now;
+        text_marker.ns = "track_info";
+        text_marker.id = det.id + 10000; // 큐브 ID와 겹치지 않게 오프셋 부여
+        text_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+        text_marker.action = visualization_msgs::Marker::ADD;
+        
+        // 위치: 큐브보다 약간 위쪽
+        text_marker.pose.position.x = det.x;
+        text_marker.pose.position.y = det.y;
+        text_marker.pose.position.z = 1.2; 
+        
+        // 글자 크기 (Z축 값이 글자 높이가 됨)
+        text_marker.scale.z = 0.4; 
+        
+        // 색상 (흰색)
+        text_marker.color.r = 1.0; text_marker.color.g = 1.0; text_marker.color.b = 1.0;
+        text_marker.color.a = 1.0;
+        
+        // 표시할 텍스트 설정
+        text_marker.text = "ID: " + std::to_string(det.id) + 
+                          " | V: " + std::to_string(det.v).substr(0, 4) + " m/s";
+        
+        text_marker.lifetime = ros::Duration(0.1);
+        marker_array.markers.push_back(text_marker);
+    }
+    pub_kalman.publish(marker_array);
+}

@@ -12,7 +12,6 @@ extern CostmapState state;
 extern CostmapParams params;
 
 void initCostmapModule(ros::NodeHandle &nh);
-// void broadcastDynamicEgoTF(double x, double y, double yaw);
 
 string normalizeFrameId(string frame_id);
 int clampToRange(int value, int min_val, int max_val);

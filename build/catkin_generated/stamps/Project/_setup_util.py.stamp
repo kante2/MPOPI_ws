@@ -268,7 +268,7 @@ if __name__ == '__main__':
 
         if not args.local:
             # environment at generation time
-            CMAKE_PREFIX_PATH = r'/home/autonav/aim_ws/devel;/opt/ros/noetic;/home/autonav/Mobility_Challenge_Simulator/install/simulator_launch;/home/autonav/Mobility_Challenge_Simulator/install/simulator;/home/autonav/Mobility_Challenge_Simulator/install/hv_handler;/home/autonav/Mobility_Challenge_Simulator/install/communication_manager;/home/autonav/Mobility_Challenge_Simulator/install/scene_srv;/home/autonav/Mobility_Challenge_Simulator/install/domain_bridge;/home/autonav/cav_ws/install/cav_control'.split(';')
+            CMAKE_PREFIX_PATH = r'/home/autonav/aim_ws/devel;/home/autonav/catkin_ws/devel;/opt/ros/noetic'.split(';')
         else:
             # don't consider any other prefix path than this one
             CMAKE_PREFIX_PATH = []
