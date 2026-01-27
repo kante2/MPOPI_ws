@@ -348,8 +348,8 @@ int main(int argc, char** argv) {
     }
     
     // 파라미터
-    planner_params.num_offsets = 9;
-    planner_params.lateral_offset_step = 0.5;
+    planner_params.num_offsets = 15; // 9 -> 15
+    planner_params.lateral_offset_step = 0.8;
     planner_params.sample_spacing = 0.2;
     planner_params.lethal_cost_threshold = 90.0;
     planner_params.vehicle_front_offset = 4.0; 
