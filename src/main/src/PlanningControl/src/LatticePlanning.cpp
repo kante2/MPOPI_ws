@@ -25,7 +25,7 @@ void LatticePlanningProcess() {
     sampleAllCandidatePaths(lattice_ctrl);
     evaluateAllCandidates(lattice_ctrl);
     selectBestPath(lattice_ctrl);
-    ctrl.ld = 5.0; //ctrl.ld가 설정안되어있어서 임시로 여기에 놨어요 이거 다른데서 설정되게 해야함,,ㄴ
+    // ctrl.ld = 5.0; //ctrl.ld가 설정안되어있어서 임시로 여기에 놨어요 이거 다른데서 설정되게 해야함,,ㄴ
 
     // closeWaypointsIdx(ego, ctrl.close_idx); => getLocalPathIdx 로 변경
     getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);
@@ -102,6 +102,7 @@ void findLookaheadGoal(const VehicleState& ego, int close_idx,
 void generateOffsetGoals(int goal_idx, LatticeControl& lattice_ctrl) {
     lattice_ctrl.offset_goals.clear();
 
+    // goal_idx ~ goal_idx +
     // GPS 좌표계의 목표점
     double goal_ref_x = waypoints[goal_idx].x;
     double goal_ref_y = waypoints[goal_idx].y;
@@ -234,8 +235,8 @@ void sampleAllCandidatePaths(LatticeControl& lattice_ctrl) {
         double X = bl_goal.point.x;
         
         if (X < 0.1) {
-            // 0.1m 보다 작으면 최소한 시작점만 추가
-            candidate.points.push_back({0.0, 0.0});
+            // 0.1m 보다 작으면 계산할 가치가 없음 -> 그냥 빈 경로 처리
+            candidate.points.clear(); // 빈 경로
             lattice_ctrl.candidates.push_back(candidate);
             continue;
         }
@@ -275,56 +276,87 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
     double width = 2.0; // 차폭
     double half_width = width / 2.0;
 
-    double consistency_weight = 0.5;  // ← 감소 (이전 경로 영향 최소화)
+    double consistency_weight = 0.5;  // 히스테리시스 무시// ← 매우 감소 (특정 경로에 갇히지 않도록) 
 
     for (auto& path : lattice_ctrl.candidates) {
         path.obstacle_cost = 0.0;
-        path.curvature_cost = 0.0;
-        path.offset_cost = 0.0;
         path.valid = true;
         int lethal_count = 0;
         int valid_point_count = 0;
-        
-        // 경로가 너무 짧으면 스킵
-        if (path.points.size() < 2) {
-            path.valid = false;
-            path.cost = 1e10;
-            continue;
-        }
 
-        // collision cost 계산 (모든 포인트의 costmap 비용 누적)
-        path.obstacle_cost = 0.0;
-        int valid_points = 0;
-        
         for (size_t i = 0; i < path.points.size(); ++i) {
-            int cost = getCostmapCostFromGrid(path.points[i].x, path.points[i].y);
-            
-            // lethal cost 감지 (완전히 occupied된 영역만 = cost 100)
-            if (cost >= (int)planner_params.lethal_cost_threshold) {
+            Point2D pt_rear = path.points[i]; // base_link 좌표
+
+            // 헤딩 계산
+            double heading = 0.0;
+            if (i + 1 < path.points.size()) {
+                heading = atan2(path.points[i+1].y - pt_rear.y, 
+                               path.points[i+1].x - pt_rear.x);
+            } else if (i > 0) {
+                heading = atan2(pt_rear.y - path.points[i-1].y, 
+                               pt_rear.x - path.points[i-1].x);
+            }
+            double cos_heading = cos(heading);
+            double sin_heading = sin(heading);
+
+            // ====================================================
+            // [핵심 수정] 몸통 전체 검사 - 첫 번째 코드 스타일
+            // ====================================================
+            int max_cost_in_step = 0;
+            bool inside_map = false;
+
+            // d는 차량 길이 방향 거리 (0m ~ 4.0m)
+            for (double front_dx = 0.0; front_dx <= front_offset; front_dx += 0.5) {
+                
+                // 검사할 가상의 차량 중심점 (뒷바퀴에서 d만큼 앞)
+                double cx = pt_rear.x + front_dx * cos_heading;
+                double cy = pt_rear.y + front_dx * sin_heading;
+
+                // 좌/우/중앙 3점 검사
+                std::vector<Point2D> body_points;
+                body_points.push_back({cx, cy}); // 중앙
+                body_points.push_back({cx - half_width * sin_heading, cy + half_width * cos_heading}); // 왼쪽
+                body_points.push_back({cx + half_width * sin_heading, cy - half_width * cos_heading}); // 오른쪽
+
+                // 핵심: 직접 costmap 조회 (변환 함수 없음)
+                for (const auto& body_point : body_points) {
+                    int grid_x, grid_y;
+                    
+                    // base_link → grid 직접 계산
+                    if (worldToCostmapCoord(body_point.x, body_point.y, grid_x, grid_y)) {
+                        inside_map = true;
+                        
+                        // grid에서 직접 비용 읽기
+                        int cost = getCostmapCost(body_point.x, body_point.y);
+                        
+                        if (cost > max_cost_in_step) {
+                            max_cost_in_step = cost;
+                        }
+                    }
+                }
+            }
+
+            if (!inside_map) continue;
+
+            valid_point_count++;
+
+            if (max_cost_in_step >= (int)planner_params.lethal_cost_threshold) {
                 lethal_count++;
             }
-            
-            // 비용 누적
-            if (cost >= 0) {
-                path.obstacle_cost += cost;
-                valid_points++;
-            }
+            path.obstacle_cost += max_cost_in_step / 100.0;
         }
-        
-        // 평균 장애물 비용
-        if (valid_points > 0) {
-            path.obstacle_cost /= valid_points;  // 0~100 범위의 평균
-        }
-        
-        // lethal cost(완전 충돌)가 하나라도 있으면 경로 폐기
+        // fatal point --> not valid
         if (lethal_count > 0) {
             path.valid = false;
             path.cost = 1e10;
             continue;
         }
+
+        if (valid_point_count > 0) {
+            path.obstacle_cost /= valid_point_count;
+        }
         
-        // curvature cost 계산
-        path.curvature_cost = 0.0;
+        // 곡률 비용 계산 - curvature_cost
         if (path.points.size() >= 3) {
             for (size_t i = 1; i < path.points.size() - 1; i++) {
                 double x0 = path.points[i-1].x, y0 = path.points[i-1].y;
@@ -342,25 +374,16 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             }
         }
 
-        // collision_cost
-        
-
-        // 중앙 선호도 (offset=0이 가장 낮은 cost)
-        path.offset_cost = std::fabs(path.offset) * 0.5;  // ← 기존 코드 기준
+        path.offset_cost = std::fabs(path.offset) * 1.0;
         
         double offset_change_cost = std::fabs(path.offset - last_selected_offset) * consistency_weight;
 
-        // 비용 공식: 기존 코드 기준으로 수정
-        path.cost = path.offset_cost +              // 중앙 선호도 (약함)
-                    path.curvature_cost * 0.3 +    // 곡률 비용 (약함)
-                    path.obstacle_cost * 100.0 +      // 장애물 비용 (강함)
-                    offset_change_cost;             // 히스테리시스 (약함)
-
+        path.cost = path.obstacle_cost * 100.0 + 
+                    path.offset_cost + 
+                    path.curvature_cost * 10.0 + 
+                    offset_change_cost;
     }
 }
-// ========================================
-// 최적 경로 선택
-// ========================================
 // ========================================
 // 최적 경로 선택
 // ========================================
@@ -402,7 +425,7 @@ void getTargetLocalPathIdx(LatticeControl& lattice_ctrl, double ld, int& out_idx
             break;
         }
     }
-    out_idx = target_idx; // out_idx ===> ctrl.lookahead_idx 
+    out_idx = target_idx;
 }
 
 

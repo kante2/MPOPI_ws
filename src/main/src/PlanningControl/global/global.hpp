@@ -90,7 +90,7 @@ struct ControlData {
     double accel = 0.0;
     double brake = 0.0;
     double steering = 0.0;
-    double ld = 0.0;
+    double ld = 5.0;
 };
 
 // 좌표 변환용
