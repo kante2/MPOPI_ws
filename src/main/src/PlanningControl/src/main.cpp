@@ -52,7 +52,7 @@ bool loadWaypoints() {
     waypoints.clear();
 
     const std::string ref_file_name  = "src/main/config/ref.txt";
-    const std::string path_file_name = "src/main/config/track_log_recorded.csv";
+    const std::string path_file_name = "src/main/config/track_log_recorded_final.csv";
 
     // -------------------------
     // 1) 기준점(ref.txt) 읽기
@@ -198,9 +198,6 @@ void publishCandidatePaths() {
     
     // 현재 선택된 최적 경로의 offset
     double best_offset = lattice_ctrl.best_path.offset;
-    
-    // [파라미터 가져오기] 앞 범퍼 길이 (4.0m)
-    double front_offset = planner_params.vehicle_front_offset;
 
     for (size_t i = 0; i < lattice_ctrl.candidates.size(); i++) {
         const auto& candidate = lattice_ctrl.candidates[i];
@@ -232,23 +229,14 @@ void publishCandidatePaths() {
             marker.color.r = 0.0; marker.color.g = 1.0; marker.color.b = 0.0; marker.color.a = 0.6;
         }
         
-        // [핵심 수정] 포인트 좌표를 '앞 범퍼 위치'로 변환해서 입력
+        // Rear axle 기준 경로 표시 (front_offset 변환 제거)
         for (size_t j = 0; j < candidate.points.size(); j++) {
             double cx = candidate.points[j].x;
             double cy = candidate.points[j].y;
 
-            // 현재 점에서의 헤딩(Heading) 계산
-            double heading = 0.0;
-            if (j + 1 < candidate.points.size()) {
-                heading = atan2(candidate.points[j+1].y - cy, candidate.points[j+1].x - cx);
-            } else if (j > 0) {
-                heading = atan2(cy - candidate.points[j-1].y, cx - candidate.points[j-1].x);
-            }
-
-            // 시각화용 포인트 생성 (앞쪽으로 offset만큼 이동)
             geometry_msgs::Point p_visual;
-            p_visual.x = cx + front_offset * cos(heading);
-            p_visual.y = cy + front_offset * sin(heading);
+            p_visual.x = cx;
+            p_visual.y = cy;
             p_visual.z = 0.0; 
             
             marker.points.push_back(p_visual);

@@ -298,54 +298,11 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             double cos_heading = cos(heading);
             double sin_heading = sin(heading);
 
-            // ====================================================
-            // [핵심 수정] 몸통 전체 검사 - 첫 번째 코드 스타일
-            // ====================================================
-            int max_cost_in_step = 0;
-            bool inside_map = false;
-
-            // d는 차량 길이 방향 거리 (0m ~ 4.0m)
-            for (double front_dx = 0.0; front_dx <= front_offset; front_dx += 0.5) {
-                
-                // 검사할 가상의 차량 중심점 (뒷바퀴에서 d만큼 앞)
-                double cx = pt_rear.x + front_dx * cos_heading;
-                double cy = pt_rear.y + front_dx * sin_heading;
-
-                // 좌/우/중앙 3점 검사
-                std::vector<Point2D> body_points;
-                body_points.push_back({cx, cy}); // 중앙
-                body_points.push_back({cx - half_width * sin_heading, cy + half_width * cos_heading}); // 왼쪽
-                body_points.push_back({cx + half_width * sin_heading, cy - half_width * cos_heading}); // 오른쪽
-
-                // 핵심: 직접 costmap 조회 (변환 함수 없음)
-                for (const auto& body_point : body_points) {
-                    int grid_x, grid_y;
-                    
-                    // base_link → grid 직접 계산
-                    if (worldToCostmapCoord(body_point.x, body_point.y, grid_x, grid_y)) {
-                        inside_map = true;
-                        
-                        // grid에서 직접 비용 읽기
-                        int cost = getCostmapCost(body_point.x, body_point.y);
-                        
-                        if (cost > max_cost_in_step) {
-                            max_cost_in_step = cost;
-                        }
-                    }
-                }
-            }
-
-            if (!inside_map) continue;
-
             valid_point_count++;
-
-            if (max_cost_in_step >= (int)planner_params.lethal_cost_threshold) {
-                lethal_count++;
-            }
-            path.obstacle_cost += max_cost_in_step / 100.0;
+            path.obstacle_cost = 0.0; // 몸통 cost 제거 - 모든 경로에 대해 0으로 설정
         }
-        // fatal point --> not valid
-        if (lethal_count > 0) {
+        // 충돌 감지 제거 - 모든 경로가 유효한 것으로 간주
+        if (valid_point_count == 0) {
             path.valid = false;
             path.cost = 1e10;
             continue;
@@ -379,7 +336,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
 
         path.cost = path.obstacle_cost * 100.0 + 
                     path.offset_cost + 
-                    path.curvature_cost * 10.0 + 
+                    path.curvature_cost * 3.0 + 
                     offset_change_cost;
     }
 }
