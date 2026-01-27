@@ -57,10 +57,10 @@ struct Point2D
 struct LidarParam
 {
   // 주변 환경 제거 ROI
-  float lidar_range_xmin = -25.0f;
-  float lidar_range_xmax = 25.0f;
-  float lidar_range_ymin = -7.0f;
-  float lidar_range_ymax = 7.0f;
+  float lidar_range_xmin = -10.0f;
+  float lidar_range_xmax = 40.0f;
+  float lidar_range_ymin = -12.0f;
+  float lidar_range_ymax = 12.0f;
   float lidar_range_zmin = -10.0f;
   float lidar_range_zmax = 5.0f;
 
@@ -128,11 +128,12 @@ struct LidarCluster
 // ========================================
 struct CostmapParams {
   float resolution = 0.05f;
-  float width = 50.0f; //차량 전방 방향
-  float height = 15.0f; //차량 좌우 방향
-  int8_t unknown_cost = -1;
-  int8_t free_cost = 0;
-  int8_t obstacle_cost = 100;
+  float width = 80.0f; //차량 전방 방향
+  // roi는 전방 40, 후방 10 잡고 있ㅇ서 costmap도 max_x, min_x 으로 바꿔야 
+  float height = 24.0f; //차량 좌우 방향
+  int unknown_cost = -1;
+  int free_cost = 0;
+  int obstacle_cost = 100;
   float inflation_radius = 2.0f;
 };
 

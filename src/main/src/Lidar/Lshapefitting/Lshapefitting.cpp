@@ -266,10 +266,17 @@ void LshapefittingProcess::Calculate_Process (LidarCluster& st_LidarCluster)
     // 축정렬한 점을 - theta 만큼 다시 원상복귀하기 위해
     st_LidarCluster.theta = BestTheta;
 
-    st_LidarCluster.rotate_rect_min_x = BestMinX;
-    st_LidarCluster.rotate_rect_max_x = BestMaxX;
-    st_LidarCluster.rotate_rect_min_y = BestMinY;
-    st_LidarCluster.rotate_rect_max_y = BestMaxY;
+    float padding_value = 0.5f;
+
+    BestMinX = BestMinX - padding_value; 
+    BestMaxX = BestMaxX + padding_value;
+    BestMinY = BestMinY - padding_value;
+    BestMaxY = BestMaxY + padding_value;
+    
+    // st_LidarCluster.rotate_rect_min_x = BestMinX - padding_value; // 단순히 변수에 저장
+    // st_LidarCluster.rotate_rect_max_x = BestMaxX + padding_value;
+    // st_LidarCluster.rotate_rect_min_y = BestMinY - padding_value;
+    // st_LidarCluster.rotate_rect_max_y = BestMaxY + padding_value;
 
     float Cos = cos(BestTheta);
     float Sin = sin(BestTheta);
@@ -283,13 +290,10 @@ void LshapefittingProcess::Calculate_Process (LidarCluster& st_LidarCluster)
         {BestMaxX, BestMinY}
     };
 
-    // === ** 변수명 수정 필요 ** ===
-    // 수정 사항 : x 값을 length로 나타내게끔
+    float l = BestMaxX - BestMinX;
+    float w = BestMaxY - BestMinY;
 
-    float w = BestMaxX - BestMinX; // l
-    float l = BestMaxY - BestMinY; // w
-
-    if (w > l) {
+    if (w < l) {
         st_LidarCluster.heading_theta = BestTheta; // rviz의 x축 (length) 이 길면 그대로
     }
     else {
@@ -299,11 +303,6 @@ void LshapefittingProcess::Calculate_Process (LidarCluster& st_LidarCluster)
     st_LidarCluster.width = min( w, l);
     st_LidarCluster.length = max( w, l);
 
-    // 여기까지 w 는 rviz의 x축값. w 가 내가 생각한 length 인 것. 차량 정면 방향. 그래서 heading = BestTheta. 
-    
-    // 지금 차량 전방, 후방 방향이 고정되어 있지 않아서 방향 벡터가 앞뒤로 막 튄다. 
-    // 방향 자체는 잘 잡으니깐, 어디가 차량 전방인지만 고정하면 된다. 
-    // -> 거리 기반 데이터 연관 구현. "지금 이 위치에 있는 클러스터는, 이전 프레임에서 가장 가까운 곳에 있던 클러스터와 같은 클러스터일 것이다."
     
     if (!((st_LidarCluster.width > 0.01f && st_LidarCluster.width < 1.0f ) && st_LidarCluster.length > 3.0f)) 
     {
@@ -326,6 +325,49 @@ void LshapefittingProcess::Calculate_Process (LidarCluster& st_LidarCluster)
 
     st_LidarCluster.centroid_x = local_centroid_x * Cos - local_centroid_y * Sin;
     st_LidarCluster.centroid_y = local_centroid_x * Sin + local_centroid_y * Cos;
+
+
+    // ===================================================================
+    // 중심점에서부터 꼭짓점까지 벡터로 OBB 네 꼭짓점 영역 확장 => AABB인 단계에서 사용해야하니깐 일단 보류
+    // ===================================================================
+
+    // for ( Point2D & corner : st_LidarCluster.vec_Corners) 
+    // {
+    //     float dx = corner.x - st_LidarCluster.centroid_x;
+    //     float dy = corner.y - st_LidarCluster.centroid_y;
+
+    //     float length = sqrt(dx*dx + dy*dy);
+    //     float padding_value = 0.5f;
+    //     float direction;
+
+    //     if (length > 1e-6f)
+    //     {
+    //         if (dx > 0)
+    //         {
+    //             direction = 1.0f;
+    //         }
+    //         else
+    //         {
+    //             direction = - 1.0f;
+    //         }
+    //         corner.x = corner.x + (direction * padding_value);
+    //         corner.y = corner.y + (direction * padding_value);
+    //     }
+    // }
+
+    // ===================================================================
+    // OBB의 width, length에 padding을 입혀서 이걸 vec_Corners 점으로 역 계산
+    // ===================================================================
+
+    // float padding_value = 0.5f;
+    // float padding_half_width = (st_LidarCluster.width/2.0f) + padding_value;
+    // float padding_half_length = (st_LidarCluster.length/2.0f) + padding_value;
+
+    // for (int i = 0; i < st_LidarCluster.vec_Corners.size(); ++i)
+    // {
+    //     st_LidarCluster.vec_Corners[i].x = st_LidarCluster.centroid_x + (padding_half_length * cos(BestTheta) - padding_half_width * sin(BestTheta));
+    //     st_LidarCluster.vec_Corners[i].y = st_LidarCluster.centroid_y + (padding_half_length * cos(BestTheta) - padding_half_width * sin(BestTheta));
+    // }
 
     // ===================================================================
     // 방향 벡터를 차량 전방방향으로 고정하기 위한 이전/현재 프레임 중심점 위치 변화 이용 
