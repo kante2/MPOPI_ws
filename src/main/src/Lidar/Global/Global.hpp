@@ -36,6 +36,7 @@
 // TF2
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -43,19 +44,9 @@
 // costmap
 #include <pcl_ros/transforms.h>
 #include <tf2/utils.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 using namespace std;
-
-// ========================= Type ========================= //
-// typedef unsigned char uint8;
-// typedef unsigned short uint16;
-// typedef unsigned int uint32;
-// typedef uint64_t uint64;
-// typedef short int16;
-// typedef int int32;
-// typedef float float32;
-// typedef double float64;
-// typedef char char8;
 
 struct Point2D 
 {
@@ -65,7 +56,7 @@ struct Point2D
 
 struct LidarParam
 {
-  // lidar prefilter
+  // 주변 환경 제거 ROI
   float lidar_range_xmin = -25.0f;
   float lidar_range_xmax = 25.0f;
   float lidar_range_ymin = -7.0f;
@@ -73,7 +64,7 @@ struct LidarParam
   float lidar_range_zmin = -10.0f;
   float lidar_range_zmax = 5.0f;
 
-  // ego 제거 ROI (cropbox) 
+  // ego 제거 ROI 
   float ego_xmin = - 1.0f; 
   float ego_xmax = 1.0f; 
   float ego_ymin = - 1.0f;
@@ -96,7 +87,7 @@ struct LidarParam
 
 };
 
-// Lshapefitting에서 사용하는 파라미터, L피팅 결과
+// Lshapefitting에서 사용하는 파라미터, OBB 정보(LShapeFitting 결과)
 struct LidarCluster
 {
   std_msgs::Header header;
@@ -115,13 +106,19 @@ struct LidarCluster
   float min_z;
   float max_z;
 
-  // ---- extended kalman filter 에서 사용하는 obb 값-----
+  float heading_theta;
+  float heading_direction_x;
+  float heading_direction_y;
 
-  int id = -1;           // 객체 고유 ID (초기값 -1)
-  float centroid_x;
+  float pre_centroid_x;
+  float pre_centroid_y;
+  float centroid_x; // 현재 프레임 OBB의 중심점
   float centroid_y;
+
   float width;
   float length;
+ 
+  int id = -1;   
   float velocity; // 추정된 속도 (EKF 결과값)
   bool is_updated = false; // 이번 프레임에서 추적 성공 여부
 };
@@ -144,8 +141,7 @@ struct CostmapParams {
 // ========================================
 struct CostmapState {
   bool tf_ok{false};
-  LidarCluster baselink_cloud; //::PointCloud2 baselink_cloud;
-  // std::vector<Detection> detections;
+  LidarCluster baselink_cloud;
   nav_msgs::OccupancyGrid costmap;
 };
 
@@ -155,7 +151,6 @@ struct CostmapState {
 // ========================================
 struct Detection 
 {
-
   // -------------- AABB -----------------
   int id{0};
   int num_points; // 클러스터 내 포인트 개수
@@ -167,12 +162,8 @@ struct Detection
   Eigen::Vector3f size{0,0,0};
 
   // -------------- OBB ------------------
-  // OBB를 costmap에 Eigen::Vector3f 가 아니라 float로 x, y 좌표를 주면?
   LidarCluster st_LidarCluster; 
   // -> st_LidarCluster.vec_Corners 에 obb 위치 저장되어 있음
-  
-  // Eigen::Vector3f vec_obb_corners[4];
-  
 };
 
 // ========================================
@@ -186,8 +177,8 @@ struct KalmanDetection
   double y;
   double yaw;
   double v;
-  double w;
-  double l;
+  double a;
+  // double l;
   bool is_confirmed;
 };
 
@@ -200,7 +191,7 @@ struct Lidar
 {
   LidarParam st_LidarParam;
   LidarCluster st_LidarCluster;
-  
+
   pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_input_cloud;
 
   // ========================
@@ -208,38 +199,33 @@ struct Lidar
   // ========================
 
   vector<LidarCluster> vec_clusters; // 포인트 클라우드 클러스터
+  // euclidean 반환값 : 포인트 클라우드 좌표로 이루어진 클러스터를 묶어서 vector에 담아 반환
+
   vector<Detection> vec_aabb;
 
+  // kalman
+  // vector<LidarCluster> vec_current_clusters; 
+  vector<KalmanDetection> vec_kalman_clusters;
 
   // ========================
   // 중간 처리 단계별 PointCloud
   // ========================
 
-  // pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_filterheight_cloud;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_filterrange_cloud;
-
   pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cropbox_cloud;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_voxel_cloud;
-
   pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_ransac_cloud;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_euclidean_cloud;
 
   Lidar()
   {
     pcl_input_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
-  
-    // pcl_filterheight_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pcl_filterrange_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
-
     pcl_cropbox_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pcl_voxel_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
-
     pcl_ransac_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pcl_euclidean_cloud.reset(new pcl::PointCloud<pcl::PointXYZI>);
-
   }
 };
-
-
 
 #endif // GLOBAL_HPP

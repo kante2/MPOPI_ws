@@ -35,13 +35,13 @@ bool coord_ref_initialized = false;
 // [추가 2] 링킹 에러 해결을 위한 변수 실체 정의 (여기 꼭 필요!)
 // =========================================================
 ControlData ctrl;          // 제어 데이터
-double Kp = 1.0;           // PID 게인 초기값
+double Kp = 0.2;           // PID 게인 초기값
 double Ki = 0.0;
 double Kd = 0.0;
 double k_gain = 1.0;       // 조향 게인
 double curve_standard = 0.0;
-double curve_vel = 10.0;
-double target_vel = 20.0;   // 목표 속도
+double curve_vel = 10.0 / 3.6;
+double target_vel = 20.0 / 3.6;   // 목표 속도
 
 ros::Publisher cmd_pub;    // 제어 명령 Publisher
 

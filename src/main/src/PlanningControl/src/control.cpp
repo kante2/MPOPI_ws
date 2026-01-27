@@ -26,8 +26,8 @@ void ControlProcess() {
 // ========================================
 void getsteering(const VehicleState& ego, ControlData& ctrl)
 {
-    double path_e = lateralPathError(ctrl.target_idx, ego.x, ego.y);
-    double heading_e = headingError(ego.yaw, ctrl.target_idx);
+    double path_e = lateralPathError(ctrl.lookahead_idx, ego.x, ego.y);
+    double heading_e = headingError(ego.yaw, ctrl.lookahead_idx);
     double v = std::max(1.0, ego.vel);
     
     double steering_raw = heading_e + atan(k_gain * path_e / v);
@@ -110,6 +110,7 @@ double lateralPathError(int target_idx, double x, double y) {
 // Heading Error
 // ========================================
 double headingError(double yaw,int target_idx){
+    yaw =0;
     int i = target_idx;
     if(i< (int)lattice_ctrl.best_path.points.size()-1){
     double dx = lattice_ctrl.best_path.points[i+1].x - lattice_ctrl.best_path.points[i].x;

@@ -25,6 +25,7 @@ void LatticePlanningProcess() {
     sampleAllCandidatePaths(lattice_ctrl);
     evaluateAllCandidates(lattice_ctrl);
     selectBestPath(lattice_ctrl);
+    ctrl.ld = 5.0; //ctrl.ld가 설정안되어있어서 임시로 여기에 놨어요 이거 다른데서 설정되게 해야함,,ㄴ
 
     // closeWaypointsIdx(ego, ctrl.close_idx); => getLocalPathIdx 로 변경
     getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);

@@ -18,16 +18,6 @@ void initCostmapModule(ros::NodeHandle &nh)
     tfListener.reset(new tf2_ros::TransformListener(*tfBuffer));
 
     pub_costmap = nh.advertise<nav_msgs::OccupancyGrid>("/costmap", 1);
-    
-    // ---- global.hpp에서 파라미터 값 수정 ------
-
-    // params.resolution = 0.1;
-    // params.width = 30.0;   
-    // params.height = 30.0;
-    // params.obstacle_cost = 100;
-    // params.free_cost = 0;
-    // params.unknown_cost = -1;
-    // params.inflation_radius = 1.0;
 }
 
 // ========================================
@@ -60,11 +50,10 @@ void transformLidarToBaselink(const LidarCluster& st_LidarCluster)
     string src = normalizeFrameId(raw_src);
     string tgt = costmap_frame;
 
-    ROS_INFO("TF CHECK -> src: '%s' (raw: '%s'), tgt: '%s'", src.c_str(), raw_src.c_str(), tgt.c_str());
+    // ROS_INFO("TF CHECK -> src: '%s' (raw: '%s'), tgt: '%s'", src.c_str(), raw_src.c_str(), tgt.c_str());
 
     if (src.empty()) 
     {
-        ROS_ERROR("TF ABORT: Source frame is EMPTY! Did you fill the header?");
         return; 
     }
 
@@ -79,7 +68,6 @@ void transformLidarToBaselink(const LidarCluster& st_LidarCluster)
     {
         if (!tfBuffer) 
         {
-        ROS_ERROR("TF ABORT: tfBuffer is NULL! Check initialization.");
         return;
         }
 
@@ -128,20 +116,29 @@ void transformLidarToBaselink(const LidarCluster& st_LidarCluster)
             state.baselink_cloud.vec_Corners.push_back(transformed_corner);
         }
 
-        // ------------------------- 4. Theta (각도) 변환 ---------------------------------
+        // -------------------- 4. Theta (각도), 차량 전방 방향 OBB 헤딩 방향 벡터 변환 ---------------------------------
 
         // tf에서 yaw(회전량)만 추출
         double tf_yaw = tf2::getYaw(tf.transform.rotation);
         
         // 기존 theta에 좌표계 회전량을 더함
         float transformed_theta = st_LidarCluster.theta + static_cast<float>(tf_yaw);
+        float transformed_heading = st_LidarCluster.heading_theta + static_cast<float>(tf_yaw);
 
         // 각도 범위를 -PI ~ PI 사이로 정규화 
         while (transformed_theta > M_PI) transformed_theta -= 2.0 * M_PI;
         while (transformed_theta < -M_PI) transformed_theta += 2.0 * M_PI;
+        while (transformed_heading > M_PI) transformed_heading -= 2.0 * M_PI;
+        while (transformed_heading < -M_PI) transformed_heading += 2.0 * M_PI;
 
         // base_link
         state.baselink_cloud.theta = transformed_theta;
+        state.baselink_cloud.heading_theta = transformed_heading;
+
+        state.baselink_cloud.heading_direction_x = cos(state.baselink_cloud.heading_theta);
+        state.baselink_cloud.heading_direction_y = sin(state.baselink_cloud.heading_theta);
+
+        cout << "base_link heading : " << state.baselink_cloud.heading_direction_x << endl;
 
         state.tf_ok = true;
     }
