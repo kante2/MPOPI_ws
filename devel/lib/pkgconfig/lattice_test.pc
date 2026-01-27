@@ -1,8 +1,0 @@
-prefix=/home/autonav/aim_ws/devel
-
-Name: lattice_test
-Description: Description of lattice_test
-Version: 0.0.1
-Cflags: -I/home/autonav/aim_ws/src/main/src/PlanningControl/global
-Libs: -L${prefix}/lib 
-Requires: 

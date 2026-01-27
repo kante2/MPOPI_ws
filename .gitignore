@@ -1,3 +1,61 @@
+# ROS build and development directories
 build/
 devel/
+install/
 log/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+.pytest_cache/
+.coverage
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Catkin
+catkin_generated/
+atomic_configure/
+
+# Environment
+.env
+.env.local
+
+# ROS bags and data
+*.bag
+*.bagidx
+
+# Compiled files
+*.o
+*.a
+*.la
+*.so
+
+# Dependencies
+install_isolated/
+src/catkin/
+
+# Test results
+test_results/
+*.test

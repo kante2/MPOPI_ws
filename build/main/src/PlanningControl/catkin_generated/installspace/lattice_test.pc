@@ -1,8 +1,0 @@
-prefix=/home/autonav/aim_ws/install
-
-Name: lattice_test
-Description: Description of lattice_test
-Version: 0.0.1
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: 

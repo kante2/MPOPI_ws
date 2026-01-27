@@ -51,8 +51,9 @@ ros::Publisher cmd_pub;    // 제어 명령 Publisher
 bool loadWaypoints() {
     waypoints.clear();
 
-    const std::string ref_file_name  = "/home/autonav/aim_ws/src/main/config/ref.txt";
-    const std::string path_file_name = "/home/autonav/aim_ws/src/main/config/track_log_recorded_right.csv";
+    std::string pkg_path = ros::package::getPath("main");
+    const std::string ref_file_name  = pkg_path + "/config/ref.txt";
+    const std::string path_file_name = pkg_path + "/config/track_log_recorded_right.csv";
 
     // -------------------------
     // 1) 기준점(ref.txt) 읽기
@@ -259,7 +260,7 @@ void publishCandidatePaths() {
     
     marker_pub.publish(marker_array);
 }
-// [추가된 함수] 내 차(노란 박스) 그리기
+// 내 차(노란 박스) 그리기
 void publishVehicleFootprint() {
     visualization_msgs::Marker car_marker;
     car_marker.header.frame_id = "base_link";
