@@ -234,8 +234,8 @@ void sampleAllCandidatePaths(LatticeControl& lattice_ctrl) {
         double X = bl_goal.point.x;
         
         if (X < 0.1) {
-            // 0.1m 보다 작으면 계산할 가치가 없음 -> 그냥 빈 경로 처리
-            candidate.points.clear(); // 빈 경로
+            // 0.1m 보다 작으면 최소한 시작점만 추가
+            candidate.points.push_back({0.0, 0.0});
             lattice_ctrl.candidates.push_back(candidate);
             continue;
         }
@@ -275,13 +275,22 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
     double width = 2.0; // 차폭
     double half_width = width / 2.0;
 
-    double consistency_weight = 50.0; 
+    double consistency_weight = 0.5;  // ← 감소 (이전 경로 영향 최소화)
 
     for (auto& path : lattice_ctrl.candidates) {
         path.obstacle_cost = 0.0;
+        path.curvature_cost = 0.0;
+        path.offset_cost = 0.0;
         path.valid = true;
         int lethal_count = 0;
         int valid_point_count = 0;
+        
+        // 경로가 너무 짧으면 스킵
+        if (path.points.size() < 2) {
+            path.valid = false;
+            path.cost = 1e10;
+            continue;
+        }
 
         for (size_t i = 0; i < path.points.size(); ++i) {
             Point2D pt_rear = path.points[i]; // base_link 좌표
@@ -299,20 +308,10 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             double sin_heading = sin(heading);
 
             valid_point_count++;
-            path.obstacle_cost = 0.0; // 몸통 cost 제거 - 모든 경로에 대해 0으로 설정
-        }
-        // 충돌 감지 제거 - 모든 경로가 유효한 것으로 간주
-        if (valid_point_count == 0) {
-            path.valid = false;
-            path.cost = 1e10;
-            continue;
-        }
-
-        if (valid_point_count > 0) {
-            path.obstacle_cost /= valid_point_count;
         }
         
-        // 곡률 비용 계산 - curvature_cost
+        // 곡률 비용 계산
+        path.curvature_cost = 0.0;
         if (path.points.size() >= 3) {
             for (size_t i = 1; i < path.points.size() - 1; i++) {
                 double x0 = path.points[i-1].x, y0 = path.points[i-1].y;
@@ -330,16 +329,20 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             }
         }
 
-        path.offset_cost = std::fabs(path.offset) * 0.5;
+        // 중앙 선호도 (offset=0이 가장 낮은 cost)
+        path.offset_cost = std::fabs(path.offset) * 0.5;  // ← 기존 코드 기준
         
         double offset_change_cost = std::fabs(path.offset - last_selected_offset) * consistency_weight;
 
-        path.cost = path.obstacle_cost * 100.0 + 
-                    path.offset_cost + 
-                    path.curvature_cost * 3.0 + 
-                    offset_change_cost;
+        // 비용 공식: 기존 코드 기준으로 수정
+        path.cost = path.offset_cost +              // 중앙 선호도 (약함)
+                    path.curvature_cost * 0.3 +    // 곡률 비용 (약함)
+                    offset_change_cost;             // 히스테리시스 (약함)
     }
 }
+// ========================================
+// 최적 경로 선택
+// ========================================
 // ========================================
 // 최적 경로 선택
 // ========================================

@@ -32,7 +32,7 @@ void getsteering(const VehicleState& ego, ControlData& ctrl)
     
     double steering_raw = heading_e + atan(k_gain * path_e / v);
     
-    const double MAX_STEERING = 30.0 * M_PI / 180.0;
+    const double MAX_STEERING = 45.0 * M_PI / 180.0; // 30 -> 45 TUNE
     ctrl.steering = std::max(-MAX_STEERING, std::min(MAX_STEERING, steering_raw));
     
     ROS_INFO("[Steering] path_e: %.3f, heading_e: %.3f, raw: %.3f, limited: %.3f deg",
