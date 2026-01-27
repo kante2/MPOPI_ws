@@ -46,14 +46,13 @@ double target_vel = 20.0 / 3.6;   // 목표 속도
 ros::Publisher cmd_pub;    // 제어 명령 Publisher
 
 // ========================================
-// Waypoint 로드 (절대경로 하드코딩: ref.txt + track csv)
+// Waypoint 로드 (상대경로: config 폴더)
 // ========================================
 bool loadWaypoints() {
     waypoints.clear();
 
-    std::string pkg_path = ros::package::getPath("main");
-    const std::string ref_file_name  = pkg_path + "/config/ref.txt";
-    const std::string path_file_name = pkg_path + "/config/track_log_recorded_right.csv";
+    const std::string ref_file_name  = "src/main/config/ref.txt";
+    const std::string path_file_name = "src/main/config/track_log_recorded.csv";
 
     // -------------------------
     // 1) 기준점(ref.txt) 읽기
@@ -295,6 +294,42 @@ void publishVehicleFootprint() {
     marker_pub.publish(arr);
 }
 
+// [추가된 함수] 로컬 경로를 파란색 MarkerArray로 발행
+void publishLocalPath() {
+    if (lattice_ctrl.best_path.points.empty()) {
+        return;
+    }
+    
+    visualization_msgs::Marker path_marker;
+    path_marker.header.frame_id = "base_link";
+    path_marker.header.stamp = ros::Time::now();
+    path_marker.ns = "local_path";
+    path_marker.id = 0;
+    path_marker.type = visualization_msgs::Marker::LINE_STRIP;
+    path_marker.action = visualization_msgs::Marker::ADD;
+    
+    path_marker.pose.orientation.w = 1.0;
+    path_marker.scale.x = 0.1; // 선의 두께
+    
+    // 파란색
+    path_marker.color.r = 0.0;
+    path_marker.color.g = 0.0;
+    path_marker.color.b = 1.0;
+    path_marker.color.a = 1.0;
+    
+    // 최종 선택된 경로의 포인트 추가
+    for (const auto& point : lattice_ctrl.best_path.points) {
+        geometry_msgs::Point p;
+        p.x = point.x;
+        p.y = point.y;
+        p.z = 0.0;
+        path_marker.points.push_back(p);
+    }
+    
+    visualization_msgs::MarkerArray arr;
+    arr.markers.push_back(path_marker);
+    local_path_pub.publish(arr);
+}
 
 void latticeTestLoop(const ros::TimerEvent&) {
     // planning -> coontrol
@@ -302,7 +337,8 @@ void latticeTestLoop(const ros::TimerEvent&) {
     ControlProcess();             // 1-2. 제어 계산
     // rviz,, 
     publishCandidatePaths();      // 2. 경로 그리기
-    publishVehicleFootprint();    // 3. 내 차 박스 그리기 (New!)
+    publishVehicleFootprint();    // 3. 내 차 박스 그리기
+    publishLocalPath();           // 4. 선택된 경로 발행
 }
 
 // ========================================
@@ -310,7 +346,7 @@ void latticeTestLoop(const ros::TimerEvent&) {
 // ========================================
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "lattice_test_node");
+    ros::init(argc, argv, "lattice_planning_node");
     ros::NodeHandle nh;
     
     ROS_INFO("========================================");
@@ -352,7 +388,7 @@ int main(int argc, char** argv) {
     
     // Publisher
     marker_pub = nh.advertise<visualization_msgs::MarkerArray>("/lattice/paths", 1);
-    local_path_pub = nh.advertise<nav_msgs::Path>("/local_path", 1);
+    local_path_pub = nh.advertise<visualization_msgs::MarkerArray>("/local_path", 1);
     cmd_pub = nh.advertise<morai_msgs::CtrlCmd>("/ctrl_cmd_0", 1);
 
     // Timer (10Hz)

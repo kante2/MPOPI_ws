@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(lattice_test)
+project(PlanningControl)
 
 add_compile_options(-std=c++14)
 
@@ -32,6 +32,7 @@ add_executable(lattice_test_node
 
 target_link_libraries(lattice_test_node
   ${catkin_LIBRARIES}
+  # roscpp
 )
 target_include_directories(lattice_test_node PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -40,4 +41,5 @@ target_include_directories(lattice_test_node PRIVATE
 # 헤더 의존성 (optional)
 add_dependencies(lattice_test_node
   ${catkin_EXPORTED_TARGETS}
+  morai_msgs_generate_messages_cpp
 )

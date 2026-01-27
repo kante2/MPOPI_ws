@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>lattice_test</name>
+  <name>PlanningControl</name>
   <version>0.0.1</version>
-  <description>Lattice planning visualization test node</description>
+  <description>Lattice planning node</description>
 
   <maintainer email="autonav@todo.todo">autonav</maintainer>
   <license>MIT</license>

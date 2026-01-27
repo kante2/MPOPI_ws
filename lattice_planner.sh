@@ -1,2 +1,2 @@
 source ~/aim_ws/devel/setup.bash
-rosrun lattice_test lattice_test_node
+rosrun PlanningControl lattice_test_node

@@ -29,6 +29,7 @@ void LatticePlanningProcess() {
 
     // closeWaypointsIdx(ego, ctrl.close_idx); => getLocalPathIdx 로 변경
     getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);
+
     // getTargetWaypoint(ego, ctrl.close_idx, ctrl.target_idx, ctrl.ld);
     getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx, ego.max_curvature);
     getTargetSpeed(ego.max_curvature, ctrl.target_vel);
@@ -101,10 +102,13 @@ void findLookaheadGoal(const VehicleState& ego, int close_idx,
 void generateOffsetGoals(int goal_idx, LatticeControl& lattice_ctrl) {
     lattice_ctrl.offset_goals.clear();
 
+    // GPS 좌표계의 목표점
     double goal_ref_x = waypoints[goal_idx].x;
     double goal_ref_y = waypoints[goal_idx].y;
 
     // 방향 벡터 계산
+    // now ~ goal vector (dx, dy)
+    // 경로의 진행 방향 = 목표 yaw 각도
     double dx = 0.0, dy = 0.0;
     if (goal_idx < (int)waypoints.size() - 1) {
         dx = waypoints[goal_idx + 1].x - waypoints[goal_idx].x;
@@ -150,6 +154,7 @@ void transformOffsetGoalsToBaselink(LatticeControl& lattice_ctrl, const VehicleS
 
         BaselinkGoal bl_goal;
         mapToBaseLink(global_pt, ego, bl_goal.point);
+        // global yaw -> baselink yaw
         globalYawToBaselink(goal.global_yaw, ego, bl_goal.yaw);
         bl_goal.offset = goal.offset;
 
@@ -237,7 +242,8 @@ void sampleAllCandidatePaths(LatticeControl& lattice_ctrl) {
 
         if (std::fabs(X) < 1e-6) {
             candidate.points.push_back({0.0, 0.0});
-        } else {
+        } 
+        else {
             int num_points = (int)(std::fabs(X) / planner_params.sample_spacing) + 1;
             if (num_points < 1) num_points = 1;
 
@@ -289,8 +295,8 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
                 heading = atan2(pt_rear.y - path.points[i-1].y, 
                                pt_rear.x - path.points[i-1].x);
             }
-            double c = cos(heading);
-            double s = sin(heading);
+            double cos_heading = cos(heading);
+            double sin_heading = sin(heading);
 
             // ====================================================
             // [핵심 수정] 몸통 전체 검사 - 첫 번째 코드 스타일
@@ -299,28 +305,28 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             bool inside_map = false;
 
             // d는 차량 길이 방향 거리 (0m ~ 4.0m)
-            for (double d = 0.0; d <= front_offset; d += 0.5) {
+            for (double front_dx = 0.0; front_dx <= front_offset; front_dx += 0.5) {
                 
                 // 검사할 가상의 차량 중심점 (뒷바퀴에서 d만큼 앞)
-                double cx = pt_rear.x + d * c;
-                double cy = pt_rear.y + d * s;
+                double cx = pt_rear.x + front_dx * cos_heading;
+                double cy = pt_rear.y + front_dx * sin_heading;
 
                 // 좌/우/중앙 3점 검사
                 std::vector<Point2D> body_points;
                 body_points.push_back({cx, cy}); // 중앙
-                body_points.push_back({cx - half_width * s, cy + half_width * c}); // 왼쪽
-                body_points.push_back({cx + half_width * s, cy - half_width * c}); // 오른쪽
+                body_points.push_back({cx - half_width * sin_heading, cy + half_width * cos_heading}); // 왼쪽
+                body_points.push_back({cx + half_width * sin_heading, cy - half_width * cos_heading}); // 오른쪽
 
                 // 핵심: 직접 costmap 조회 (변환 함수 없음)
-                for (const auto& p : body_points) {
+                for (const auto& body_point : body_points) {
                     int grid_x, grid_y;
                     
                     // base_link → grid 직접 계산
-                    if (worldToCostmapCoord(p.x, p.y, grid_x, grid_y)) {
+                    if (worldToCostmapCoord(body_point.x, body_point.y, grid_x, grid_y)) {
                         inside_map = true;
                         
                         // grid에서 직접 비용 읽기
-                        int cost = getCostmapCost(p.x, p.y);
+                        int cost = getCostmapCost(body_point.x, body_point.y);
                         
                         if (cost > max_cost_in_step) {
                             max_cost_in_step = cost;
@@ -338,7 +344,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             }
             path.obstacle_cost += max_cost_in_step / 100.0;
         }
-
+        // fatal point --> not valid
         if (lethal_count > 0) {
             path.valid = false;
             path.cost = 1e10;
@@ -349,7 +355,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             path.obstacle_cost /= valid_point_count;
         }
         
-        // 곡률 비용 계산
+        // 곡률 비용 계산 - curvature_cost
         if (path.points.size() >= 3) {
             for (size_t i = 1; i < path.points.size() - 1; i++) {
                 double x0 = path.points[i-1].x, y0 = path.points[i-1].y;
@@ -390,6 +396,7 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
     double best_cost = 1e10;
     int best_idx = 0;
 
+    // select path that has the lowest cost
     for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
         if (lattice_ctrl.candidates[i].cost < best_cost) {
             best_cost = lattice_ctrl.candidates[i].cost;
@@ -401,9 +408,6 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
     lattice_ctrl.best_path = lattice_ctrl.candidates[best_idx];
     last_selected_offset = lattice_ctrl.best_path.offset;
     
-    // lattice_ctrl.best_path.points.back() -> 가장 마지막 웨이포인트가 나옴..
-    // best_waypoint = lattice_ctrl.best_path.points.back();
-    // ROS_INFO("Best waypoint: (%.2f, %.2f)", best_waypoint.x, best_waypoint.y);
 }
 
 // lattice_ctrl.best_path.points == local_path
@@ -412,10 +416,10 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
 void getTargetLocalPathIdx(LatticeControl& lattice_ctrl, double ld, int& out_idx){
     int target_idx = 0;
     for(int i = 0; i < lattice_ctrl.best_path.points.size(); ++i){
-        double dx = lattice_ctrl.best_path.points[i].x;
-        double dy = lattice_ctrl.best_path.points[i].y;
-        double dist = sqrt(dx*dx + dy*dy);
-        if(dist > ld){
+        double local_path_x = lattice_ctrl.best_path.points[i].x;
+        double local_path_y = lattice_ctrl.best_path.points[i].y;
+        double local_dist = sqrt(local_path_x*local_path_x + local_path_y*local_path_y); // <- ego ~ local_path point 거리
+        if(local_dist > ld){
             target_idx = i;
             break;
         }
@@ -423,50 +427,6 @@ void getTargetLocalPathIdx(LatticeControl& lattice_ctrl, double ld, int& out_idx
     out_idx = target_idx;
 }
 
-
-// ========================================
-// 가까운 인덱스잡기
-// ========================================
-// void closeWaypointsIdx(const VehicleState& ego, int& out_idx){
-
-//     static int last_close_idx = 0;
-//     double best_close_dist = 10000000000;
-//     int close_idx = last_close_idx;
-//     int start = std::max(0,last_close_idx - 10);
-//     int end = std::min((int)waypoints.size() - 1,last_close_idx + 30);
-//     for(int i = start; i <= end ; ++i){
-//         double dx = waypoints[i].x - ego.x;
-//         double dy = waypoints[i].y - ego.y;
-//         double dist = sqrt(dx*dx + dy*dy);
-//         if (dist < best_close_dist){
-//                 best_close_dist = dist;
-//                 close_idx = i;
-//             }
-           
-//         }
-//     last_close_idx = close_idx;
-//     out_idx = close_idx;
-//     ROS_INFO("close_idx: %d",close_idx);
-// }
-// ========================================
-// 타겟 인덱스 잡기lattice_ctrl.best_path.points
-// ========================================
-
-// void getTargetWaypoint(const VehicleState& ego, int close_idx, int& out_target_idx, double& ld){
-//     ld = 5.0 + ld_gain * ego.vel;
-//     int target_idx = close_idx;
-//     int i = close_idx;
-//     for(; i <= waypoints.size()-1; ++i ){
-//         double dx = waypoints[i].x-ego.x;
-//         double dy = waypoints[i].y-ego.y;
-//         double dist = sqrt(dx*dx + dy*dy);
-//         if(dist > ld){
-//             target_idx = i;
-//             break;
-//           }
-//         }
-//     out_target_idx = target_idx;
-// }
 
 // ========================================
 // 최대 곡률 계산
@@ -488,7 +448,8 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
 // ========================================
 // 타겟 속도
 // ========================================
-void getTargetSpeed(double max_curvature, double& out_target_vel){
+void getTargetSpeed(double max_curvature, double& out_target_vel){ 
+    // smoothing needed 
     if(max_curvature > curve_standard){
         out_target_vel = curve_vel;
     }

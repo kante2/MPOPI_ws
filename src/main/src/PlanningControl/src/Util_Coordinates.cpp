@@ -188,13 +188,16 @@ int getCostmapCostFromGrid(int grid_x, int grid_y) {
 
 // ========================================
 // 각도 유틸
+// - 상대각도=목표의 절대 방향−나의 절대 방향
 // ========================================
 
+// clamp 각도 -pi ~ pi
 double normalizeAngle(double angle) {
     while (angle > M_PI) angle -= 2.0 * M_PI;
     while (angle < -M_PI) angle += 2.0 * M_PI;
     return angle;
 }
+
 
 void globalYawToBaselink(double yaw_global,
                         const VehicleState& ego,

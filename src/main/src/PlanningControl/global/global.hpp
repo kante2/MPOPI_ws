@@ -137,8 +137,8 @@ struct PolynomialCoefficients {
 // 후보 경로 (points는 baselink 좌표계 유지)
 struct CandidatePath {
     std::vector<Point2D> points;  // baselink frame
-    double offset;
-
+    double offset; // 옆으로 얼마나 이동한 경로인지
+    // scores
     double obstacle_cost;
     double curvature_cost;
     double offset_cost;
@@ -146,6 +146,8 @@ struct CandidatePath {
 
     bool valid;
 
+    // 생성자(constructor)
+    // 구조체 변수(객체)를 만드는 순간 자동으로 한 번 실행되는 초기화 함수
     CandidatePath()
         : offset(0.0),
           obstacle_cost(0.0),
