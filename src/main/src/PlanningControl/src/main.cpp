@@ -40,8 +40,8 @@ double Ki = 0.0;
 double Kd = 0.0;
 double k_gain = 1.0;       // 조향 게인
 double curve_standard = 0.0;
-double curve_vel = 10.0 / 3.6;
-double target_vel = 20.0 / 3.6;   // 목표 속도
+double curve_vel = 30.0 / 3.6;
+double target_vel = 50.0 / 3.6;   // 목표 속도
 
 ros::Publisher cmd_pub;    // 제어 명령 Publisher
 
@@ -349,7 +349,7 @@ int main(int argc, char** argv) {
     
     // 파라미터
     planner_params.num_offsets = 15; // 9 -> 15
-    planner_params.lateral_offset_step = 0.8;
+    planner_params.lateral_offset_step = 0.8; 
     planner_params.sample_spacing = 0.2;
     planner_params.lethal_cost_threshold = 90.0;
     planner_params.vehicle_front_offset = 4.0; 
