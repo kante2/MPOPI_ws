@@ -90,7 +90,7 @@ struct ControlData {
     double accel = 0.0;
     double brake = 0.0;
     double steering = 0.0;
-    double ld = 5.0;
+    double ld = 8.0;
 };
 
 // 좌표 변환용
@@ -161,6 +161,7 @@ struct CandidatePath {
 struct LatticeControl {
     int close_idx = 0;
     int target_idx = 0;
+    int target_idx_short = 0;
     double ld = 0.0;
 
     std::vector<OffsetGoal> offset_goals;

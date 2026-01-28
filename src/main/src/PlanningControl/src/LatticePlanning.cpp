@@ -79,70 +79,72 @@ void findClosestWaypoint(const VehicleState& ego, int& out_idx) {
 // ========================================
 void findLookaheadGoal(const VehicleState& ego, int close_idx,
                        int& out_target_idx, double& ld) {
-    ld = 15.0;  // 고정 10m
-    int target_idx = close_idx;
+    ld = 15.0;  
+    double ld_short = 5.0;  
+    int target_idx_long = close_idx;
+    int target_idx_short = close_idx;
+    bool found_short = false;
 
     for (int i = close_idx; i < (int)waypoints.size(); i++) {
         double dx = waypoints[i].x - ego.x;
         double dy = waypoints[i].y - ego.y;
         double dist = std::sqrt(dx*dx + dy*dy);
 
+        // 7m 지점 찾기
+        if (!found_short && dist >= ld_short) {
+            target_idx_short = i;
+            found_short = true;
+        }
+
+        // 15m 지점 찾기
         if (dist >= ld) {
-            target_idx = i;
+            target_idx_long = i;
             break;
         }
     }
 
-    out_target_idx = target_idx;
+    out_target_idx = target_idx_long; // 기존 리턴값 유지
+    lattice_ctrl.target_idx_short = target_idx_short; // 짧은 인덱스 전역 저장
 }
 
 // ========================================
 // 오프셋 후보 생성
 // ========================================
-void generateOffsetGoals(int goal_idx, LatticeControl& lattice_ctrl) {
+void generateOffsetGoals(int goal_idx_long, LatticeControl& lattice_ctrl) {
     lattice_ctrl.offset_goals.clear();
+    int n = planner_params.num_offsets;
 
-    // goal_idx ~ goal_idx +
-    // GPS 좌표계의 목표점
-    double goal_ref_x = waypoints[goal_idx].x;
-    double goal_ref_y = waypoints[goal_idx].y;
+    // 공통 목표점 생성 로직 (람다 함수)
+    auto add_set = [&](int idx) {
+        double goal_ref_x = waypoints[idx].x;
+        double goal_ref_y = waypoints[idx].y;
+        double dx = 0.0, dy = 0.0;
+        if (idx < (int)waypoints.size() - 1) {
+            dx = waypoints[idx + 1].x - waypoints[idx].x;
+            dy = waypoints[idx + 1].y - waypoints[idx].y;
+        }
+        double len = std::max(1e-6, std::sqrt(dx*dx + dy*dy));
+        double dir_x = dx / len, dir_y = dy / len;
+        double norm_x = -dir_y, norm_y = dir_x;
+        double yaw_global = std::atan2(dir_y, dir_x);
 
-    // 방향 벡터 계산
-    // now ~ goal vector (dx, dy)
-    // 경로의 진행 방향 = 목표 yaw 각도
-    double dx = 0.0, dy = 0.0;
-    if (goal_idx < (int)waypoints.size() - 1) {
-        dx = waypoints[goal_idx + 1].x - waypoints[goal_idx].x;
-        dy = waypoints[goal_idx + 1].y - waypoints[goal_idx].y;
-    }
+        for (int i = 0; i < n; i++) {
+            double offset = -planner_params.lateral_offset_step * (n - 1) / 2.0 + 
+                             planner_params.lateral_offset_step * i;
+            OffsetGoal goal;
+            goal.global_x = goal_ref_x + offset * norm_x;
+            goal.global_y = goal_ref_y + offset * norm_y;
+            goal.global_yaw = yaw_global;
+            goal.offset = offset;
+            lattice_ctrl.offset_goals.push_back(goal);
+        }
+    };
 
-    double len = std::sqrt(dx*dx + dy*dy);
-    if (len < 1e-6) return;
-
-    // 단위 방향 벡터
-    double dir_x = dx / len;
-    double dir_y = dy / len;
-
-    // 법선 벡터 (좌측이 양수)
-    double norm_x = -dir_y;
-    double norm_y = dir_x;
-
-    double yaw_global = std::atan2(dir_y, dir_x); //목표점 요값 ,, 여기가 잘못된거 같은게 목표점 요값 -차량 헤당값한거 뒤에 그걸로해야함
-
-    for (int i = 0; i < planner_params.num_offsets; i++) {
-        double offset = -planner_params.lateral_offset_step *
-                        (planner_params.num_offsets - 1) / 2.0 +
-                        planner_params.lateral_offset_step * i;
-
-        OffsetGoal goal;
-        goal.global_x = goal_ref_x + offset * norm_x;
-        goal.global_y = goal_ref_y + offset * norm_y;
-        goal.global_yaw = yaw_global;
-        goal.offset = offset;
-
-        lattice_ctrl.offset_goals.push_back(goal);
-    }
+    add_set(goal_idx_long);              // 0 ~ n-1번 후보: 긴 경로
+    add_set(lattice_ctrl.target_idx_short); // n ~ 2n-1번 후보: 짧은 경로
 }
+
+
 
 // ========================================
 // Baselink 변환
@@ -379,38 +381,54 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
         double offset_change_cost = std::fabs(path.offset - last_selected_offset) * consistency_weight;
 
         path.cost = path.obstacle_cost * 100.0 + 
-                    path.offset_cost + 
+                    path.offset_cost * 1.0  + 
                     path.curvature_cost * 10.0 + 
-                    offset_change_cost;
+                    offset_change_cost * 1.0;
     }
 }
 // ========================================
 // 최적 경로 선택
 // ========================================
 void selectBestPath(LatticeControl& lattice_ctrl) {
-    if (lattice_ctrl.candidates.empty()) {
-        lattice_ctrl.best_path.valid = true;
-        lattice_ctrl.best_path.offset = 0.0;
-        return;
-    }
+    if (lattice_ctrl.candidates.empty()) return;
+    int n = planner_params.num_offsets;
 
     double best_cost = 1e10;
-    int best_idx = 0;
+    int best_idx = -1; // 초기값을 -1로 설정
 
-    // select path that has the lowest cost
-    for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
-        if (lattice_ctrl.candidates[i].cost < best_cost) {
+    // 1. 긴 후보군(Long) 먼저 확인
+    for (int i = 0; i < n; i++) {
+        if (lattice_ctrl.candidates[i].valid && lattice_ctrl.candidates[i].cost < best_cost) {
             best_cost = lattice_ctrl.candidates[i].cost;
             best_idx = i;
         }
     }
 
+    // 2. 긴 후보가 다 막혔으면 짧은 후보군(Short) 확인
+    if (best_idx == -1) {
+        best_cost = 1e10;
+        for (int i = n; i < (int)lattice_ctrl.candidates.size(); i++) {
+            if (lattice_ctrl.candidates[i].valid && lattice_ctrl.candidates[i].cost < best_cost) {
+                best_cost = lattice_ctrl.candidates[i].cost;
+                best_idx = i;
+            }
+        }
+        if (best_idx != -1) ROS_WARN_THROTTLE(1.0, "[Lattice] Long Paths Blocked! Switching to SHORT path.");
+    }
 
+    // [수정 포인트] 모든 경로가 막혔을 때의 예외 처리
+    if (best_idx == -1) {
+        ROS_ERROR_THROTTLE(0.5, "[Lattice] ALL PATHS BLOCKED! Braking node safe...");
+        lattice_ctrl.best_path.points.clear(); // 경로 비우기
+        lattice_ctrl.best_path.valid = false;
+        // 필요 시 여기서 정지 명령 플래그를 세울 수 있습니다.
+        return; // 함수 종료 (인덱스 접근 방지)
+    }
+
+    // 유효한 인덱스일 때만 데이터 업데이트
     lattice_ctrl.best_path = lattice_ctrl.candidates[best_idx];
     last_selected_offset = lattice_ctrl.best_path.offset;
-    
 }
-
 // lattice_ctrl.best_path.points == local_path
 // local path 에서 일정 ld이상인 index 인 out_idx 생성 ==> closewaypointsIdx 대체 
 //
