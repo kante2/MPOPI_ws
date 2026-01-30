@@ -104,11 +104,11 @@ struct CoordinateReference {
 };
 
 // // Mission 추가
-// enum Mission {
-//     LATTICE,
-//     JAMMING,
-//     END
-// };
+enum Mission {
+    LATTICE,
+    JAMMING,
+    END
+};
 
 // ========================================
 // Lattice Planning 구조체
@@ -167,7 +167,7 @@ struct LatticeControl {
     // double ld = 0.0;
     double ld_short = 10.0;
     double ld_long = 15.0;
-    double ld_very_long = 20.0;
+    double ld_very_long = 25.0;
     // LIDAR costmap with local path --> dynamic velocity decision
     double valid_path_ratio = 1.0;
 
