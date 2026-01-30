@@ -9,7 +9,7 @@ using namespace std;
 // Control Process
 // ========================================
 void ControlProcess() {
-
+    checkisnotCollision(ego);
     getsteering(ego, ctrl);
     computePID(ego.vel, ctrl.target_vel, ctrl.accel, ctrl.brake);
     pubCmd(ctrl);
@@ -20,6 +20,10 @@ void ControlProcess() {
 }
 
 //--------------- 함수정의 ---------------------------------------------------------
+
+// collision check 
+
+
 
 // ========================================
 // 조향각 계산 (Stanley)

@@ -13,7 +13,7 @@
 #include <morai_msgs/CtrlCmd.h>
 
 using namespace std;
-
+//.
 // ========================================
 // 전역 변수 정의
 // ========================================
@@ -43,24 +43,10 @@ double curve_standard = 0.0;
 double curve_vel = 30.0 / 3.6;
 double target_vel = 50.0 / 3.6;   // 목표 속도
 
-// ========================================
-// GPS Jamming 상태 전역 변수
-// ========================================
-struct GPSState {
-    bool is_jamming = false;           // GPS jamming 여부
-    int jamming_count = 0;             // jamming 발생 횟수
-    double total_jamming_duration = 0.0;  // 총 jamming 시간
-} gps_state;
+ros::Publisher cmd_pub;    // 제어 명령 Publisher
 
 // ========================================
-// 제어 모드 선택
-// ========================================
-enum class ControlMode {
-    LATTICE_PLANNING,  // GPS 정상: 래티스 플래닝
-    GPS_JAMMING        // GPS 손실: GPS jamming 제어
-};
-
-ControlMode current_mode = ControlMode::LATTICE_PLANNING;
+// Waypoint 로드 (상대경로: config 폴더)
 // ========================================
 bool loadWaypoints() {
     waypoints.clear();
@@ -183,50 +169,10 @@ void gpsCallback(const morai_msgs::GPSMessage::ConstPtr& msg) {
                  coord_ref.lat0, coord_ref.lon0);
     }
     
-    // ========================================
-    // [GPS Jamming 감지]
-    // 수신 신호 강도(dilution_of_precision)가 특정값 이상이면 jamming으로 판단
-    // ========================================
-    static ros::Time last_valid_gps_time = ros::Time::now();
-    static ros::Time jamming_start_time;
-    
-    // DOP 값이 높으면 GPS 신호 약함 (jamming 가능성)
-    const double GPS_DOP_THRESHOLD = 5.0;  // DOP > 5.0 = GPS 불안정
-    
-    if (msg->status == 16) {  // status=16: GPS 유효
-        if (msg->hdop < GPS_DOP_THRESHOLD) {
-            // GPS 정상
-            if (gps_state.is_jamming) {
-                // Jamming 해제
-                double jamming_duration = (ros::Time::now() - jamming_start_time).toSec();
-                gps_state.total_jamming_duration += jamming_duration;
-                gps_state.is_jamming = false;
-                ROS_WARN("[GPS] JAMMING RECOVERED! Duration: %.2f sec", jamming_duration);
-            }
-            last_valid_gps_time = ros::Time::now();
-        } else {
-            // GPS 신호 약함 -> Jamming 상태
-            if (!gps_state.is_jamming) {
-                gps_state.is_jamming = true;
-                gps_state.jamming_count++;
-                jamming_start_time = ros::Time::now();
-                ROS_ERROR("[GPS] JAMMING DETECTED! (HDOP=%.2f)", msg->hdop);
-            }
-        }
-    } else {
-        // GPS 신호 손실
-        if (!gps_state.is_jamming) {
-            gps_state.is_jamming = true;
-            gps_state.jamming_count++;
-            jamming_start_time = ros::Time::now();
-            ROS_ERROR("[GPS] SIGNAL LOST! (status=%d)", msg->status);
-        }
-    }
-    
-    // 위치 업데이트 (jamming 중에도 마지막 유효 위치 유지)
     double x, y, z;
     wgs84ToENU(msg->latitude, msg->longitude, msg->altitude,
                coord_ref, x, y, z);
+// [수정된 루프 함수] 중복 없이 이거 하나만 있어야 합니다!
     ego.x = x;
     ego.y = y;
 }
@@ -373,36 +319,16 @@ void publishLocalPath() {
     local_path_pub.publish(arr);
 }
 
-void latticeTestLoop(const ros::TimerEvent&) {
-    // ========================================
-    // 모드 선택: GPS jamming 상태 확인
-    // ========================================
-    if (gps_state.is_jamming) {
-        current_mode = ControlMode::GPS_JAMMING;
-        ROS_WARN("[Mode] GPS JAMMING - Using fallback control");
-    } else {
-        current_mode = ControlMode::LATTICE_PLANNING;
-        ROS_DEBUG("[Mode] LATTICE PLANNING - Normal operation");
-    }
-
-    // ========================================
-    // 모드별 제어 실행
-    // ========================================
-    if (current_mode == ControlMode::LATTICE_PLANNING) {
-        // [일반 모드] 래티스 플래닝 + 최적 경로 선택
-        LatticePlanningProcess();     // 1. 경로 계산
-        ControlProcess();             // 2. 제어 계산
-        publishCandidatePaths();      // 3. 경로 그리기
-        publishVehicleFootprint();    // 4. 내 차 박스 그리기
-        publishLocalPath();           // 5. 선택된 경로 발행
-        
-    } else if (current_mode == ControlMode::GPS_JAMMING) {
-        // [GPS jamming 모드] 대체 제어 (Pure Pursuit + PD + PID)
-        ROS_WARN_THROTTLE(1.0, "[GPS JAMMING MODE] Executing fallback control");
-        // TODO: GPS jamming 제어 함수 호출
-        // JammingControlProcess();
-        // publishVehicleFootprint();
-    }
+void mainControlLoop(const ros::TimerEvent&) {
+    
+    // 
+    // planning -> coontrol
+    LatticePlanningProcess();     // 1. 경로 계산
+    ControlProcess();             // 1-2. 제어 계산
+    // rviz,, 
+    publishCandidatePaths();      // 2. 경로 그리기
+    publishVehicleFootprint();    // 3. 내 차 박스 그리기
+    publishLocalPath();           // 4. 선택된 경로 발행
 }
 
 // ========================================
@@ -456,7 +382,7 @@ int main(int argc, char** argv) {
     cmd_pub = nh.advertise<morai_msgs::CtrlCmd>("/ctrl_cmd_0", 1);
 
     // Timer (10Hz)
-    ros::Timer timer = nh.createTimer(ros::Duration(0.1), latticeTestLoop);
+    ros::Timer timer = nh.createTimer(ros::Duration(0.1), mainControlLoop);
     
     ROS_INFO("Node Started! (Visualization Only - No Control)");
     ROS_INFO("========================================");
