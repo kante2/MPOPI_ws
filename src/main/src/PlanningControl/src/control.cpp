@@ -1,3 +1,4 @@
+#include "global.hpp"
 #include "Planning.hpp"
 #include <morai_msgs/CtrlCmd.h>
 #include <cmath>
@@ -9,7 +10,6 @@ using namespace std;
 // Control Process
 // ========================================
 void ControlProcess() {
-    checkisnotCollision(ego);
     getsteering(ego, ctrl);
     computePID(ego.vel, ctrl.target_vel, ctrl.accel, ctrl.brake);
     pubCmd(ctrl);

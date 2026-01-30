@@ -77,13 +77,16 @@ void findClosestWaypoint(const VehicleState& ego, int& out_idx) {
 // Lookahead Goal 찾기
 // ========================================
 void findLookaheadGoal(const VehicleState& ego, int close_idx, LatticeControl& lattice_ctrl) {
-    double ld_short = lattice_ctrl.ld_short;        // 5m
-    double ld_long = lattice_ctrl.ld_long;          // 15m
-    double ld_very_long = lattice_ctrl.ld_very_long; // 20m
-    
+    double ld_short = lattice_ctrl.ld_short + ego.vel * 0.5;        // 5m
+    double ld_medium = lattice_ctrl.ld_medium + ego.vel * 0.5;      // 10m
+    double ld_long = lattice_ctrl.ld_long + ego.vel * 0.5;          // 15m
+    double ld_very_long = lattice_ctrl.ld_very_long + ego.vel * 0.5; // 20m
+
     int target_idx_short = close_idx;
+    int target_idx_medium = close_idx;
     int target_idx_long = close_idx;
     int target_idx_very_long = close_idx;
+
 
     for (int i = close_idx; i < (int)waypoints.size(); i++) {
         double dx = waypoints[i].x - ego.x;
@@ -93,6 +96,11 @@ void findLookaheadGoal(const VehicleState& ego, int close_idx, LatticeControl& l
         // ld_short보다 큰 첫 번째 idx
         if (dist >= ld_short && target_idx_short == close_idx) {
             target_idx_short = i;
+        }
+
+        // ld_medium보다 큰 첫 번째 idx
+        if (dist >= ld_medium && target_idx_medium == close_idx) {
+            target_idx_medium = i;
         }
 
         // ld_long보다 큰 첫 번째 idx
@@ -108,6 +116,7 @@ void findLookaheadGoal(const VehicleState& ego, int close_idx, LatticeControl& l
     }
 
     lattice_ctrl.target_idx_short = target_idx_short;
+    lattice_ctrl.target_idx_medium = target_idx_medium;
     lattice_ctrl.target_idx_long = target_idx_long;
     lattice_ctrl.target_idx_very_long = target_idx_very_long;
 }
@@ -152,8 +161,9 @@ void generateOffsetGoals(LatticeControl& lattice_ctrl) {
     };
 
     add_set(lattice_ctrl.target_idx_very_long); // 후보 생성
-    add_set(lattice_ctrl.target_idx_long);  // 후보: 긴 경로
-    add_set(lattice_ctrl.target_idx_short); // 번 후보: 짧은 경로
+    add_set(lattice_ctrl.target_idx_medium);    // 후보: 중간 경로
+    add_set(lattice_ctrl.target_idx_long);      // 후보: 긴 경로
+    add_set(lattice_ctrl.target_idx_short);     // 후보: 짧은 경로
 }
 
 
@@ -394,7 +404,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
 
         path.cost = path.obstacle_cost * 100.0 + 
                     path.offset_cost * 1.0  + 
-                    path.curvature_cost * 10.0 + 
+                    path.curvature_cost * 5.0 + 
                     offset_change_cost * 1.0;
     }
 }
@@ -506,12 +516,12 @@ void getTargetSpeed(double max_curvature, double& out_target_vel){
     } 
     else if (valid_ratio < 0.6) {
         // 유효한 경로 30~60% = 중간 정도 장애물
-        base_vel *= 0.8;  // 20% 감속
+        base_vel *= 0.5;  // 20% 감속
         ROS_WARN_THROTTLE(1.0, "[Speed] Moderate obstacle detected! Reducing speed to %.2f", base_vel);
     }
     else if (valid_ratio < 0.8) {
         // 유효한 경로 60~80% = 약간의 장애물
-        base_vel *= 0.9;  // 10% 감속
+        base_vel *= 0.4;  // 10% 감속
         ROS_INFO_THROTTLE(2.0, "[Speed] Minor obstacle detected! Reducing speed to %.2f", base_vel);
     }
     // else: valid_ratio >= 0.8 = 장애물 거의 없음 -> 속도 유지

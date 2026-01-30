@@ -164,8 +164,10 @@ struct LatticeControl {
     int target_idx_very_long = 0;
     int target_idx_long = 0;
     int target_idx_short = 0;
+    int target_idx_medium = 0;
     // double ld = 0.0;
-    double ld_short = 10.0;
+    double ld_short = 5.0;
+    double ld_medium = 10.0;
     double ld_long = 15.0;
     double ld_very_long = 25.0;
     // LIDAR costmap with local path --> dynamic velocity decision
