@@ -137,7 +137,7 @@ struct PolynomialCoefficients {
 // 후보 경로 (points는 baselink 좌표계 유지)
 struct CandidatePath {
     std::vector<Point2D> points;  // baselink frame
-    double offset; // 옆으로 얼마나 이동한 경로인지
+    double offset; // 옆으로 얼마나 이동한 경로인지 (vertical offset)
     // scores
     double obstacle_cost;
     double curvature_cost;
@@ -168,7 +168,7 @@ struct LatticeControl {
     double ld_short = 10.0;
     double ld_long = 15.0;
     double ld_very_long = 20.0;
-    // LIDAR costmap with local path --> velocity decision
+    // LIDAR costmap with local path --> dynamic velocity decision
     double valid_path_ratio = 1.0;
 
     std::vector<OffsetGoal> offset_goals;

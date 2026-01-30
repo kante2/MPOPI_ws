@@ -23,6 +23,11 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
+
+# ========================================
+# lattice ctrl Node
+# ========================================
+
 add_executable(lattice_test_node
   src/main.cpp
   src/LatticePlanning.cpp

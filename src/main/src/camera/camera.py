@@ -4,10 +4,10 @@ import cv2
 import numpy as np
 import math
 from sensor_msgs.msg import CompressedImage
+from std_msgs.msg import Float32MultiArray
 from cv_bridge import CvBridge
 from ultralytics import YOLO
 from collections import deque
-from roscpp_morai.msg import LaneInfo  # [수정] LaneInfo 메시지 사용
 
 # 사전 정보 : 모라이 카메라 위치(X : 2.40, Y : 0.0, Z : 1.18) - 학습 시 카메라 2대 사용, 추론 시 하나만 필요
 
@@ -17,13 +17,15 @@ class LaneDrive:
         self.bridge = CvBridge()
 
         # [판제팀에서 수정 필요] 학습된 가중치 모델 경로 설정
-        self.model_path = '/home/autonav/camera_ws/src/camera_assignment/src/contest/runs/segment/morai_lane2/weights/best.pt'
+        self.model_path = '/root/aim_ws/src/main/src/camera/models/best.pt'
         self.model = YOLO(self.model_path)
 
         # Subscriber(모라이 카메라 RGB 토픽), Publisher(판제 필요한 6가지 데이터 담은 배열 형태 토픽)
-        self.topic_name = '/camera/rgb'
+        # self.topic_name = '/camera/rgb'
+        self.topic_name = '/image_jpeg/compressed'
         self.sub = rospy.Subscriber(self.topic_name, CompressedImage, self.image_callback)
-        self.pub = rospy.Publisher('/lane/path', LaneInfo, queue_size=1)
+        self.pub = rospy.Publisher('/lane/path', Float32MultiArray, queue_size=1)
+        self.image_pub = rospy.Publisher('/lane/visualization', CompressedImage, queue_size=1)
         
         self.LANE_WIDTH = 320  # 한쪽만 보일 때 반대쪽 차선 위치를 추정할 차선 폭(픽셀)
         
@@ -191,15 +193,17 @@ class LaneDrive:
                     angle_rad = math.atan2(vector_x, -vector_y) 
                     angle_deg = math.degrees(angle_rad)         # 조향각 변환
 
-                    # 3. 메시지 발행 (Offset, VecX, VecY, Angle, RedDotX, RedDotY)
-                    # [수정] LaneInfo 메시지 형식으로 담기
-                    path_msg = LaneInfo()
-                    path_msg.offset = float(offset)
-                    path_msg.vector_x = float(vector_x)
-                    path_msg.vector_y = float(vector_y)
-                    path_msg.angle = float(angle_deg)
-                    path_msg.target_x = float(target_x)
-                    path_msg.target_y = float(target_y)
+                    # 3. 메시지 발행 (Offset, VecX, VecY, Angle, TargetX, TargetY)
+                    # Float32MultiArray 형식으로 6개 값을 배열로 담기
+                    path_msg = Float32MultiArray()
+                    path_msg.data = [
+                        float(offset),
+                        float(vector_x),
+                        float(vector_y),
+                        float(angle_deg),
+                        float(target_x),
+                        float(target_y)
+                    ]
 
                     self.pub.publish(path_msg)
                     
@@ -233,8 +237,12 @@ class LaneDrive:
             else:
                 cv2.putText(final_display, "No Mask", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-            cv2.imshow("Lane Data", final_display)
-            cv2.waitKey(1)
+            # [시각화: ROS 토픽으로 퍼블리시]
+            try:
+                compressed_msg = self.bridge.cv2_to_compressed_imgmsg(final_display, dst_format='jpeg')
+                self.image_pub.publish(compressed_msg)
+            except Exception as viz_error:
+                rospy.logwarn(f"Visualization publish failed: {viz_error}")
 
         except Exception as e:
             rospy.logerr(f"Error: {e}")
@@ -246,4 +254,5 @@ if __name__ == '__main__':
     except rospy.ROSInterruptException:
         pass
     finally:
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
+        pass
