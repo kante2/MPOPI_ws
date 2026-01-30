@@ -168,6 +168,8 @@ struct LatticeControl {
     double ld_short = 10.0;
     double ld_long = 15.0;
     double ld_very_long = 20.0;
+    // LIDAR costmap with local path --> velocity decision
+    double valid_path_ratio = 1.0;
 
     std::vector<OffsetGoal> offset_goals;
     std::vector<BaselinkGoal> baselink_goals;

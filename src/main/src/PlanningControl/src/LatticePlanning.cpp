@@ -429,13 +429,25 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
     lattice_ctrl.best_path = lattice_ctrl.candidates[best_idx];
     last_selected_offset = lattice_ctrl.best_path.offset;
     
+    // 🆕 유효한 경로 개수 계산 (장애물 회피 정도 판단)
+    int valid_count = 0;
+    for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
+        if (lattice_ctrl.candidates[i].valid) {
+            valid_count++;
+        }
+    }
+    lattice_ctrl.valid_path_ratio = (double)valid_count / (double)lattice_ctrl.candidates.size();
+    
     // 디버깅: 어느 그룹에서 선택되었는지 출력
     if (best_idx < n) {
-        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from VeryLong group (idx %d, cost %.3f)", best_idx, best_cost);
+        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from VeryLong group (idx %d, cost %.3f, valid_ratio %.2f%%)", 
+                          best_idx, best_cost, lattice_ctrl.valid_path_ratio * 100.0);
     } else if (best_idx < 2*n) {
-        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from Long group (idx %d, cost %.3f)", best_idx, best_cost);
+        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from Long group (idx %d, cost %.3f, valid_ratio %.2f%%)", 
+                          best_idx, best_cost, lattice_ctrl.valid_path_ratio * 100.0);
     } else {
-        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from Short group (idx %d, cost %.3f)", best_idx, best_cost);
+        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from Short group (idx %d, cost %.3f, valid_ratio %.2f%%)", 
+                          best_idx, best_cost, lattice_ctrl.valid_path_ratio * 100.0);
     }
 }
 // lattice_ctrl.best_path.points == local_path
@@ -474,12 +486,35 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
 
 }
 // ========================================
-// 타겟 속도
+// 타겟 속도 (곡률 + 장애물 회피율 기반)
 // ========================================
 void getTargetSpeed(double max_curvature, double& out_target_vel){ 
-    // smoothing needed 
-    if(max_curvature > curve_standard){
-        out_target_vel = curve_vel;
+    double base_vel = target_vel;  // 기본 속도
+    
+    // (1) 곡률 기반 속도 조정
+    if (max_curvature > curve_standard) {
+        base_vel = curve_vel;  // 곡선 구간 감속
     }
-    else {out_target_vel = target_vel;}
+    
+    // (2) 장애물 회피율 기반 추가 감속
+    double valid_ratio = lattice_ctrl.valid_path_ratio;
+    
+    if (valid_ratio < 0.3) {
+        // 유효한 경로 30% 이하 = 많은 장애물
+        base_vel *= 0.7;  // 30% 감속
+        ROS_WARN_THROTTLE(1.0, "[Speed] Heavy obstacle detected! Reducing speed to %.2f", base_vel);
+    } 
+    else if (valid_ratio < 0.6) {
+        // 유효한 경로 30~60% = 중간 정도 장애물
+        base_vel *= 0.8;  // 20% 감속
+        ROS_WARN_THROTTLE(1.0, "[Speed] Moderate obstacle detected! Reducing speed to %.2f", base_vel);
+    }
+    else if (valid_ratio < 0.8) {
+        // 유효한 경로 60~80% = 약간의 장애물
+        base_vel *= 0.9;  // 10% 감속
+        ROS_INFO_THROTTLE(2.0, "[Speed] Minor obstacle detected! Reducing speed to %.2f", base_vel);
+    }
+    // else: valid_ratio >= 0.8 = 장애물 거의 없음 -> 속도 유지
+    
+    out_target_vel = base_vel;
 }
