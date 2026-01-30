@@ -41,7 +41,7 @@ double Kd = 0.0;
 double k_gain = 1.0;       // 조향 게인
 double curve_standard = 0.0;
 double curve_vel = 30.0 / 3.6;
-double target_vel = 40.0 / 3.6;   // 목표 속도
+double target_vel = 50.0 / 3.6;   // 목표 속도
 
 ros::Publisher cmd_pub;    // 제어 명령 Publisher
 
@@ -297,7 +297,7 @@ void publishLocalPath() {
     path_marker.action = visualization_msgs::Marker::ADD;
     
     path_marker.pose.orientation.w = 1.0;
-    path_marker.scale.x = 0.1; // 선의 두께
+    path_marker.scale.x = 0.3; // 선의 두께
     
     // 파란색
     path_marker.color.r = 0.0;

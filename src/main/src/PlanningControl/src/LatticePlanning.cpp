@@ -18,14 +18,13 @@ void LatticePlanningProcess() {
     }
 
     findClosestWaypoint(ego, lattice_ctrl.close_idx);
-    findLookaheadGoal(ego, lattice_ctrl.close_idx, lattice_ctrl.target_idx, lattice_ctrl.ld);
-    generateOffsetGoals(lattice_ctrl.target_idx, lattice_ctrl);
+    findLookaheadGoal(ego, lattice_ctrl.close_idx, lattice_ctrl);
+    generateOffsetGoals(lattice_ctrl);
     transformOffsetGoalsToBaselink(lattice_ctrl, ego);
     computeAllPolynomialPaths(lattice_ctrl);
     sampleAllCandidatePaths(lattice_ctrl);
     evaluateAllCandidates(lattice_ctrl);
     selectBestPath(lattice_ctrl);
-    // ctrl.ld = 5.0; //ctrl.ld가 설정안되어있어서 임시로 여기에 놨어요 이거 다른데서 설정되게 해야함,,ㄴ
 
     // closeWaypointsIdx(ego, ctrl.close_idx); => getLocalPathIdx 로 변경
     getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);
@@ -77,42 +76,48 @@ void findClosestWaypoint(const VehicleState& ego, int& out_idx) {
 // ========================================
 // Lookahead Goal 찾기
 // ========================================
-void findLookaheadGoal(const VehicleState& ego, int close_idx,
-                       int& out_target_idx, double& ld) {
-    ld = 15.0;  
-    double ld_short = 5.0;  
-    int target_idx_long = close_idx;
+void findLookaheadGoal(const VehicleState& ego, int close_idx, LatticeControl& lattice_ctrl) {
+    double ld_short = lattice_ctrl.ld_short;        // 5m
+    double ld_long = lattice_ctrl.ld_long;          // 15m
+    double ld_very_long = lattice_ctrl.ld_very_long; // 20m
+    
     int target_idx_short = close_idx;
-    bool found_short = false;
+    int target_idx_long = close_idx;
+    int target_idx_very_long = close_idx;
 
     for (int i = close_idx; i < (int)waypoints.size(); i++) {
         double dx = waypoints[i].x - ego.x;
         double dy = waypoints[i].y - ego.y;
         double dist = std::sqrt(dx*dx + dy*dy);
 
-        // 7m 지점 찾기
-        if (!found_short && dist >= ld_short) {
+        // ld_short보다 큰 첫 번째 idx
+        if (dist >= ld_short && target_idx_short == close_idx) {
             target_idx_short = i;
-            found_short = true;
         }
 
-        // 15m 지점 찾기
-        if (dist >= ld) {
+        // ld_long보다 큰 첫 번째 idx
+        if (dist >= ld_long && target_idx_long == close_idx) {
             target_idx_long = i;
+        }
+
+        // ld_very_long보다 큰 첫 번째 idx (이것을 찾으면 종료)
+        if (dist >= ld_very_long && target_idx_very_long == close_idx) {
+            target_idx_very_long = i;
             break;
         }
     }
 
-    out_target_idx = target_idx_long; // 기존 리턴값 유지
-    lattice_ctrl.target_idx_short = target_idx_short; // 짧은 인덱스 전역 저장
+    lattice_ctrl.target_idx_short = target_idx_short;
+    lattice_ctrl.target_idx_long = target_idx_long;
+    lattice_ctrl.target_idx_very_long = target_idx_very_long;
 }
 
 // ========================================
 // 오프셋 후보 생성
 // ========================================
-void generateOffsetGoals(int goal_idx_long, LatticeControl& lattice_ctrl) {
-    lattice_ctrl.offset_goals.clear();
-    int n = planner_params.num_offsets;
+void generateOffsetGoals(LatticeControl& lattice_ctrl) {
+    lattice_ctrl.offset_goals.clear(); // 초기화
+    int n = planner_params.num_offsets; // 오프셋 후보 개수
 
     // 공통 목표점 생성 로직 (람다 함수)
     auto add_set = [&](int idx) {
@@ -128,6 +133,12 @@ void generateOffsetGoals(int goal_idx_long, LatticeControl& lattice_ctrl) {
         double norm_x = -dir_y, norm_y = dir_x;
         double yaw_global = std::atan2(dir_y, dir_x);
 
+        //    // 예: n=5, offset_step=0.5m이면
+        // i=0: offset = -1.0m  (맨 왼쪽)
+        // i=1: offset = -0.5m
+        // i=2: offset =  0.0m  (중앙)
+        // i=3: offset = +0.5m
+        // i=4: offset = +1.0m  (맨 오른쪽)
         for (int i = 0; i < n; i++) {
             double offset = -planner_params.lateral_offset_step * (n - 1) / 2.0 + 
                              planner_params.lateral_offset_step * i;
@@ -136,12 +147,13 @@ void generateOffsetGoals(int goal_idx_long, LatticeControl& lattice_ctrl) {
             goal.global_y = goal_ref_y + offset * norm_y;
             goal.global_yaw = yaw_global;
             goal.offset = offset;
-            lattice_ctrl.offset_goals.push_back(goal);
+            lattice_ctrl.offset_goals.push_back(goal); // final pushback in this function
         }
     };
 
-    add_set(goal_idx_long);              // 0 ~ n-1번 후보: 긴 경로
-    add_set(lattice_ctrl.target_idx_short); // n ~ 2n-1번 후보: 짧은 경로
+    add_set(lattice_ctrl.target_idx_very_long); // 후보 생성
+    add_set(lattice_ctrl.target_idx_long);  // 후보: 긴 경로
+    add_set(lattice_ctrl.target_idx_short); // 번 후보: 짧은 경로
 }
 
 
@@ -387,47 +399,44 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
     }
 }
 // ========================================
-// 최적 경로 선택
+// 최적 경로 선택 (모든 15개 후보 비교)
 // ========================================
 void selectBestPath(LatticeControl& lattice_ctrl) {
     if (lattice_ctrl.candidates.empty()) return;
     int n = planner_params.num_offsets;
 
     double best_cost = 1e10;
-    int best_idx = -1; // 초기값을 -1로 설정
+    int best_idx = -1;
 
-    // 1. 긴 후보군(Long) 먼저 확인
-    for (int i = 0; i < n; i++) {
-        if (lattice_ctrl.candidates[i].valid && lattice_ctrl.candidates[i].cost < best_cost) {
+    // 모든 후보(15개) 평가 - 순차적으로 비교
+    for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
+        if (lattice_ctrl.candidates[i].valid && 
+            lattice_ctrl.candidates[i].cost < best_cost) {
             best_cost = lattice_ctrl.candidates[i].cost;
             best_idx = i;
         }
     }
 
-    // 2. 긴 후보가 다 막혔으면 짧은 후보군(Short) 확인
+    // 모든 경로가 막혔을 때의 예외 처리
     if (best_idx == -1) {
-        best_cost = 1e10;
-        for (int i = n; i < (int)lattice_ctrl.candidates.size(); i++) {
-            if (lattice_ctrl.candidates[i].valid && lattice_ctrl.candidates[i].cost < best_cost) {
-                best_cost = lattice_ctrl.candidates[i].cost;
-                best_idx = i;
-            }
-        }
-        if (best_idx != -1) ROS_WARN_THROTTLE(1.0, "[Lattice] Long Paths Blocked! Switching to SHORT path.");
-    }
-
-    // [수정 포인트] 모든 경로가 막혔을 때의 예외 처리
-    if (best_idx == -1) {
-        ROS_ERROR_THROTTLE(0.5, "[Lattice] ALL PATHS BLOCKED! Braking node safe...");
-        lattice_ctrl.best_path.points.clear(); // 경로 비우기
+        ROS_ERROR_THROTTLE(0.5, "[Lattice] ALL PATHS BLOCKED! Emergency stop...");
+        lattice_ctrl.best_path.points.clear();
         lattice_ctrl.best_path.valid = false;
-        // 필요 시 여기서 정지 명령 플래그를 세울 수 있습니다.
-        return; // 함수 종료 (인덱스 접근 방지)
+        return;
     }
 
-    // 유효한 인덱스일 때만 데이터 업데이트
+    // 최저 비용의 경로 선택
     lattice_ctrl.best_path = lattice_ctrl.candidates[best_idx];
     last_selected_offset = lattice_ctrl.best_path.offset;
+    
+    // 디버깅: 어느 그룹에서 선택되었는지 출력
+    if (best_idx < n) {
+        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from VeryLong group (idx %d, cost %.3f)", best_idx, best_cost);
+    } else if (best_idx < 2*n) {
+        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from Long group (idx %d, cost %.3f)", best_idx, best_cost);
+    } else {
+        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from Short group (idx %d, cost %.3f)", best_idx, best_cost);
+    }
 }
 // lattice_ctrl.best_path.points == local_path
 // local path 에서 일정 ld이상인 index 인 out_idx 생성 ==> closewaypointsIdx 대체 

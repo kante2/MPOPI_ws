@@ -161,8 +161,13 @@ struct CandidatePath {
 struct LatticeControl {
     int close_idx = 0;
     int target_idx = 0;
+    int target_idx_very_long = 0;
+    int target_idx_long = 0;
     int target_idx_short = 0;
-    double ld = 0.0;
+    // double ld = 0.0;
+    double ld_short = 10.0;
+    double ld_long = 15.0;
+    double ld_very_long = 20.0;
 
     std::vector<OffsetGoal> offset_goals;
     std::vector<BaselinkGoal> baselink_goals;
@@ -177,7 +182,7 @@ struct LatticeControl {
 // Planner 파라미터
 struct PlannerParams {
     int num_offsets = 15; // 9 -> 15
-    double lateral_offset_step = 1.0; // 0.5 -> 1.0
+    double lateral_offset_step = 0.7; // 0.5 -> 1.0
     double sample_spacing = 0.2;
     double lethal_cost_threshold = 70.0;
     double vehicle_front_offset = 4.0;
