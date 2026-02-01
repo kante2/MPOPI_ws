@@ -40,6 +40,12 @@ void costmapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
 
 
 void gpsCallback(const morai_msgs::GPSMessage::ConstPtr& msg) {
+
+    if (std::abs(msg->latitude) > 0.000001) { 
+            last_gps_time = ros::Time::now();
+        }
+
+    // 2. 좌표계 초기화 (기존 코드 유지)
     if (!coord_ref_initialized) {
         coord_ref.lat0 = msg->latitude;
         coord_ref.lon0 = msg->longitude;
@@ -50,10 +56,11 @@ void gpsCallback(const morai_msgs::GPSMessage::ConstPtr& msg) {
         ROS_INFO("[GPS] Reference point set: lat=%.6f, lon=%.6f", 
                  coord_ref.lat0, coord_ref.lon0);
     }
-    // ** is gps jamming <- bool
-    if (msg->latitude == 0) {
-        is_gps_jamming = true;
-    }
+
+    // 3. [삭제됨] 과거의 'msg->latitude == 0' 확인 로직은 삭제합니다.
+    // (이제 mainControlLoop에서 시간 차이로 재밍을 판단합니다)
+
+    // 4. 좌표 변환 (기존 코드 유지)
     double x, y, z;
     wgs84ToENU(msg->latitude, msg->longitude, msg->altitude,
                coord_ref, x, y, z);
@@ -80,19 +87,32 @@ void laneCallback(const std_msgs::Float32MultiArray::ConstPtr& msg) {
 
 void mainControlLoop(const ros::TimerEvent&) {
 
+    // 현재 시간 - 마지막 수신 시간
+    double time_diff = (ros::Time::now() - last_gps_time).toSec();
+
+    // 1.0초 이상 연락 없으면 재밍으로 판단
+    if (time_diff > 0.5) { 
+        if (!is_gps_jamming) {
+            ROS_WARN("GPS Signal Lost! (Timeout: %.2f sec) -> Jamming Mode ON", time_diff);
+        }
+        is_gps_jamming = true;
+    } 
+    else {
+        // 연락이 잘 오고 있으면 정상
+        is_gps_jamming = false;
+    }
+
+    // (기존 로직) 분기 처리
     if (is_gps_jamming) {
-       JammingPlanningProcess();    // 1. 재밍 시 경로 계산
+       JammingPlanningProcess();    
     }
     else {
-
-        LatticePlanningProcess();     // 1. 경로 계산
-        ControlProcess();             // 1-2. 제어 계산
-        // rviz,, 
-        publishCandidatePaths();      // 2. 경로 그리기
-        publishVehicleFootprint();    // 3. 내 차 박스 그리기
-        publishLocalPath();           // 4. 선택된 경로 발행
+        LatticePlanningProcess();     
+        ControlProcess();             
+        publishCandidatePaths();      
+        publishVehicleFootprint();    
+        publishLocalPath();           
     }
-    // else()_ gps_jamming_perception
 }
 
 // ========================================

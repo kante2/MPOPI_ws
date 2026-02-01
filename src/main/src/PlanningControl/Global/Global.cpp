@@ -1,6 +1,7 @@
 #include "Global.hpp"   // 파일명이 GLOBAL_HPP 헤더인 그대로 include
 
 // 재밍용
+ros::Time last_gps_time;
 bool is_gps_jamming = false;
 LaneData lane;
 JammingParams jamming_params;

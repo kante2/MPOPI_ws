@@ -22,8 +22,13 @@ void JammingPlanningProcess()
     filterOffset(lane, offset,jamming_params);
     computePurePursuitSteering(lane, offset, jamming_params);
     computeOffsetPD(offset,jamming_params);
+    computeLastSteering(offset, jamming_params);
     computePID(accel, brake, ego, jamming_params);
     publishCtrlCmd(accel, brake, ego);
+    // 2. [디버깅용 로그] 제발 찍혀라! (0.2초마다 출력)
+    // Offset이 0이면 카메라가 안 켜진 것이고, Steer가 나오면 로직은 정상입니다.
+    ROS_WARN_THROTTLE(0.2, "[JAMMING] Off:%.2f | Ang:%.2f | Steer:%.4f | Acc:%.2f", 
+                      lane.offset, lane.angle, jamming_params.gps_steering, accel);
 }
 
 //--------------------------함수 정의----------------------------------------------------------
@@ -45,7 +50,7 @@ void computeOffsetPD(Jamming_offset& offset,const JammingParams& jamming_params)
     offset.offset_steering = jamming_params.pid_Kp * offset.filtered_offset + jamming_params.pid_Kd * d_offset;
     offset.last_offset = offset.filtered_offset;
 }
-void computeLastSterring(const Jamming_offset& offset,JammingParams& jamming_params)
+void computeLastSteering(const Jamming_offset& offset,JammingParams& jamming_params)
 {
     jamming_params.gps_steering = offset.pp_steering-offset.offset_steering;
 }

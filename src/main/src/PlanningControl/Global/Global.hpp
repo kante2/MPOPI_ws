@@ -217,6 +217,8 @@ extern Jamming_offset offset;
 extern bool gps_first_received;
 extern VehicleState gps_ego;
 extern bool is_gps_jamming;
+extern ros::Time last_gps_time;     // 마지막으로 GPS 들어온 시간
+
 
 //기본
 extern std::vector<Waypoint> waypoints;
