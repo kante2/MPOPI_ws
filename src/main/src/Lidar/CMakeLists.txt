@@ -29,7 +29,7 @@ catkin_package(
 )
 
 include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}include
+  include
   ../../Global
   ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
@@ -43,6 +43,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/Kalman
   ${CMAKE_CURRENT_SOURCE_DIR}/Costmap
   ${CMAKE_CURRENT_SOURCE_DIR}/LidarProcess
+  ${CMAKE_CURRENT_SOURCE_DIR}/Hungarian
 )
 
 add_definitions(${PCL_DEFINITIONS})
@@ -57,6 +58,7 @@ add_executable(Lidar
   Kalman/Kalman.cpp
   Costmap/Costmap.cpp
   LidarProcess/LidarProcess.cpp 
+  Hungarian/Hungarian.cpp
 )
 
 target_link_libraries(Lidar

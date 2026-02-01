@@ -1,5 +1,9 @@
 #include <Kalman/Kalman.hpp>
 
+// 입력
+// 1. st_Lidar.vec_clusters => centroid_x, _y
+// 2. Timestamp => current_time 으로 들어오는 현재 프레임의 시간 정보
+
 // ===========================================================================================
 // EKFTracker - 예측값과 센서 측정값(= LShapeFitting 결과)만 사용
 // ===========================================================================================
@@ -18,9 +22,31 @@ EKFTracker::EKFTracker(int id, float init_x, float init_y) {
     this->x << px, py, theta, v, a;
 
     // 공분산 행렬 P 초기화 (처음엔 불확실하므로 약간 큰 값)
-    this->P = Eigen::MatrixXd::Identity(5, 5);
-    this->Q = Eigen::MatrixXd::Identity(5, 5) * 0.05; 
-    this->R = Eigen::MatrixXd::Identity(2, 2) * 0.1;
+    this->P = Eigen::MatrixXd::Identity(5, 5) * 20.0; // 더 키워서 내 예측을 덜 믿게
+    this->Q = Eigen::MatrixXd::Identity(5, 5) * 0.1;  // 예측 노이즈 증가
+    this->R = Eigen::MatrixXd::Identity(2, 2) * 0.01; // 더 줄여서 측정값을 더 믿게끔
+}
+
+// ===========================================================================================
+// 마할라노비스 거리 계산 함수
+// ===========================================================================================
+
+double EKFTracker::getMahalanobisDistance(double measured_x, double measured_y) {
+    Eigen::VectorXd z(2);
+    z << measured_x, measured_y;
+
+    Eigen::VectorXd h_x(2);
+    h_x << px, py; // 예측 위치
+
+    Eigen::MatrixXd H = calculateJacobianH();
+    // S = H*P*H^T + R (관측 불확실성 행렬)
+    Eigen::MatrixXd S = H * P * H.transpose() + R;
+    
+    Eigen::VectorXd y = z - h_x; // 잔차 (Innovation)
+    
+    // d = sqrt( y^T * S^-1 * y )
+    double m_dist = std::sqrt(y.transpose() * S.inverse() * y);
+    return m_dist;
 }
 
 // ===========================================================================================
@@ -164,6 +190,7 @@ void MultiObjectTracker::updateTracks(Lidar& st_Lidar, double current_time)
     // std::vector<EKFTracker> vec_EKFtracks;
     // -> 예측할 모든 장애물의 위치를 dt 시간만큼 미리 이동시켜 본다. 
 
+    cout << "dt: " << dt << endl;
 
     // --------------------------------------------------
     // 2. Association & Update
@@ -171,52 +198,48 @@ void MultiObjectTracker::updateTracks(Lidar& st_Lidar, double current_time)
 
     vector<bool> track_updated(vec_EKFtracks.size(), false);
     vector<bool> cluster_matched(st_Lidar.vec_clusters.size(), false);
+    vector<int> assignment; // 헝가리안 결과 저장용
 
-    for (int cluster_idx = 0; cluster_idx < st_Lidar.vec_clusters.size(); ++cluster_idx) 
-    {
-        const LidarCluster& current_cluster = st_Lidar.vec_clusters[cluster_idx];
+    // 1. 기존의 greedy 매칭(이중 for문 내 if(d < min_dist))을 아래 로직으로 완전히 교체해야 합니다.
 
-        double min_dist = 1.5; 
-        int best_idx = -1;
+    int num_tracks = vec_EKFtracks.size();
+    int num_clusters = st_Lidar.vec_clusters.size();
 
-        // 센서 측정값 (LShapeFitting 결과값) 과 예측값 매칭 
-
-        for (size_t j = 0; j < vec_EKFtracks.size(); ++j) 
-        {
-            if (track_updated[j]) continue;
-
-            double dx = current_cluster.centroid_x - vec_EKFtracks[j].x(0);
-            double dy = current_cluster.centroid_y - vec_EKFtracks[j].x(1);
-            double d = std::sqrt(dx*dx + dy*dy);
-            // 1) 모든 클러스터와 트래킹 대상 물체 사이의 유클리드 거리를 계산 -> 마할라노비스거리
-
-            if (d < min_dist) 
-            {
-                min_dist = d;
-                best_idx = j;
+    if (num_tracks > 0 && num_clusters > 0) {
+        // [필수 1] Cost Matrix 생성 (모든 트랙 vs 모든 클러스터 거리 계산)
+        vector<vector<double>> cost_matrix(num_tracks, vector<double>(num_clusters));
+        for (int i = 0; i < num_tracks; ++i) {
+            for (int j = 0; j < num_clusters; ++j) {
+                // 마할라노비스 거리 적용 (EKFTracker 내부에 함수 구현 필요)
+                cost_matrix[i][j] = vec_EKFtracks[i].getMahalanobisDistance(
+                    st_Lidar.vec_clusters[j].centroid_x, st_Lidar.vec_clusters[j].centroid_y);
             }
-            // 2) 설정한 min_dist 보다 가까운 것 중 가장 인접한 쌍을 매칭 (가장 인접한 쌍 = 관측하던 물체)
         }
 
-        // < LShapeFitting 결과값과 예측값 매칭 결과를 바탕으로, 예측값을 센서 측정값으로 수정하는 과정 >
-        // 매칭 성공 시 : 해당 트랙의 update()를 호출하여 필터값을 보정
+        // [필수 2] 헝가리안 알고리즘 호출 (객체는 위에서 선언했다고 가정)
+        // assignment[트랙번호] = 매칭된_클러스터번호 가 들어감
+        HungarianAlgorithm hungarian_solver;
+        hungarian_solver.Solve(cost_matrix, assignment); 
 
-        // 해당 트랙 - 매칭 결과로 연결된 특정 트래킹 객체
-        // 필터값(상태 변수 x) - 해당 객체가 가지고 있는 현재 위치, 속도, 각도 등의 수치 데이터
+        // [필수 3] 매칭 결과 적용 (Update 단계)
+        for (int i = 0; i < num_tracks; ++i) {
+            int matched_cluster_idx = assignment[i];
 
-        if (best_idx != -1) {
-        vec_EKFtracks[best_idx].update(current_cluster.centroid_x, current_cluster.centroid_y);
-        track_updated[best_idx] = true;
-        vec_EKFtracks[best_idx].miss_count = 0;
-        cluster_matched[cluster_idx] = true;
+            // Gating (너무 먼 매칭 방지): 마할라노비스 기준 3.0 내외가 적당
+            if (matched_cluster_idx != -1 && cost_matrix[i][matched_cluster_idx] < 50.0) {
+            
+            // ---- 마할라노비스 거리가 실제로 몇이 나오는지 측정 ----
+            cout << "[ID: " << vec_EKFtracks[i].id << "] Matched Cluster: " << matched_cluster_idx 
+                << " | Mahalanobis Dist: " << cost_matrix[i][matched_cluster_idx] << endl;
+
+            // if (matched_cluster_idx != -1) {
+                vec_EKFtracks[i].update(st_Lidar.vec_clusters[matched_cluster_idx].centroid_x, 
+                                    st_Lidar.vec_clusters[matched_cluster_idx].centroid_y);
+                vec_EKFtracks[i].miss_count = 0;
+                cluster_matched[matched_cluster_idx] = true;
+                track_updated[i] = true;
+            }
         }
-
-        // // 매칭 실패 시 : 새로운 장애물로 판단하여 vec_EKFtracks.emplace_back으로 새 트랙 생성
-        // else {
-        //     // 매칭 안 된 경우 새로운 트랙 생성
-        //     vec_EKFtracks.emplace_back(next_id++, cluster);
-        //     track_used.push_back(true); // 새로 추가된 트랙 표시
-        // }
     }
 
     // --------------------------------------------------
@@ -250,6 +273,8 @@ void MultiObjectTracker::updateTracks(Lidar& st_Lidar, double current_time)
     // --------------------------------------------------
 
     for (const EKFTracker& t : vec_EKFtracks) {
+        if (t.miss_count > 0) continue;
+
         KalmanDetection res;
         res.id = t.id;
         res.x = t.x(0); 
@@ -259,7 +284,9 @@ void MultiObjectTracker::updateTracks(Lidar& st_Lidar, double current_time)
         res.a = t.x(4); 
         // res.l = t.x(5);
         
-        res.is_confirmed = (t.miss_count == 0);
+        // res.is_confirmed = (t.miss_count == 0);
+        res.is_confirmed = true;
+
         st_Lidar.vec_kalman_clusters.push_back(res);
     }
     last_timestamp = current_time;

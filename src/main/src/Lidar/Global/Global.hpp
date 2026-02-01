@@ -81,7 +81,7 @@ struct LidarParam
   int ransac_max_iter = 300; 
 
   // clustering
-  float euclidean_tolerance = 0.8f; 
+  float euclidean_tolerance = 0.9f; 
   int euclidean_min_size = 5;
   int euclidean_max_size = 2000; 
 

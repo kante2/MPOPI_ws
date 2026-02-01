@@ -2,6 +2,7 @@
 #define KALMAN_HPP
 
 #include <Global/Global.hpp>
+#include <Hungarian/Hungarian.hpp>
 
 class EKFTracker {
 public:
@@ -19,6 +20,9 @@ public:
     // =================== 0. 초기화 ======================
     // x0 (상태 벡터): 물체의 처음 위치와 속도 설정 = 라이다 측정값
     // P0 (오차 공분산 행렬): 초기 예측이 얼마나 정확할지 설정 (단위행렬 I 에 큰 값을 곱하고 시작)
+
+    double getMahalanobisDistance(double measured_x, double measured_y);
+
 
     // =============== 1. 예측 단계: 식 (40) ===============
     void predict(double dt);
