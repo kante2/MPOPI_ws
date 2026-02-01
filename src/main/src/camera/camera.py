@@ -197,12 +197,8 @@ class LaneDrive:
                     # Float32MultiArray 형식으로 6개 값을 배열로 담기
                     path_msg = Float32MultiArray()
                     path_msg.data = [
-                        float(offset),
-                        float(vector_x),
-                        float(vector_y),
-                        float(angle_deg),
-                        float(target_x),
-                        float(target_y)
+                        float(offset), # **
+                        float(angle_deg), # ** 
                     ]
 
                     self.pub.publish(path_msg)

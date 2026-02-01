@@ -14,16 +14,20 @@
 #include <fstream>
 #include <sstream>
 #include <morai_msgs/CtrlCmd.h>
+#include <std_msgs/Float32MultiArray.h>
 
 using namespace std;
+mutex costmap_mutex;
 
 // ========================================
 // Callback
 // ========================================
 
 void costmapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
-    costmap_info.msg = msg; // 안전하게 shared_ptr 저장
 
+    lock_guard<std::mutex> lock(costmap_mutex);
+
+    costmap_info.msg = msg; // 안전하게 shared_ptr 저장
     costmap_info.origin_x = msg->info.origin.position.x;
     costmap_info.origin_y = msg->info.origin.position.y;
     costmap_info.resolution = msg->info.resolution;
@@ -46,7 +50,10 @@ void gpsCallback(const morai_msgs::GPSMessage::ConstPtr& msg) {
         ROS_INFO("[GPS] Reference point set: lat=%.6f, lon=%.6f", 
                  coord_ref.lat0, coord_ref.lon0);
     }
-    
+    // ** is gps jamming <- bool
+    if (msg->latitude == 0) {
+        is_gps_jamming = true;
+    }
     double x, y, z;
     wgs84ToENU(msg->latitude, msg->longitude, msg->altitude,
                coord_ref, x, y, z);
@@ -65,16 +72,27 @@ void imuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
                               msg->orientation.w);
 }
 
+void laneCallback(const std_msgs::Float32MultiArray::ConstPtr& msg) {
+    // Lane 정보를 처리하는 로직 추가
+    lane.offset = msg->data[0];
+    lane.angle = msg->data[1];
+}
+
 void mainControlLoop(const ros::TimerEvent&) {
-    
-    // 
-    // planning -> coontrol
-    LatticePlanningProcess();     // 1. 경로 계산
-    ControlProcess();             // 1-2. 제어 계산
-    // rviz,, 
-    publishCandidatePaths();      // 2. 경로 그리기
-    publishVehicleFootprint();    // 3. 내 차 박스 그리기
-    publishLocalPath();           // 4. 선택된 경로 발행
+
+    if (is_gps_jamming) {
+       JammingPlanningProcess();    // 1. 재밍 시 경로 계산
+    }
+    else {
+
+        LatticePlanningProcess();     // 1. 경로 계산
+        ControlProcess();             // 1-2. 제어 계산
+        // rviz,, 
+        publishCandidatePaths();      // 2. 경로 그리기
+        publishVehicleFootprint();    // 3. 내 차 박스 그리기
+        publishLocalPath();           // 4. 선택된 경로 발행
+    }
+    // else()_ gps_jamming_perception
 }
 
 // ========================================
@@ -104,7 +122,10 @@ int main(int argc, char** argv) {
     ros::Subscriber imu_sub = nh.subscribe("/imu", 1, imuCallback);
     ros::Subscriber ego_sub = nh.subscribe("/Ego_topic", 1, egoCallback);
     ros::Subscriber costmap_sub = nh.subscribe("/costmap", 1, costmapCallback);
-    
+    // ros::Subscriber lane_sub = nh.subscribe<camera::LaneInfo>("/lane/path", 1, laneCallback);
+    // path_msg = Float32MultiArray()
+    ros::Subscriber lane_sub = nh.subscribe<std_msgs::Float32MultiArray>("/lane/path", 1, laneCallback);
+
     // Publisher
     marker_pub = nh.advertise<visualization_msgs::MarkerArray>("/lattice/paths", 1);
     local_path_pub = nh.advertise<visualization_msgs::MarkerArray>("/local_path", 1);
@@ -116,6 +137,9 @@ int main(int argc, char** argv) {
     ROS_INFO("Node Started! (Visualization Only - No Control)");
     ROS_INFO("========================================");
     
-    ros::spin();
+    ros::AsyncSpinner spinner(4); // 일꾼 4명 고용 // 4개의 스레드를 할당하여 전역 콜백 큐(Global Callback Queue)를 병렬로 처리하는 스피너 생성
+    spinner.start();              // 일꾼들 투입 (백그라운드에서 돔) // 스피너를 백그라운드 스레드에서 비동기적으로 시작 (메인 스레드는 차단되지 않음)
+    ros::waitForShutdown();       // 메인 스레드는 여기서 프로그램 안 꺼지게 대기
+ 
     return 0;
 }

@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <mutex>
 #include <nav_msgs/OccupancyGrid.h>
 
 // ========================================
@@ -13,11 +14,7 @@
 struct LaneData
 {
     double offset;
-    double vector_x;
-    double vector_y;
     double angle;
-    double target_x;
-    double target_y;
 };
 
 struct GPSJammingState {
@@ -45,10 +42,13 @@ struct JammingParams
     const float wheel_base = 3.0;
     double gps_steering = 0.0;
     const double gps_alpha = 0.1; 
-    const double gps_k_p = 0.3;
-    const double gps_k_d = 0.05; 
+    const double pid_Kp = 0.05;
+    const double pid_Ki = 0.0;
+    const double pid_Kd = 0.0;
     const double dt = 0.02;
+    const double gps_target_vel = 50.0/3.6;
 };
+
 // ========================================
 // 기본 구조체
 // ========================================
@@ -78,6 +78,9 @@ struct VehicleState {
     double yaw = 0.0;
     double vel = 0.0;
     double max_curvature = 0.0;
+    double accel = 0.0;
+    double brake = 0.0;
+
 };
 
 
@@ -212,6 +215,8 @@ extern LaneData lane;
 extern JammingParams jamming_params;
 extern Jamming_offset offset;
 extern bool gps_first_received;
+extern VehicleState gps_ego;
+extern bool is_gps_jamming;
 
 //기본
 extern std::vector<Waypoint> waypoints;
@@ -242,5 +247,6 @@ extern int lookahead_idx;
 extern ros::Publisher marker_pub;
 extern ros::Publisher local_path_pub;
 extern ros::Publisher cmd_pub;
+extern std::mutex costmap_mutex;
 
 #endif // GLOBAL_HPP

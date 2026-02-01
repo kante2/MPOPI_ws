@@ -24,6 +24,13 @@ void getTargetSpeed(double max_curvature, double& out_speed);
 // Jamming Planning Functions
 // ========================================
 
+void JammingPlanningProcess();
+void filterOffset(const LaneData& lane, Jamming_offset& offset, const JammingParams& jamming_params);
+void computePurePursuitSteering(const LaneData& lane, Jamming_offset& offset, const JammingParams& jamming_params);
+void computeOffsetPD(Jamming_offset& offset, const JammingParams& jamming_params);
+// void computePID(const VehicleState& ego, const JammingParams& jamming_params);
+void computePID(double& accel, double& brake, const VehicleState& ego,const JammingParams& jamming_params);
+void publishCtrlCmd(double& accel, double& brake,const VehicleState& ego);
 
 
 

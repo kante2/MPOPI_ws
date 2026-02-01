@@ -53,9 +53,14 @@ void computePID(double vel, double target_vel, double& out_accel, double& out_br
     static double prev_error = 0.0;
     static double integral_error = 0.0;
 
-    double error = ctrl.target_vel - ego.vel;
-    integral_error += error * 0.02;
-    
+    static ros::Time last_time = ros::Time::now();
+    ros::Time current_time = ros::Time::now();
+    double dt = (current_time - last_time).toSec();
+    last_time = current_time;
+
+    double error = target_vel - vel;
+    integral_error += error * dt;
+
     if (integral_error > 10.0) integral_error = 10.0;
     if (integral_error < -10.0) integral_error = -10.0;
     

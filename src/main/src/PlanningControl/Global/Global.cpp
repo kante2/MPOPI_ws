@@ -1,11 +1,10 @@
 #include "Global.hpp"   // 파일명이 GLOBAL_HPP 헤더인 그대로 include
 
 // 재밍용
-GPSJammingState gps_state;
+bool is_gps_jamming = false;
 LaneData lane;
 JammingParams jamming_params;
 Jamming_offset offset;
-bool gps_first_received = false;
 
 // 기본
 std::vector<Waypoint> waypoints;

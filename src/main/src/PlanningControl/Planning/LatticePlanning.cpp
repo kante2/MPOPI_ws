@@ -12,6 +12,8 @@ using namespace std;
 // ========================================
 void LatticePlanningProcess() {
 
+    lock_guard<std::mutex> lock(costmap_mutex);
+    
     if (!checkCostmapAvailable()) {
         ROS_WARN_THROTTLE(1.0, "[Lattice] Waiting for costmap...");
         return;
