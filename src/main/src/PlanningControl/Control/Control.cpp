@@ -1,4 +1,5 @@
-#include "global.hpp"
+#include "Global.hpp"
+#include "Control.hpp"
 #include "Planning.hpp"
 #include <morai_msgs/CtrlCmd.h>
 #include <cmath>

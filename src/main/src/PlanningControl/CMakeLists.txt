@@ -14,36 +14,38 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3 REQUIRED)
 
 catkin_package(
-  INCLUDE_DIRS global
+  INCLUDE_DIRS Global Planning Control Visualizer  # 수정!
 )
 
 include_directories(
-  global
+  Global
+  Planning     
+  Control      
+  Visualizer   
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
 )
 
-
 # ========================================
-# lattice ctrl Node
+# Lattice Planning Node
 # ========================================
 
 add_executable(lattice_test_node
-  src/main.cpp
-  src/LatticePlanning.cpp
-  src/Util_Coordinates.cpp
-  src/control.cpp
+  main.cpp
+  Global/parameter_loader.cpp 
+  Global/Global.cpp             
+  Planning/LatticePlanning.cpp
+  Planning/JammingPlanning.cpp
+  Planning/Util_Coordinates.cpp
+  Control/Control.cpp
+  Visualizer/Visualizer.cpp
 )
 
 target_link_libraries(lattice_test_node
   ${catkin_LIBRARIES}
-  # roscpp
-)
-target_include_directories(lattice_test_node PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# 헤더 의존성 (optional)
+# 헤더 의존성
 add_dependencies(lattice_test_node
   ${catkin_EXPORTED_TARGETS}
   morai_msgs_generate_messages_cpp

@@ -1,4 +1,4 @@
-#include "global.hpp"
+#include "Global.hpp"
 #include "Planning.hpp"
 #include <cmath>
 #include <algorithm>

@@ -1,4 +1,4 @@
-#include "global.hpp"
+#include "Global.hpp"
 #include "Planning.hpp"
 
 #include <ros/ros.h>
@@ -409,7 +409,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
     }
 }
 // ========================================
-// 최적 경로 선택 (모든 15개 후보 비교)
+// 최적 경로 선택
 // ========================================
 void selectBestPath(LatticeControl& lattice_ctrl) {
     if (lattice_ctrl.candidates.empty()) return;

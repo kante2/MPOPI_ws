@@ -217,7 +217,7 @@ extern bool gps_first_received;
 extern std::vector<Waypoint> waypoints;
 extern VehicleState ego;
 extern CoordinateReference coord_ref;
-// extern Mission current_mission;
+extern bool coord_ref_initialized;
 
 // Lattice용
 extern LatticeControl lattice_ctrl;
@@ -237,6 +237,10 @@ extern double curve_vel;
 extern double curve_standard;
 extern int lookahead_idx;
 
+
+// ROS Publishers
+extern ros::Publisher marker_pub;
+extern ros::Publisher local_path_pub;
 extern ros::Publisher cmd_pub;
 
 #endif // GLOBAL_HPP
