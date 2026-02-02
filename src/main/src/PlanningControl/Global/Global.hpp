@@ -38,7 +38,7 @@ struct Jamming_offset{
 
 struct JammingParams
 {
-    const double Ld = 30.0;
+    const double Ld = 50.0;
     const float wheel_base = 3.0;
     double gps_steering = 0.0;
     const double gps_alpha = 0.1; 
@@ -56,7 +56,7 @@ struct JammingParams
 struct Point2D {
     double x;
     double y;
-    double curvature=0.0;
+    double curvature;
 };
 
 struct Point3D {
@@ -67,7 +67,7 @@ struct Point3D {
 
 struct Waypoint {
     double x, y;
-    double curvature=0.0;
+    double curvature;
 };
 
 
@@ -117,21 +117,6 @@ enum Mission {
 // Lattice Planning 구조체
 // ========================================
 
-// Offset 목표점 (Global 좌표계)
-struct OffsetGoal {
-    double global_x;
-    double global_y;
-    double global_yaw;
-    double offset;
-};
-
-// Baselink 목표점 (차량 좌표계)
-struct BaselinkGoal {
-    Point2D point;
-    double yaw;
-    double offset;
-};
-
 // 5차 다항식 계수
 struct PolynomialCoefficients {
     double a0, a1, a2, a3, a4, a5;
@@ -150,7 +135,6 @@ struct CandidatePath {
     bool valid;
 
     // 생성자(constructor)
-    // 구조체 변수(객체)를 만드는 순간 자동으로 한 번 실행되는 초기화 함수
     CandidatePath()
         : offset(0.0),
           obstacle_cost(0.0),
@@ -160,7 +144,22 @@ struct CandidatePath {
           valid(true) {}
 };
 
-// Lattice Control 구조체
+// Offset 목표점 (Global 좌표계)
+struct OffsetGoal {
+    double global_x;
+    double global_y;
+    double global_yaw;
+    double offset;
+};
+
+// Baselink 목표점 (차량 좌표계)
+struct BaselinkGoal {
+    Point2D point;
+    double yaw;
+    double offset;
+};
+
+// Lattice Control 구조체 (유일한 정의)
 struct LatticeControl {
     int close_idx = 0;
     int target_idx = 0;
@@ -168,12 +167,10 @@ struct LatticeControl {
     int target_idx_long = 0;
     int target_idx_short = 0;
     int target_idx_medium = 0;
-    // double ld = 0.0;
     double ld_short = 5.0;
     double ld_medium = 10.0;
     double ld_long = 15.0;
     double ld_very_long = 25.0;
-    // LIDAR costmap with local path --> dynamic velocity decision
     double valid_path_ratio = 1.0;
 
     std::vector<OffsetGoal> offset_goals;
@@ -188,16 +185,16 @@ struct LatticeControl {
 
 // Planner 파라미터
 struct PlannerParams {
-    int num_offsets = 15; // 9 -> 15
-    double lateral_offset_step = 0.7; // 0.5 -> 1.0
+    int num_offsets = 15;
+    double lateral_offset_step = 0.7;
     double sample_spacing = 0.2;
     double lethal_cost_threshold = 70.0;
     double vehicle_front_offset = 4.0;
 };
 
-// Costmap 정보 (안전: shared_ptr 보관)
+// Costmap 정보
 struct CostmapInfo {
-    nav_msgs::OccupancyGrid::ConstPtr msg;  // holds latest costmap safely
+    nav_msgs::OccupancyGrid::ConstPtr msg;
     double origin_x = 0.0;
     double origin_y = 0.0;
     double resolution = 0.0;

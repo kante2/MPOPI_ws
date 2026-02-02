@@ -404,10 +404,12 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
         
         double offset_change_cost = std::fabs(path.offset - last_selected_offset) * consistency_weight;
 
+        // 코스트 스케일을 통일 (최소-최대 사이)
         path.cost = path.obstacle_cost * 100.0 + 
-                    path.offset_cost * 1.0  + 
-                    path.curvature_cost * 5.0 + 
-                    offset_change_cost * 1.0;
+                    path.offset_cost * 1.0  +  // **
+                    path.curvature_cost * 1.0 + // * 5.0 -> 
+                    offset_change_cost * 1.0; // **
+                    // 1,1,1
     }
 }
 // ========================================
@@ -420,6 +422,17 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
     double best_cost = 1e10;
     int best_idx = -1;
 
+    // middle [4,13,22] cost
+    // middle [4,13,22] cost에 패널티 추가
+    std::vector<int> middle_idxs = {4, 13, 22};
+    for (int middle_idx : middle_idxs) {
+        if (middle_idx < (int)lattice_ctrl.candidates.size()) {
+            if (lattice_ctrl.candidates[middle_idx].obstacle_cost > 10) {
+                lattice_ctrl.candidates[middle_idx].cost += 1e5;  // 중간 경로에 패널티 추가
+            }
+        }
+    }
+
     // 모든 후보(15개) 평가 - 순차적으로 비교
     for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
         if (lattice_ctrl.candidates[i].valid && 
@@ -428,6 +441,8 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
             best_idx = i;
         }
     }
+
+
 
     // 모든 경로가 막혔을 때의 예외 처리
     if (best_idx == -1) {
@@ -507,45 +522,43 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
     if (max_curvature > curve_standard) {
         base_vel = curve_vel;  // 곡선 구간 감속
     }
-    
+
+    // 4 13 22 31
+    // idx 31 obstacle --> 감속
     // (2) 장애물 회피율 기반 추가 감속
     double valid_ratio = lattice_ctrl.valid_path_ratio;
     
     // LOCAL PATH (ctrl.lookahead_idx)주변부,, 일때 감속
     // 9 [1,2,3,4,5,6,7,8,9] -> 9의 몫 0
     // 9 [10,2,3,4,5,6,7,8,9] -> 9의 몫 1
-    // 9 [1,2,3,4,5,6,7,8,9] -> 9의 몫 2
+    // 9 [1,2,3,4,5,6,7,8,9] -> 9의 몫 2qiqiqiqi
     // 9 [1,2,3,4,5,6,7,8,9] -> 9의 몫 3
 
-    if (lookahead_idx % 9 == 5) { //  중앙 
-        base_vel *= 0.9;  // 10% 감속(안정성) 증잉은 global path와 유사하여, 주변장애물을 인식하여 속도를 줄이는 일을 방지
+    // 1. 매우 위험 (경로가 거의 없음, 10% 미만) -> 정지
+    if (valid_ratio < 0.1) { // 32  --> 1~2개,, 
+        base_vel = 5;
+        ROS_WARN_THROTTLE(1.0, "[Speed] Path Blocked! Stopping (Ratio: %.2f)", valid_ratio);
+    } 
+    // 2. 위험 (장애물 많음, 10% ~ 30%) -> 대폭 감속
+    else if (valid_ratio < 0.5) {
+        base_vel *= 0.3;  // 70% 감속 (30% 속도 유지)
+        ROS_WARN_THROTTLE(1.0, "[Speed] Heavy obstacle detected! Speed x0.3");        
+    } 
+    // 3. 주의 (중간 정도, 30% ~ 60%) -> 적당히 감속
+    else if (valid_ratio < 0.6) {
+        base_vel *= 0.4;  // 60% 감속 (40% 속도 유지)
+        ROS_WARN_THROTTLE(1.0, "[Speed] Moderate obstacle. Speed x0.4");
     }
-    // else if (lookahead_idx / lattice_ctrl.best_path.points.size() == 1) {
-    //     base_vel *= 0.8;  // 20% 감속
-    // }
-    // else if (lookahead_idx / lattice_ctrl.best_path.points.size() == 2) {
-    //     base_vel *= 0.7;  // 30% 감속
-    // }
-    // else if (lookahead_idx / lattice_ctrl.best_path.points.size() == 3) {
-    //     base_vel *= 0.6;  // 40% 감속
-    // }
-    else {
-        if (valid_ratio < 0.3) {
-            // 유효한 경로 30% 이하 = 많은 장애물
-            base_vel *= 0.7;  // 30% 감속
-            ROS_WARN_THROTTLE(1.0, "[Speed] Heavy obstacle detected! Reducing speed to %.2f", base_vel);
-        } 
-        else if (valid_ratio < 0.6) {
-            // 유효한 경로 30~60% = 중간 정도 장애물
-            base_vel *= 0.5;  // 20% 감속
-            ROS_WARN_THROTTLE(1.0, "[Speed] Moderate obstacle detected! Reducing speed to %.2f", base_vel);
+    // 4. 양호 (약간의 장애물, 60% ~ 80%) -> 살짝 감속
+    else if (valid_ratio < 0.8) {
+        if (lattice_ctrl.candidates[31].obstacle_cost > 10) {
+            base_vel *= 0.7;  // 70% 감속 (매우 천천히)
+            ROS_WARN_THROTTLE(1.0, "[Speed] Obstacle VERY CLOSE! Speed x0.3");
+        } else {
+            base_vel *= 0.5;  // 50% 감속
+            ROS_WARN_THROTTLE(1.0, "[Speed] Heavy obstacle detected! Speed x0.5");
         }
-        else if (valid_ratio < 0.8) {
-            // 유효한 경로 60~80% = 약간의 장애물
-            base_vel *= 0.4;  // 10% 감속
-            ROS_INFO_THROTTLE(2.0, "[Speed] Minor obstacle detected! Reducing speed to %.2f", base_vel);
-        }
-        // else: valid_ratio >= 0.8 = 장애물 거의 없음 -> 속도 유지
     }
-    out_target_vel = base_vel;
+    // 5. 안전 (80% 이상) -> 감속 없음 (else 문이 없으면 기존 속도 유지됨)
+        out_target_vel = base_vel;
 }
