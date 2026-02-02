@@ -141,7 +141,11 @@ int main(int argc, char** argv) {
     ros::Subscriber gps_sub = nh.subscribe("/gps", 1, gpsCallback);
     ros::Subscriber imu_sub = nh.subscribe("/imu", 1, imuCallback);
     ros::Subscriber ego_sub = nh.subscribe("/Ego_topic", 1, egoCallback);
+    // lidar_costmap
     ros::Subscriber costmap_sub = nh.subscribe("/costmap", 1, costmapCallback);
+    // camera_costmap
+    // ros::Subscriber camera_costmap_sub = nh.subscribe("/camera_costmap", 1, costmapCallback);` <- 
+
     // ros::Subscriber lane_sub = nh.subscribe<camera::LaneInfo>("/lane/path", 1, laneCallback);
     // path_msg = Float32MultiArray()
     ros::Subscriber lane_sub = nh.subscribe<std_msgs::Float32MultiArray>("/lane/path", 1, laneCallback);

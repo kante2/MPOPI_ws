@@ -170,8 +170,9 @@ struct LatticeControl {
     double ld_short = 5.0;
     double ld_medium = 10.0;
     double ld_long = 15.0;
-    double ld_very_long = 25.0;
+    double ld_very_long = 20.0;
     double valid_path_ratio = 1.0;
+    double very_long_path_ratio = 1.0;
 
     std::vector<OffsetGoal> offset_goals;
     std::vector<BaselinkGoal> baselink_goals;
@@ -185,10 +186,10 @@ struct LatticeControl {
 
 // Planner 파라미터
 struct PlannerParams {
-    int num_offsets = 15;
-    double lateral_offset_step = 0.7;
+    int num_offsets = 9; // 13 -> 9
+    double lateral_offset_step = 1.0;
     double sample_spacing = 0.2;
-    double lethal_cost_threshold = 70.0;
+    double lethal_cost_threshold = 90.0;
     double vehicle_front_offset = 4.0;
 };
 

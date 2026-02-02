@@ -406,43 +406,72 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
 
         // 코스트 스케일을 통일 (최소-최대 사이)
         path.cost = path.obstacle_cost * 100.0 + 
-                    path.offset_cost * 1.0  +  // **
-                    path.curvature_cost * 1.0 + // * 5.0 -> 
-                    offset_change_cost * 1.0; // **
+                    path.offset_cost * 1.5  +  // **
+                    path.curvature_cost * 3.0 + // * 5.0 -> 
+                    offset_change_cost * 1.5; // **
                     // 1,1,1
     }
 }
 // ========================================
 // 최적 경로 선택
 // ========================================
+// ========================================
+// 최적 경로 선택 (계층적 선택 로직)
+// ========================================
 void selectBestPath(LatticeControl& lattice_ctrl) {
     if (lattice_ctrl.candidates.empty()) return;
-    int n = planner_params.num_offsets;
+    int n = planner_params.num_offsets;  // 13
 
     double best_cost = 1e10;
     int best_idx = -1;
 
-    // middle [4,13,22] cost
-    // middle [4,13,22] cost에 패널티 추가
-    std::vector<int> middle_idxs = {4, 13, 22};
-    for (int middle_idx : middle_idxs) {
-        if (middle_idx < (int)lattice_ctrl.candidates.size()) {
-            if (lattice_ctrl.candidates[middle_idx].obstacle_cost > 10) {
-                lattice_ctrl.candidates[middle_idx].cost += 1e5;  // 중간 경로에 패널티 추가
+    // 🆕 계층적 경로 선택 (1~4단계)
+    std::vector<std::pair<int, int>> path_groups = {
+        {0, 2*n},           // 1단계: VeryLong (0~12)
+        {2*n, 4*n},         // 2단계: Medium (26~38)
+    };
+
+    // 각 그룹에서 유효한 경로 찾기
+    for (const auto& group : path_groups) {
+        best_cost = 1e10;
+        best_idx = -1;
+
+        for (int i = group.first; i < group.second && i < (int)lattice_ctrl.candidates.size(); i++) {
+            if (lattice_ctrl.candidates[i].valid) {
+                double cost = lattice_ctrl.candidates[i].cost;
+                
+                // 🆕 히스테리시스: 기존 경로 유지 (같은 그룹 내에서)
+                // 현재 선택된 경로와 다른 경로의 비용 차이가 작으면 기존 유지
+                static int last_selected_idx = -1;
+                static double last_selection_cost = 1e10;
+                
+                // 같은 그룹에 속하는 기존 경로면 비용에 패널티 감소 (히스테리시스)
+                double hysteresis_threshold = 2.0;  // 2% 이내 차이면 기존 유지
+                
+                if (last_selected_idx != -1 && 
+                    last_selected_idx >= group.first && 
+                    last_selected_idx < group.second &&
+                    std::fabs(cost - last_selection_cost) < hysteresis_threshold) {
+                    // 비용 차이가 작으면 기존 경로 선호
+                    if (i == last_selected_idx) {
+                        best_cost = cost;  // 기존 경로에 보너스
+                        best_idx = i;
+                    }
+                    continue;
+                }
+                
+                if (cost < best_cost) {
+                    best_cost = cost;
+                    best_idx = i;
+                }
             }
         }
-    }
 
-    // 모든 후보(15개) 평가 - 순차적으로 비교
-    for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
-        if (lattice_ctrl.candidates[i].valid && 
-            lattice_ctrl.candidates[i].cost < best_cost) {
-            best_cost = lattice_ctrl.candidates[i].cost;
-            best_idx = i;
+        // 현재 그룹에서 경로를 찾으면 선택
+        if (best_idx != -1) {
+            break;
         }
     }
-
-
 
     // 모든 경로가 막혔을 때의 예외 처리
     if (best_idx == -1) {
@@ -456,26 +485,47 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
     lattice_ctrl.best_path = lattice_ctrl.candidates[best_idx];
     last_selected_offset = lattice_ctrl.best_path.offset;
     
-    // 🆕 유효한 경로 개수 계산 (장애물 회피 정도 판단)
-    int valid_count = 0;
-    for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
+    // 🆕 선택된 경로 주변만 유효성 계산
+    int search_radius = 2;
+    int start_idx = std::max(0, best_idx - search_radius);
+    int end_idx = std::min((int)lattice_ctrl.candidates.size() - 1, best_idx + search_radius);
+    
+    int local_valid_count = 0;
+    int local_search_range = end_idx - start_idx + 1;
+    
+    for (int i = start_idx; i <= end_idx; i++) {
         if (lattice_ctrl.candidates[i].valid) {
-            valid_count++;
+            local_valid_count++;
         }
     }
-    lattice_ctrl.valid_path_ratio = (double)valid_count / (double)lattice_ctrl.candidates.size();
     
-    // 디버깅: 어느 그룹에서 선택되었는지 출력
-    if (best_idx < n) {
-        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from VeryLong group (idx %d, cost %.3f, valid_ratio %.2f%%)", 
-                          best_idx, best_cost, lattice_ctrl.valid_path_ratio * 100.0);
-    } else if (best_idx < 2*n) {
-        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from Long group (idx %d, cost %.3f, valid_ratio %.2f%%)", 
-                          best_idx, best_cost, lattice_ctrl.valid_path_ratio * 100.0);
-    } else {
-        ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from Short group (idx %d, cost %.3f, valid_ratio %.2f%%)", 
-                          best_idx, best_cost, lattice_ctrl.valid_path_ratio * 100.0);
+    lattice_ctrl.valid_path_ratio = (double)local_valid_count / (double)local_search_range;
+
+    // VeryLong 그룹 평가
+    int very_long_valid = 0;
+    int very_long_range = std::min(n, (int)lattice_ctrl.candidates.size());
+    for (int i = 0; i < very_long_range; i++) {
+        if (lattice_ctrl.candidates[i].valid) {
+            very_long_valid++;
+        }
     }
+    lattice_ctrl.very_long_path_ratio = (double)very_long_valid / (double)very_long_range;
+
+    std::string group_name;
+    if (best_idx < n) {
+        group_name = "VeryLong";
+    } else if (best_idx < 2*n) {
+        group_name = "Long";
+    } else if (best_idx < 3*n) {
+        group_name = "Medium";
+    } else {
+        group_name = "Short";
+    }
+
+    ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from %s group (idx %d, cost %.3f, local_ratio %.2f%%, very_long %.2f%%)", 
+                      group_name.c_str(), best_idx, best_cost, 
+                      lattice_ctrl.valid_path_ratio * 100.0, 
+                      lattice_ctrl.very_long_path_ratio * 100.0);
 }
 // lattice_ctrl.best_path.points == local_path
 // local path 에서 일정 ld이상인 index 인 out_idx 생성 ==> closewaypointsIdx 대체 
@@ -515,50 +565,77 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
 // ========================================
 // 타겟 속도 (곡률 + 장애물 회피율 기반)
 // ========================================
+//---------------------------------------------------------------------------------------------------------
 void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx){
     double base_vel = target_vel;  // 기본 속도
     
     // (1) 곡률 기반 속도 조정
-    if (max_curvature > curve_standard) {
+    if (max_curvature > curve_standard - 0.5) {
         base_vel = curve_vel;  // 곡선 구간 감속
     }
 
-    // 4 13 22 31
-    // idx 31 obstacle --> 감속
     // (2) 장애물 회피율 기반 추가 감속
     double valid_ratio = lattice_ctrl.valid_path_ratio;
-    
-    // LOCAL PATH (ctrl.lookahead_idx)주변부,, 일때 감속
-    // 9 [1,2,3,4,5,6,7,8,9] -> 9의 몫 0
-    // 9 [10,2,3,4,5,6,7,8,9] -> 9의 몫 1
-    // 9 [1,2,3,4,5,6,7,8,9] -> 9의 몫 2qiqiqiqi
-    // 9 [1,2,3,4,5,6,7,8,9] -> 9의 몫 3
+    double very_long_ratio = lattice_ctrl.very_long_path_ratio;
 
-    // 1. 매우 위험 (경로가 거의 없음, 10% 미만) -> 정지
-    if (valid_ratio < 0.1) { // 32  --> 1~2개,, 
-        base_vel = 5;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Path Blocked! Stopping (Ratio: %.2f)", valid_ratio);
-    } 
-    // 2. 위험 (장애물 많음, 10% ~ 30%) -> 대폭 감속
-    else if (valid_ratio < 0.5) {
-        base_vel *= 0.3;  // 70% 감속 (30% 속도 유지)
-        ROS_WARN_THROTTLE(1.0, "[Speed] Heavy obstacle detected! Speed x0.3");        
-    } 
-    // 3. 주의 (중간 정도, 30% ~ 60%) -> 적당히 감속
-    else if (valid_ratio < 0.6) {
-        base_vel *= 0.4;  // 60% 감속 (40% 속도 유지)
-        ROS_WARN_THROTTLE(1.0, "[Speed] Moderate obstacle. Speed x0.4");
-    }
-    // 4. 양호 (약간의 장애물, 60% ~ 80%) -> 살짝 감속
-    else if (valid_ratio < 0.8) {
-        if (lattice_ctrl.candidates[31].obstacle_cost > 10) {
-            base_vel *= 0.7;  // 70% 감속 (매우 천천히)
-            ROS_WARN_THROTTLE(1.0, "[Speed] Obstacle VERY CLOSE! Speed x0.3");
-        } else {
-            base_vel *= 0.5;  // 50% 감속
-            ROS_WARN_THROTTLE(1.0, "[Speed] Heavy obstacle detected! Speed x0.5");
+    int n = planner_params.num_offsets;  // 13
+
+    // 🆕 중앙 경로 인덱스 고정: 6, 19, 32, 45
+    std::vector<int> center_indices = {6, 19, 32, 45};
+    
+    // 선택된 경로의 인덱스 찾기
+    int selected_idx = -1;
+    for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
+        if (std::fabs(lattice_ctrl.candidates[i].offset - lattice_ctrl.best_path.offset) < 0.1 &&
+            std::fabs(lattice_ctrl.candidates[i].cost - lattice_ctrl.best_path.cost) < 0.1) {
+            selected_idx = i;
+            break;
         }
     }
-    // 5. 안전 (80% 이상) -> 감속 없음 (else 문이 없으면 기존 속도 유지됨)
-        out_target_vel = base_vel;
+
+    // 🆕 중앙 경로 선택 여부 판별
+    bool is_center_path = false;
+    for (int center_idx : center_indices) {
+        if (selected_idx == center_idx) {
+            is_center_path = true;
+            break;
+        }
+    }
+
+    // 🆕 중앙 경로일 때: 왼쪽/오른쪽 VeryLong 전부 막혔는지 체크
+    if (is_center_path) {  // VeryLong 그룹 중앙 (idx=6)
+        // 가장 가까운 idx중, 좌 그리고 우가 동시에 점유
+        // 감속
+        int left_idx = 6 - 2;  // 왼쪽
+        int right_idx = 6 + 2;  // 오른쪽
+
+        if (!lattice_ctrl.candidates[left_idx].valid && !lattice_ctrl.candidates[right_idx].valid) {
+            base_vel *= 0.5;
+            ROS_WARN_THROTTLE(1.0, "[Speed] Center path(idx=%d) selected | Left blocked: YES | Right blocked: YES → Reducing speed!", selected_idx);
+        }
+        else if (!lattice_ctrl.candidates[left_idx].valid || !lattice_ctrl.candidates[right_idx].valid) {
+            base_vel *= 0.9;
+            ROS_WARN_THROTTLE(1.0, "[Speed] Center path(idx=%d) selected | One side blocked → Slightly reducing speed!", selected_idx);
+        }
+    }
+
+    // 🔽 기존 감속 로직 (위 조건을 만족하지 않을 때만 실행)
+    
+    // 제일 먼 곳 (VeryLong) 감속 로직
+    if (very_long_ratio < 0.6) {
+        base_vel *= 0.5;
+        ROS_WARN_THROTTLE(1.0, "[Speed] Path Blocked! Reducing (VeryLong Ratio: %.2f)", very_long_ratio);
+    }
+    
+    // 매우 위험 (경로가 거의 없음, 10% 미만) -> 정지
+    if (valid_ratio < 0.1) {
+        base_vel = 5;
+        ROS_WARN_THROTTLE(1.0, "[Speed] Path Blocked! Stopping (Local Ratio: %.2f)", valid_ratio);
+    } 
+    // 양호 (약간의 장애물, 60% ~ 90%) -> 살짝 감속
+    else if (valid_ratio < 0.9) {
+        base_vel *= 0.75;  // 25% 감속
+    }
+
+    out_target_vel = base_vel;
 }

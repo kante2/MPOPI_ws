@@ -8,8 +8,8 @@
 #include <string>       
 
 void initializePlannerParameters() {
-    planner_params.num_offsets = 9;
-    planner_params.lateral_offset_step = 2.0; // ** 
+    planner_params.num_offsets = 13; // ** 9 -> 13
+    planner_params.lateral_offset_step = 1.0; // ** 
     planner_params.sample_spacing = 0.2;
     planner_params.lethal_cost_threshold = 90.0;
     planner_params.vehicle_front_offset = 4.0;
