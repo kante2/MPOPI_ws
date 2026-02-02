@@ -9,6 +9,7 @@ public:
 
     int id;
     int miss_count;
+    int real_cluster_count;
     
     // 상태 변수 (이미지 식 31의 x_t)
     double px, py, theta, v, a;
@@ -16,11 +17,14 @@ public:
     Eigen::VectorXd x; // 상태 벡터
     Eigen::MatrixXd P; // 오차 공분산
 
-    EKFTracker(int id, float init_x, float init_y);
     // =================== 0. 초기화 ======================
     // x0 (상태 벡터): 물체의 처음 위치와 속도 설정 = 라이다 측정값
     // P0 (오차 공분산 행렬): 초기 예측이 얼마나 정확할지 설정 (단위행렬 I 에 큰 값을 곱하고 시작)
 
+    EKFTracker(int id, float init_x, float init_y, const Eigen::MatrixXd& shared_Q, const Eigen::MatrixXd& shared_R);
+
+
+    // =================== 마할라노비스 거리 ======================
     double getMahalanobisDistance(double measured_x, double measured_y);
 
 

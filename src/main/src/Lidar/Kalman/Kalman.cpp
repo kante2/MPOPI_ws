@@ -8,7 +8,7 @@
 // EKFTracker - 예측값과 센서 측정값(= LShapeFitting 결과)만 사용
 // ===========================================================================================
 
-EKFTracker::EKFTracker(int id, float init_x, float init_y) {
+EKFTracker::EKFTracker(int id, float init_x, float init_y, const Eigen::MatrixXd& shared_Q, const Eigen::MatrixXd& shared_R) {
     this->id = id;
     this->px = init_x;
     this->py = init_y;
@@ -16,15 +16,23 @@ EKFTracker::EKFTracker(int id, float init_x, float init_y) {
     this->v = 0.0;
     this->a = 0.0;
     this->miss_count = 0;
+    this->real_cluster_count = 1; // 튀는 노이즈 포인트에 ID 가 부여되는 걸 막으려고
 
-    // Eigen 벡터 x 초기화
     this->x = Eigen::VectorXd::Zero(5);
     this->x << px, py, theta, v, a;
 
-    // 공분산 행렬 P 초기화 (처음엔 불확실하므로 약간 큰 값)
-    this->P = Eigen::MatrixXd::Identity(5, 5) * 20.0; // 더 키워서 내 예측을 덜 믿게
-    this->Q = Eigen::MatrixXd::Identity(5, 5) * 0.1;  // 예측 노이즈 증가
-    this->R = Eigen::MatrixXd::Identity(2, 2) * 0.01; // 더 줄여서 측정값을 더 믿게끔
+    // 오차 공분산 P 행렬 : 예측값이 측정값과 얼마나 차이가 날 수 있는가. 불신(?)의 정도. (값이 클수록 측정값z를 더 많이 반영)
+    this->P = Eigen::MatrixXd::Identity(5, 5) * 20.0; 
+
+    // ----------- Q, R 은 Multi EKFTracker 에서 초기화 --------------
+
+    // 노이즈 공분산 Q : 내 예측값 계산 모델이 얼마나 부정확한가. Q는 매 단계마다 P를 더 키우는 역할. 
+    // this->Q = Eigen::MatrixXd::Identity(5, 5) * 0.1;
+    this->Q = shared_Q;
+
+    // 측정 노이즈 공분산 R : 측정값이 얼마나 부정확한가. 
+    // this->R = Eigen::MatrixXd::Identity(2, 2) * 0.01;
+    this->R = shared_R;
 }
 
 // ===========================================================================================
@@ -39,12 +47,9 @@ double EKFTracker::getMahalanobisDistance(double measured_x, double measured_y) 
     h_x << px, py; // 예측 위치
 
     Eigen::MatrixXd H = calculateJacobianH();
-    // S = H*P*H^T + R (관측 불확실성 행렬)
     Eigen::MatrixXd S = H * P * H.transpose() + R;
     
     Eigen::VectorXd y = z - h_x; // 잔차 (Innovation)
-    
-    // d = sqrt( y^T * S^-1 * y )
     double m_dist = std::sqrt(y.transpose() * S.inverse() * y);
     return m_dist;
 }
@@ -55,12 +60,14 @@ double EKFTracker::getMahalanobisDistance(double measured_x, double measured_y) 
 
 void EKFTracker::predict(double dt) {
     // 1. 상태 예측 (비선형 함수 f 직접 계산)
-    // 등가속도 운동 거리: s = v*t + 0.5*a*t^2
+
+    // 등가속도 운동 거리
     double dist = v * dt + 0.5 * a * dt * dt;
 
-    px = px + dist * cos(theta); // x 위치 업데이트
-    py = py + dist * sin(theta); // y 위치 업데이트
-    v  = v + a * dt;             // 속도 업데이트
+    // 이동 거리 분해해서 업데이트 중
+    px = px + dist * cos(theta); 
+    py = py + dist * sin(theta); 
+    v  = v + a * dt;             
 
     // 계산된 변수들을 다시 벡터 x에 동기화 (행렬 연산을 위해)
     x << px, py, theta, v, a;
@@ -70,21 +77,34 @@ void EKFTracker::predict(double dt) {
 
     // 3. 공분산 P 업데이트 (식 40)
     P = F * P * F.transpose() + Q;
+
+    // << 오차 공분산 P 행렬 >>
+    // : 예측값이 측정값과 얼마나 차이가 날 수 있는가. 불신(?)의 정도. (값이 클수록 측정값z를 더 많이 반영)
+    // : 현재 내 상태 (벡터x)가 얼마나 흔들리고 있는지 보여주는 오차의 영역. ex 타원
+
+    // << 자코비안 행렬 F >>
+    // : 현재 상태의 변화가 다음 상태에 미치는 영향력 의미
+    // : 지금 v 나 theta 를 살짝 바꿨을 때,  다음 위치(x, y)가 얼마나 크게 변하는가?
+
+    // -> 현재 내 상태x에 있는 오차 P가 자코비안 F를 거쳐서 다음 단계 위치오차로 얼마나 번져나가는가를 계산
+
+    // -> update는, F를 거쳐서 커진 오차 P를 실제 측정값R로 다시 좁히는 과정
 }
 
+// 자코비안 행렬 : dt만큼 시간이 흐를 떄, 현재 상태(x)의 변화가 다음 상태에 미치는 영향력을 나타낸 행렬
 Eigen::MatrixXd EKFTracker::calculateJacobianF(double dt) {
     Eigen::MatrixXd F = Eigen::MatrixXd::Identity(5, 5); // 단위행렬
     double dist = v * dt + 0.5 * a * dt * dt;
 
-    // px를 각 변수들로 편미분한 결과
-    F(0, 2) = -dist * sin(theta);         // d_px / d_theta
-    F(0, 3) = dt * cos(theta);            // d_px / d_v
-    F(0, 4) = 0.5 * dt * dt * cos(theta); // d_px / d_a
+    // px (index 0) 편미분
+    F(0, 2) = -dist * sin(theta);         // d_px / d_theta (맞음)
+    F(0, 3) = dt * cos(theta);            // d_px / d_v (맞음)
+    F(0, 4) = 0.5 * dt * dt * cos(theta); // d_px / d_a (맞음)
 
-    // py를 각 변수들로 편미분한 결과
-    F(1, 2) = dist * cos(theta);          // d_py / d_theta
-    F(1, 3) = dt * sin(theta);            // d_py / d_v
-    F(1, 4) = 0.5 * dt * dt * sin(theta); // d_py / d_a
+    // py (index 1) 편미분
+    F(1, 2) = dist * cos(theta);          // d_py / d_theta (맞음)
+    F(1, 3) = dt * sin(theta);            // d_py / d_v (맞음)
+    F(1, 4) = 0.5 * dt * dt * sin(theta); // d_py / d_a (맞음)
 
     // v를 a로 편미분한 결과
     F(3, 4) = dt;                         // d_v / d_a
@@ -98,31 +118,50 @@ Eigen::MatrixXd EKFTracker::calculateJacobianF(double dt) {
 // ===========================================================================================
 
 void EKFTracker::update(double measured_x, double measured_y) {
-    // 1. 관측값 벡터 구성 (z_t)
+    // 1. 측정값 벡터 구성 (z_t) -> 현재 위치 함수
     Eigen::VectorXd z(2);
     z << measured_x, measured_y;
 
-    // 2. 비선형 관측 모델 적용 (h(x_pred, 0)) - 식 (41)
+    // 2. 예측값
     Eigen::VectorXd h_x(2);
-    h_x << px, py; // 현재 상태에서 예측되는 측정값
+    h_x << px, py; 
 
-    // 3. 자코비안 H_t 계산 - 식 (33)
+    // 3. 자코비안 H 
     Eigen::MatrixXd H = Eigen::MatrixXd::Zero(2, 5);
-    H(0, 0) = 1.0; // d_h1 / d_px
-    H(1, 1) = 1.0; // d_h2 / d_py
+    H(0, 0) = 1.0; // x 위치
+    H(1, 1) = 1.0; // y 위치
 
-    // 4. 칼만 게인(Kalman Gain) 계산 - 식 (41, 42)
-    Eigen::MatrixXd S = H * P * H.transpose() + R;
+    // << 자코비안 H >>
+    // : 상태벡터 x의 5개 값 중 뭐가 측정값에 영향을 주냐. 
+    // : 1.0인 이유, x, y 좌표를 센서가 그대로 읽기 때문에 기울기가 1인 직선 관계로 봤다. 
+
+    // =========================================================================================
+    // 4. 칼만 게인(Kalman Gain)
+    Eigen::MatrixXd S = H * P * H.transpose() + R; // 예측 오차 P와 측정 오차 R을 합친 전체 오차의 합
     Eigen::MatrixXd K = P * H.transpose() * S.inverse();
 
-    // 5. 상태 업데이트 (Update State) - 식 (41, 42)
-    Eigen::VectorXd y = z - h_x; // 잔차(Innovation)
-    // z : 센서 측정값
+    // << 칼만 게인 >>
+    // : 전체 오차 S 중에서 예측 오차 P 가 차지하는 비중
+    // : 예측값 불확실성 P와 센서 노이즈 R을 비교해서, 누구 말을 더 믿을지 결정하는 가중치
+
+    // =========================================================================================
+    // 5. 측정값과 예측값이 얼마나 틀리냐
+    Eigen::VectorXd y = z - h_x; 
+    // z : 측정값
     // h_x : 예측값
     // => y가 0에 가깝다면 - 예측 정확. 
 
     Eigen::VectorXd delta_x = K * y;
     // 측정/예측 오차에 칼만게인을 곱한 값을 delta_x : 현재 상태는 어느 방향(측정 or 예측)으로 수정해야 하는가?를 판단하는 값
+
+    // ex) K가 높을 때 = 센서 측정값을 더 신뢰
+    // : 측정,예측 오차가 크면 예측이 완전 빗나갔다. -> 센서 방향으로 크게 움직임
+    // :         오차가 작으면 예측한 곳에 물체가 있다. -> 살짝만 센서 방향으로 움직임 
+
+
+    // << 센서 노이즈(측정 오차) R vs 측정 - 예측  y >>
+    // R : 센서 자체의 오차 정도
+    // y : 이번 프레임 내에서의 측정, 예측 위치 거리 차이
 
     px += delta_x(0);
     py += delta_x(1);
@@ -133,9 +172,14 @@ void EKFTracker::update(double measured_x, double measured_y) {
     // 행렬 x 동기화
     x << px, py, theta, v, a;
 
-    // 6. 오차 공분산 업데이트 (Update Covariance) - 식 (41, 42)
+    // 6. 오차 공분산 업데이트 (Update Covariance) 
     Eigen::MatrixXd I = Eigen::MatrixXd::Identity(5, 5);
+
     P = (I - K * H) * P;
+    // 센서 관측값 계산 후, 예측값 불확실성 P 업데이트.
+    // K=1(센서100% 믿음) : 예측 오차 P = 0이 됨. 
+
+    // => predice 에서 P 커짐 -> update 에서 다시 P 줄임
 }
 
 
@@ -156,12 +200,15 @@ Eigen::MatrixXd EKFTracker::calculateJacobianH() {
 // 3. update : 짝이 맞은 트랙은 update 하고, 짝이 없는 클러스터는 새로 트랙 생성
 // 4. management : 오랫동안 안 보이는 트랙은 삭제
 
-// 트래킹에 필요한 행렬 초기값 설정
 MultiObjectTracker::MultiObjectTracker() : next_id(0), last_timestamp(0.0) {
-    // 시스템에 맞는 노이즈 값 설정 (튜닝 포인트)
-    Q = Eigen::MatrixXd::Identity(5, 5) * 0.05;
-    R = Eigen::MatrixXd::Identity(2, 2) * 0.1;
+
+    // 노이즈 공분산 Q : 내 예측값 계산 모델이 얼마나 부정확한가. Q는 매 단계마다 P를 더 키우는 역할. 
+    this -> Q = Eigen::MatrixXd::Identity(5, 5) * 0.1;
+
+    // 측정 노이즈 공분산 R : 측정값이 얼마나 부정확한가. 
+    this -> R = Eigen::MatrixXd::Identity(2, 2) * 0.1;
 }
+// ?? : 개별 트랙에 대한 Q, R 을 설정했는데, 여러 클러스터에 대한 공분산 정도를 왜 또 설정해야하는 거지
 
 // ===========================================================================================
 // 매 프레임 데이터가 들어올 때마다 호출되는 메인 루프
@@ -176,11 +223,17 @@ void MultiObjectTracker::updateTracks(Lidar& st_Lidar, double current_time)
     }
     else {
         dt = current_time - last_timestamp;
+        // [방어 로직 추가] 
+        // 시간이 거꾸로 가거나(<=0), 1초 이상 끊겼을 때(>1.0) 0.1초로 고정
+        if (dt <= 0.0 || dt > 1.0) 
+        {
+            dt = 0.1;
+        }
     }
 
-    // --------------------------------------------------
+    // ===================================================
     // 1. Prediction
-    // --------------------------------------------------
+    // ===================================================
 
     for (EKFTracker& track : vec_EKFtracks) 
     {
@@ -192,88 +245,121 @@ void MultiObjectTracker::updateTracks(Lidar& st_Lidar, double current_time)
 
     cout << "dt: " << dt << endl;
 
-    // --------------------------------------------------
+    // ===================================================
     // 2. Association & Update
-    // --------------------------------------------------
+    // ===================================================
 
     vector<bool> track_updated(vec_EKFtracks.size(), false);
     vector<bool> cluster_matched(st_Lidar.vec_clusters.size(), false);
     vector<int> assignment; // 헝가리안 결과 저장용
 
-    // 1. 기존의 greedy 매칭(이중 for문 내 if(d < min_dist))을 아래 로직으로 완전히 교체해야 합니다.
+    // 새로운 프레임의 여러 클러스터가 들어왔을 때 어떤 클러스터가 내가 추적하던 트랙인지 결정
 
     int num_tracks = vec_EKFtracks.size();
     int num_clusters = st_Lidar.vec_clusters.size();
 
-    if (num_tracks > 0 && num_clusters > 0) {
-        // [필수 1] Cost Matrix 생성 (모든 트랙 vs 모든 클러스터 거리 계산)
+    if (num_tracks > 0 && num_clusters > 0) 
+    {
+        // ---------------------------------------------------
+        // 1. Cost Matrix 생성 (모든 트랙 vs 모든 클러스터 거리 계산)
+        // ---------------------------------------------------
+
         vector<vector<double>> cost_matrix(num_tracks, vector<double>(num_clusters));
-        for (int i = 0; i < num_tracks; ++i) {
-            for (int j = 0; j < num_clusters; ++j) {
-                // 마할라노비스 거리 적용 (EKFTracker 내부에 함수 구현 필요)
-                cost_matrix[i][j] = vec_EKFtracks[i].getMahalanobisDistance(
-                    st_Lidar.vec_clusters[j].centroid_x, st_Lidar.vec_clusters[j].centroid_y);
+
+        for (int i = 0; i < num_tracks; ++i) 
+        {
+            for (int j = 0; j < num_clusters; ++j) 
+            {
+                // 마할라노비스 거리 적용
+                cost_matrix[i][j] = vec_EKFtracks[i].getMahalanobisDistance(st_Lidar.vec_clusters[j].centroid_x, st_Lidar.vec_clusters[j].centroid_y);
             }
         }
 
-        // [필수 2] 헝가리안 알고리즘 호출 (객체는 위에서 선언했다고 가정)
-        // assignment[트랙번호] = 매칭된_클러스터번호 가 들어감
+        // ---------------------------------------------------
+        // 2. 헝가리안 알고리즘 호출 
+        // ---------------------------------------------------
+
         HungarianAlgorithm hungarian_solver;
         hungarian_solver.Solve(cost_matrix, assignment); 
 
-        // [필수 3] 매칭 결과 적용 (Update 단계)
-        for (int i = 0; i < num_tracks; ++i) {
+        // 1. 위에서 계산된 cost matrix에서 트랙과 클러스터 사이의 거리를 이용
+        // 2. 모든 트랙에 중복없이 클러스터를 하나씩 배정했을 때, 선택된 거리값들의 총합이 가장 작아지는 조합을 찾는다.
+        // 3. 출력 = assignment (배정 결과)
+
+        // **assignment 구조**
+        // (1) 인덱스 : 트랙 i
+        // (2) 값 : 매칭된 클러스터 j
+
+        // [2, 0, -1]
+        // 0번 트랙 : 2번 클러스터, 1번 트랙 : 0번 클러스터 (update 진행 중)
+        // 2번 트랙 : -1 (짝 못 찾음 = miss_count 증가 대상)
+
+        // ---------------------------------------------------
+        // 3. 매칭 결과 적용 (Update 단계)
+        // ---------------------------------------------------
+
+        for (int i = 0; i < num_tracks; ++i) 
+        {
             int matched_cluster_idx = assignment[i];
 
-            // Gating (너무 먼 매칭 방지): 마할라노비스 기준 3.0 내외가 적당
-            if (matched_cluster_idx != -1 && cost_matrix[i][matched_cluster_idx] < 50.0) {
-            
-            // ---- 마할라노비스 거리가 실제로 몇이 나오는지 측정 ----
-            cout << "[ID: " << vec_EKFtracks[i].id << "] Matched Cluster: " << matched_cluster_idx 
-                << " | Mahalanobis Dist: " << cost_matrix[i][matched_cluster_idx] << endl;
+            // 헝가리안으로 매칭 시켰더라도 거리가 너무 멀면 같은 물체가 아닐 수 있기 때문에
+            // 같은 물체라고 판단하는 마할라노비스 거리 threshold 설정
 
-            // if (matched_cluster_idx != -1) {
+            // 매칭 번호 -1 아니고, 거리 50 이내면 ㄹㅇ (트랙 - 클러스터) 짝으로 ㅇㅈ
+            if (matched_cluster_idx != -1 && cost_matrix[i][matched_cluster_idx] < 50.0) 
+            {
+                // ---- 마할라노비스 거리가 실제로 몇이 나오는지 측정 ----
+                cout << "[ID: " << vec_EKFtracks[i].id << "] Matched Cluster: " << matched_cluster_idx 
+                    << " | Mahalanobis Dist: " << cost_matrix[i][matched_cluster_idx] << endl;
+
                 vec_EKFtracks[i].update(st_Lidar.vec_clusters[matched_cluster_idx].centroid_x, 
                                     st_Lidar.vec_clusters[matched_cluster_idx].centroid_y);
+
+                vec_EKFtracks[i].real_cluster_count++;
                 vec_EKFtracks[i].miss_count = 0;
+
                 cluster_matched[matched_cluster_idx] = true;
                 track_updated[i] = true;
+
+                // 1) kalman gain 만큼 위치, 속도 수정
+                // 2) 매칭되었으므로 miss_count = 0 으로 초기화 
+                // 3) 해당 클러스터와 트랙이 사용되었으므로 matched, updated true로 변환
             }
         }
     }
 
-    // --------------------------------------------------
+    // ===================================================
     // 3. 미매칭 트랙 관리 및 삭제
-    // --------------------------------------------------
-    // 4. New Track: 매칭되지 않은 새로운 클러스터는 새 트랙으로 생성
-    // 2) Association & Update 끝난 직후
+    // ===================================================
 
-    // (A) 기존 트랙들 miss_count 증가 (추가 전에!)
-    for (size_t j = 0; j < vec_EKFtracks.size(); ++j) {
+    // update 성공하면 miss_count = 0
+
+    // (A) 이전 프레임까진 매칭이 됐던 트랙인데, 이번엔 매칭이 안 된 경우
+    // : 바로 삭제x, miss_count 만 증가
+    for (int j = 0; j < num_tracks; ++j) 
+    {
         if (!track_updated[j]) vec_EKFtracks[j].miss_count++;
     }
 
-    // (B) 매칭 안 된 클러스터로 새 트랙 추가
-    for (size_t i = 0; i < st_Lidar.vec_clusters.size(); ++i) {
+    // (B) 매칭 안 된 클러스터로 새 트랙 추가 (새 EKFTracker 객체 생성)
+    for (int i = 0; i < num_clusters; ++i) 
+    {
         if (!cluster_matched[i]) {
-            vec_EKFtracks.emplace_back(next_id++, st_Lidar.vec_clusters[i].centroid_x,
-                                                st_Lidar.vec_clusters[i].centroid_y);
+            vec_EKFtracks.emplace_back(next_id++, st_Lidar.vec_clusters[i].centroid_x, st_Lidar.vec_clusters[i].centroid_y, this->Q, this->R);
         }
     }
 
-    // (C) 삭제
+    // (C) miss_count 가 threshold 이상 넘어가면 삭제
     vec_EKFtracks.erase(remove_if(vec_EKFtracks.begin(), vec_EKFtracks.end(),
         [](const EKFTracker& t){ return t.miss_count > 10; }),
         vec_EKFtracks.end());
-    // ***** ))) 여기 너무 더럽
 
-
-    // --------------------------------------------------
+    // ===================================================
     // 4. 최종 결과를 vec_KalmanDetections 구조체에 복사
-    // --------------------------------------------------
+    // ===================================================
 
     for (const EKFTracker& t : vec_EKFtracks) {
-        if (t.miss_count > 0) continue;
+        if (t.miss_count > 0 || t.real_cluster_count < 3) continue;
 
         KalmanDetection res;
         res.id = t.id;
@@ -282,9 +368,7 @@ void MultiObjectTracker::updateTracks(Lidar& st_Lidar, double current_time)
         res.yaw = t.x(2);
         res.v = t.x(3); 
         res.a = t.x(4); 
-        // res.l = t.x(5);
         
-        // res.is_confirmed = (t.miss_count == 0);
         res.is_confirmed = true;
 
         st_Lidar.vec_kalman_clusters.push_back(res);

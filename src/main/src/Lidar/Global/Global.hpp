@@ -76,12 +76,12 @@ struct LidarParam
   float voxel_leaf = 0.10f;
 
   // RANSAC
-  float ransac_dist_thresh = 0.4f; // 평면에서 0.30m 이내면 지면(inlier)로 간주
-  float ransac_eps_angle_deg = 15.0f; // 지면 평면의 법선이 z축에서 *도 이내면 지면으로 인정 
+  float ransac_dist_thresh = 0.28f;
+  float ransac_eps_angle_deg = 13.0f; 
   int ransac_max_iter = 300; 
 
   // clustering
-  float euclidean_tolerance = 0.9f; 
+  float euclidean_tolerance = 0.8f; 
   int euclidean_min_size = 5;
   int euclidean_max_size = 2000; 
 
