@@ -17,7 +17,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl);
 void selectBestPath(LatticeControl& lattice_ctrl);
 void getTargetLocalPathIdx(LatticeControl& lattice_ctrl, double ld, int& out_idx);
 void getMaxCurvature(int close_idx, int lookahead_idx, double& out_curvature);
-void getTargetSpeed(double max_curvature, double& out_speed);
+void getTargetSpeed(double max_curvature, double& out_speed, int lookahead_idx);
 
 
 // ========================================

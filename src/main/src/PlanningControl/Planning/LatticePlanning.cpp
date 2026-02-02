@@ -33,7 +33,7 @@ void LatticePlanningProcess() {
 
     // getTargetWaypoint(ego, ctrl.close_idx, ctrl.target_idx, ctrl.ld);
     getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx, ego.max_curvature);
-    getTargetSpeed(ego.max_curvature, ctrl.target_vel);
+    getTargetSpeed(ego.max_curvature, ctrl.target_vel, ctrl.lookahead_idx);
     
 
 }
@@ -495,12 +495,12 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
         }
     } 
     max_curvature = max_kappa;
-
+//;;
 }
 // ========================================
 // 타겟 속도 (곡률 + 장애물 회피율 기반)
 // ========================================
-void getTargetSpeed(double max_curvature, double& out_target_vel){ 
+void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx){
     double base_vel = target_vel;  // 기본 속도
     
     // (1) 곡률 기반 속도 조정
@@ -511,22 +511,41 @@ void getTargetSpeed(double max_curvature, double& out_target_vel){
     // (2) 장애물 회피율 기반 추가 감속
     double valid_ratio = lattice_ctrl.valid_path_ratio;
     
-    if (valid_ratio < 0.3) {
-        // 유효한 경로 30% 이하 = 많은 장애물
-        base_vel *= 0.7;  // 30% 감속
-        ROS_WARN_THROTTLE(1.0, "[Speed] Heavy obstacle detected! Reducing speed to %.2f", base_vel);
-    } 
-    else if (valid_ratio < 0.6) {
-        // 유효한 경로 30~60% = 중간 정도 장애물
-        base_vel *= 0.5;  // 20% 감속
-        ROS_WARN_THROTTLE(1.0, "[Speed] Moderate obstacle detected! Reducing speed to %.2f", base_vel);
+    // LOCAL PATH (ctrl.lookahead_idx)주변부,, 일때 감속
+    // 9 [1,2,3,4,5,6,7,8,9] -> 9의 몫 0
+    // 9 [10,2,3,4,5,6,7,8,9] -> 9의 몫 1
+    // 9 [1,2,3,4,5,6,7,8,9] -> 9의 몫 2
+    // 9 [1,2,3,4,5,6,7,8,9] -> 9의 몫 3
+
+    if (lookahead_idx % 9 == 5) { //  중앙 
+        base_vel *= 0.9;  // 10% 감속(안정성) 증잉은 global path와 유사하여, 주변장애물을 인식하여 속도를 줄이는 일을 방지
     }
-    else if (valid_ratio < 0.8) {
-        // 유효한 경로 60~80% = 약간의 장애물
-        base_vel *= 0.4;  // 10% 감속
-        ROS_INFO_THROTTLE(2.0, "[Speed] Minor obstacle detected! Reducing speed to %.2f", base_vel);
+    // else if (lookahead_idx / lattice_ctrl.best_path.points.size() == 1) {
+    //     base_vel *= 0.8;  // 20% 감속
+    // }
+    // else if (lookahead_idx / lattice_ctrl.best_path.points.size() == 2) {
+    //     base_vel *= 0.7;  // 30% 감속
+    // }
+    // else if (lookahead_idx / lattice_ctrl.best_path.points.size() == 3) {
+    //     base_vel *= 0.6;  // 40% 감속
+    // }
+    else {
+        if (valid_ratio < 0.3) {
+            // 유효한 경로 30% 이하 = 많은 장애물
+            base_vel *= 0.7;  // 30% 감속
+            ROS_WARN_THROTTLE(1.0, "[Speed] Heavy obstacle detected! Reducing speed to %.2f", base_vel);
+        } 
+        else if (valid_ratio < 0.6) {
+            // 유효한 경로 30~60% = 중간 정도 장애물
+            base_vel *= 0.5;  // 20% 감속
+            ROS_WARN_THROTTLE(1.0, "[Speed] Moderate obstacle detected! Reducing speed to %.2f", base_vel);
+        }
+        else if (valid_ratio < 0.8) {
+            // 유효한 경로 60~80% = 약간의 장애물
+            base_vel *= 0.4;  // 10% 감속
+            ROS_INFO_THROTTLE(2.0, "[Speed] Minor obstacle detected! Reducing speed to %.2f", base_vel);
+        }
+        // else: valid_ratio >= 0.8 = 장애물 거의 없음 -> 속도 유지
     }
-    // else: valid_ratio >= 0.8 = 장애물 거의 없음 -> 속도 유지
-    
     out_target_vel = base_vel;
 }

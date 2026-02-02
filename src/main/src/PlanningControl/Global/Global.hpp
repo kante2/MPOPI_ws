@@ -56,7 +56,7 @@ struct JammingParams
 struct Point2D {
     double x;
     double y;
-    double curvature;
+    double curvature=0.0;
 };
 
 struct Point3D {
@@ -67,7 +67,7 @@ struct Point3D {
 
 struct Waypoint {
     double x, y;
-    double curvature;
+    double curvature=0.0;
 };
 
 
