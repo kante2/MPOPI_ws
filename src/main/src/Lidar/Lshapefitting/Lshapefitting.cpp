@@ -328,48 +328,6 @@ void LshapefittingProcess::Calculate_Process (LidarCluster& st_LidarCluster)
 
 
     // ===================================================================
-    // 중심점에서부터 꼭짓점까지 벡터로 OBB 네 꼭짓점 영역 확장 => AABB인 단계에서 사용해야하니깐 일단 보류
-    // ===================================================================
-
-    // for ( Point2D & corner : st_LidarCluster.vec_Corners) 
-    // {
-    //     float dx = corner.x - st_LidarCluster.centroid_x;
-    //     float dy = corner.y - st_LidarCluster.centroid_y;
-
-    //     float length = sqrt(dx*dx + dy*dy);
-    //     float padding_value = 0.5f;
-    //     float direction;
-
-    //     if (length > 1e-6f)
-    //     {
-    //         if (dx > 0)
-    //         {
-    //             direction = 1.0f;
-    //         }
-    //         else
-    //         {
-    //             direction = - 1.0f;
-    //         }
-    //         corner.x = corner.x + (direction * padding_value);
-    //         corner.y = corner.y + (direction * padding_value);
-    //     }
-    // }
-
-    // ===================================================================
-    // OBB의 width, length에 padding을 입혀서 이걸 vec_Corners 점으로 역 계산
-    // ===================================================================
-
-    // float padding_value = 0.5f;
-    // float padding_half_width = (st_LidarCluster.width/2.0f) + padding_value;
-    // float padding_half_length = (st_LidarCluster.length/2.0f) + padding_value;
-
-    // for (int i = 0; i < st_LidarCluster.vec_Corners.size(); ++i)
-    // {
-    //     st_LidarCluster.vec_Corners[i].x = st_LidarCluster.centroid_x + (padding_half_length * cos(BestTheta) - padding_half_width * sin(BestTheta));
-    //     st_LidarCluster.vec_Corners[i].y = st_LidarCluster.centroid_y + (padding_half_length * cos(BestTheta) - padding_half_width * sin(BestTheta));
-    // }
-
-    // ===================================================================
     // 방향 벡터를 차량 전방방향으로 고정하기 위한 이전/현재 프레임 중심점 위치 변화 이용 
     // ===================================================================
 

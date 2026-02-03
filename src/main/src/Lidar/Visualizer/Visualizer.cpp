@@ -218,79 +218,79 @@ void PublishOBBLineStrip (const ros::Publisher &pub_bounding_box,
 // OBB heading vector 시각화
 // =========================================================
 
-void PublishHeading(const ros::Publisher& pub_heading, 
-                    Lidar& st_Lidar, 
-                    const std_msgs::Header& header)
-{
-    visualization_msgs::MarkerArray msg_marker_array;
+// void PublishHeading(const ros::Publisher& pub_heading, 
+//                     Lidar& st_Lidar, 
+//                     const std_msgs::Header& header)
+// {
+//     visualization_msgs::MarkerArray msg_marker_array;
 
-    //1. 이전 마커 삭제
+//     //1. 이전 마커 삭제
 
-    visualization_msgs::Marker delete_marker;
-    delete_marker.header.frame_id = "Lidar3D"; 
-    delete_marker.header.stamp = ros::Time::now();
-    delete_marker.action = visualization_msgs::Marker::DELETEALL;
-    msg_marker_array.markers.push_back(delete_marker);
+//     visualization_msgs::Marker delete_marker;
+//     delete_marker.header.frame_id = "Lidar3D"; 
+//     delete_marker.header.stamp = ros::Time::now();
+//     delete_marker.action = visualization_msgs::Marker::DELETEALL;
+//     msg_marker_array.markers.push_back(delete_marker);
 
-    for (int i = 0; i < st_Lidar.vec_clusters.size(); ++i)
-    {
-      const LidarCluster& cluster = st_Lidar.vec_clusters[i];
-      visualization_msgs::Marker arrow;
-      arrow.points.clear();
+//     for (int i = 0; i < st_Lidar.vec_clusters.size(); ++i)
+//     {
+//       const LidarCluster& cluster = st_Lidar.vec_clusters[i];
+//       visualization_msgs::Marker arrow;
+//       arrow.points.clear();
 
-      // ------- data 출력 확인 ----------
-      // cout << "heading 시각화 : " << cluster.heading_direction_x << endl; 
-      // gooood
+//       // ------- data 출력 확인 ----------
+//       // cout << "heading 시각화 : " << cluster.heading_direction_x << endl; 
+//       // gooood
 
-      if (cluster.pcl_cluster_point->empty()) continue;
+//       if (cluster.pcl_cluster_point->empty()) continue;
       
-      arrow.header.frame_id = "Lidar3D"; 
-      arrow.header.stamp = ros::Time::now();
-      arrow.ns = "heading_arrows";
-      arrow.id = i;
-      arrow.type = visualization_msgs::Marker::ARROW;
-      arrow.action = visualization_msgs::Marker::ADD;
+//       arrow.header.frame_id = "Lidar3D"; 
+//       arrow.header.stamp = ros::Time::now();
+//       arrow.ns = "heading_arrows";
+//       arrow.id = i;
+//       arrow.type = visualization_msgs::Marker::ARROW;
+//       arrow.action = visualization_msgs::Marker::ADD;
 
-      arrow.pose.orientation.w = 1.0;
+//       arrow.pose.orientation.w = 1.0;
 
-      // 1. 화살표의 시작점 (OBB의 중심점)
-      geometry_msgs::Point start;
-      start.x = cluster.centroid_x;
-      start.y = cluster.centroid_y;
-      start.z = 0.5; // 바닥에 묻히지 않게 살짝 띄움
+//       // 1. 화살표의 시작점 (OBB의 중심점)
+//       geometry_msgs::Point start;
+//       start.x = cluster.centroid_x;
+//       start.y = cluster.centroid_y;
+//       start.z = 0.5; // 바닥에 묻히지 않게 살짝 띄움
 
-      // 2. 화살표의 끝점 (중심점에서 heading 방향)
-      geometry_msgs::Point end;
-      end.x = start.x + cluster.heading_direction_x * cluster.length * 0.5;
-      end.y = start.y + cluster.heading_direction_y * cluster.length * 0.5;
-      end.z = 0.5;
+//       // 2. 화살표의 끝점 (중심점에서 heading 방향)
+//       geometry_msgs::Point end;
+//       end.x = start.x + cluster.heading_direction_x * cluster.length * 0.5;
+//       end.y = start.y + cluster.heading_direction_y * cluster.length * 0.5;
+//       end.z = 0.5;
 
-      arrow.points.push_back(start);
-      arrow.points.push_back(end);
+//       arrow.points.push_back(start);
+//       arrow.points.push_back(end);
 
-      // ------- data 출력 확인 ----------
-      // cout << "arrow point : " << arrow << endl;
-      // goooood
+//       // ------- data 출력 확인 ----------
+//       // cout << "arrow point : " << arrow << endl;
+//       // goooood
 
-      // 3. 화살표 두께 및 색상 설정
-      arrow.scale.x = 0.1; // 축 두께
-      arrow.scale.y = 0.2; // 화살표 머리 두께
-      arrow.scale.z = 0.2; // 화살표 머리 길이
+//       // 3. 화살표 두께 및 색상 설정
+//       arrow.scale.x = 0.1; // 축 두께
+//       arrow.scale.y = 0.2; // 화살표 머리 두께
+//       arrow.scale.z = 0.2; // 화살표 머리 길이
       
-      arrow.color.r = 1.0f; // 빨간색 화살표
-      arrow.color.g = 1.0f;
-      arrow.color.b = 0.0f;
-      arrow.color.a = 1.0f;
+//       arrow.color.r = 1.0f; // 빨간색 화살표
+//       arrow.color.g = 1.0f;
+//       arrow.color.b = 0.0f;
+//       arrow.color.a = 1.0f;
 
-      msg_marker_array.markers.push_back(arrow);
+//       msg_marker_array.markers.push_back(arrow);
 
-    }
-    pub_heading.publish(msg_marker_array);
+//     }
+//     pub_heading.publish(msg_marker_array);
 
-    // ------- data 출력 확인 ----------
-    // cout << "pub_heading (visualizer.cpp) : " << msg_marker_array << endl;
-    // goood
-}
+//     // ------- data 출력 확인 ----------
+//     // cout << "pub_heading (visualizer.cpp) : " << msg_marker_array << endl;
+//     // goood
+// }
 
 // =========================================================
 // kalman tracking 시각화
