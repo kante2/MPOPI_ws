@@ -62,7 +62,7 @@ struct LidarParam
   float lidar_range_ymin = -25.0f;
   float lidar_range_ymax = 25.0f;
   float lidar_range_zmin = -10.0f;
-  float lidar_range_zmax = 3.0f; // **
+  float lidar_range_zmax = 0.2f; // 천천히 표지판 제거됨
 
   // ego 제거 ROI 
   float ego_xmin = - 1.0f; 
