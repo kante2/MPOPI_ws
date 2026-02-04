@@ -130,6 +130,7 @@ struct CandidatePath {
     double obstacle_cost;
     double curvature_cost;
     double offset_cost;
+    double offset_change_cost;  // 이전 경로와의 일관성 코스트
     double cost;
 
     bool valid;
@@ -140,6 +141,7 @@ struct CandidatePath {
           obstacle_cost(0.0),
           curvature_cost(0.0),
           offset_cost(0.0),
+          offset_change_cost(0.0),
           cost(0.0),
           valid(true) {}
 };
@@ -172,7 +174,8 @@ struct LatticeControl {
     double ld_long = 15.0;
     double ld_very_long = 20.0;
     double valid_path_ratio = 1.0;
-    double very_long_path_ratio = 1.0;
+    double very_long_path_ratio = 1.0; // 매우 긴 경로의 유효 경로 비율
+    double ego_path_ratio = 1.0; // 내 차선의 유효 경로 비율
 
     std::vector<OffsetGoal> offset_goals;
     std::vector<BaselinkGoal> baselink_goals;

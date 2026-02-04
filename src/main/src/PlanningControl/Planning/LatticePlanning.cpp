@@ -400,21 +400,55 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             }
         }
 
-        path.offset_cost = std::fabs(path.offset) * 1.0;
+        path.offset_cost = std::fabs(path.offset);
+        path.offset_change_cost = std::fabs(path.offset - last_selected_offset);
         
-        double offset_change_cost = std::fabs(path.offset - last_selected_offset) * consistency_weight;
-
-        // 코스트 스케일을 통일 (최소-최대 사이)
-        path.cost = path.obstacle_cost * 100.0 + 
-                    path.offset_cost * 1.5  +  // **
-                    path.curvature_cost * 3.0 + // * 5.0 -> 
-                    offset_change_cost * 1.5; // **
-                    // 1,1,1
+        // 임시로 cost 설정 (나중에 정규화됨)
+        path.cost = 0.0; // selectBestPath에서 정규화하기 전 임시값
+    }
+    
+    // ========================================
+    // 모든 코스트 정규화 (0~1 범위)
+    // ========================================
+    double max_obstacle = 0.0;
+    double max_offset = 0.0;
+    double max_curvature = 0.0;
+    double max_offset_change = 0.0;
+    
+    for (const auto& path : lattice_ctrl.candidates) {
+        if (!path.valid) continue;
+        max_obstacle = std::max(max_obstacle, path.obstacle_cost);
+        max_offset = std::max(max_offset, path.offset_cost);
+        max_curvature = std::max(max_curvature, path.curvature_cost);
+        max_offset_change = std::max(max_offset_change, path.offset_change_cost);
+    }
+    
+    // 0으로 나누기 방지
+    if (max_obstacle < 1e-6) max_obstacle = 1.0;
+    if (max_offset < 1e-6) max_offset = 1.0;
+    if (max_curvature < 1e-6) max_curvature = 1.0;
+    if (max_offset_change < 1e-6) max_offset_change = 1.0;
+    
+    // 정규화된 코스트 계산 (각 항목 0~1 범위, 가중치 합 = 1.0)
+    for (auto& path : lattice_ctrl.candidates) {
+        if (!path.valid) {
+            path.cost = 1e10;
+            continue;
+        }
+        
+        double norm_obstacle = path.obstacle_cost / max_obstacle;
+        double norm_offset = path.offset_cost / max_offset;
+        double norm_curvature = path.curvature_cost / max_curvature;
+        double norm_offset_change = path.offset_change_cost / max_offset_change;
+        
+        // 정규화된 코스트를 가중합으로 계산 (가중치 합 = 1.0)
+        path.cost = norm_obstacle * 0.40 +        // 장애물 회피 40%
+                    norm_offset * 0.20 +          // 차선 유지 20%
+                    norm_curvature * 0.25 +       // 부드러운 경로 25%
+                    norm_offset_change * 0.15;    // 안정적인 선택 15%
     }
 }
-// ========================================
-// 최적 경로 선택
-// ========================================
+
 // ========================================
 // 최적 경로 선택 (계층적 선택 로직)
 // ========================================
@@ -502,30 +536,51 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
     lattice_ctrl.valid_path_ratio = (double)local_valid_count / (double)local_search_range;
 
     // VeryLong 그룹 평가
-    int very_long_valid = 0;
-    int very_long_range = std::min(n, (int)lattice_ctrl.candidates.size());
-    for (int i = 0; i < very_long_range; i++) {
-        if (lattice_ctrl.candidates[i].valid) {
-            very_long_valid++;
+    // int very_long_valid = 0;
+    // int very_long_range = std::min(n, (int)lattice_ctrl.candidates.size());
+    // for (int i = 0; i < very_long_range; i++) {
+    //     if (lattice_ctrl.candidates[i].valid) {
+    //         very_long_valid++;
+    //     }
+    // }
+
+    // 내 차선의 그룹 평가 (중앙 ± 1 범위)
+    // 각 그룹(VeryLong, Long, Medium, Short)에서 중앙 경로(i%n==4)와 좌우 경로의 유효성 확인
+    int center_remainder = n / 2;  // 중앙 인덱스의 나머지 값
+    int ego_lane_valid = 0;   // 유효한 경로 개수 (center + left + right)
+    int ego_lane_range = 0;   // 전체 체크 경로 개수
+    
+    for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
+        if (i % n == 4) {  // 각 그룹의 중앙 인덱스
+            int ego_lane_center = i;
+            int ego_lane_right = ego_lane_center - 1;
+            int ego_lane_left = ego_lane_center + 1;
+
+            // 좌우 범위 체크 (같은 그룹 내에서만)
+            if (ego_lane_right >= 0 && ego_lane_right / n == i / n) {
+                ego_lane_range++;
+                if (lattice_ctrl.candidates[ego_lane_right].valid) {
+                    ego_lane_valid++;
+                }
+            }
+            
+            ego_lane_range++;
+            if (lattice_ctrl.candidates[ego_lane_center].valid) {
+                ego_lane_valid++;
+            }
+            
+            if (ego_lane_left < (int)lattice_ctrl.candidates.size() && ego_lane_left / n == i / n) {
+                ego_lane_range++;
+                if (lattice_ctrl.candidates[ego_lane_left].valid) {
+                    ego_lane_valid++;
+                }
+            }
         }
     }
-    lattice_ctrl.very_long_path_ratio = (double)very_long_valid / (double)very_long_range;
 
-    std::string group_name;
-    if (best_idx < n) {
-        group_name = "VeryLong";
-    } else if (best_idx < 2*n) {
-        group_name = "Long";
-    } else if (best_idx < 3*n) {
-        group_name = "Medium";
-    } else {
-        group_name = "Short";
-    }
-
-    ROS_INFO_THROTTLE(1.0, "[Lattice] Selected from %s group (idx %d, cost %.3f, local_ratio %.2f%%, very_long %.2f%%)", 
-                      group_name.c_str(), best_idx, best_cost, 
-                      lattice_ctrl.valid_path_ratio * 100.0, 
-                      lattice_ctrl.very_long_path_ratio * 100.0);
+    // lattice_ctrl.very_long_path_ratio = (double)very_long_valid / (double)very_long_range;
+    // 주행 차선을 포함하여, 주변부를 포함한, 내 차선의 비율 ( 속도에 이용할 예정) 
+    lattice_ctrl.ego_path_ratio = ego_lane_range > 0 ? (double)ego_lane_valid / (double)ego_lane_range : 0.0; // 내 차선 + 양옆 1개씩 총 3개
 }
 // lattice_ctrl.best_path.points == local_path
 // local path 에서 일정 ld이상인 index 인 out_idx 생성 ==> closewaypointsIdx 대체 
@@ -569,73 +624,70 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
 void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx){
     double base_vel = target_vel;  // 기본 속도
     
-    // (1) 곡률 기반 속도 조정
+    // ========================================
+    // (1) 곡률 기반 속도 감속 (고정 기준)
+    // ========================================
     if (max_curvature > curve_standard - 0.5) {
         base_vel = curve_vel;  // 곡선 구간 감속
+        ROS_WARN_THROTTLE(1.0, "[Speed] Curvature-based reduction (curvature: %.3f)", max_curvature);
     }
-
-    // (2) 장애물 회피율 기반 추가 감속
+    
+    // ========================================
+    // (2) 내 차선 주변부 비율 기반 감속
+    // ========================================
+    double ego_ratio = lattice_ctrl.ego_path_ratio;
+    
+    if (ego_ratio < 0.33) {
+        // 심각: 내 차선의 12개 경로 중 4개 이하만 유효
+        base_vel *= 0.4;
+        ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane severely blocked (Ratio: %.2f) → Speed: %.2f m/s", 
+                          ego_ratio, base_vel);
+    }
+    else if (ego_ratio < 0.66) {
+        // 주의: 내 차선의 12개 경로 중 8개 미만 유효
+        base_vel *= 0.65;
+        ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane partially blocked (Ratio: %.2f) → Speed: %.2f m/s", 
+                          ego_ratio, base_vel);
+    }
+    else if (ego_ratio < 1.0) {
+        // 경미: 내 차선의 12개 경로 중 모두 유효하지는 않음
+        base_vel *= 0.85;
+        ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane minor obstacle (Ratio: %.2f) → Speed: %.2f m/s", 
+                          ego_ratio, base_vel);
+    }
+    
+    // ========================================
+    // (3) 전체 후보 경로 비율 기반 감속 (최종 보안)
+    // ========================================
     double valid_ratio = lattice_ctrl.valid_path_ratio;
-    double very_long_ratio = lattice_ctrl.very_long_path_ratio;
-
-    int n = planner_params.num_offsets;  // 13
-
-    // 🆕 중앙 경로 인덱스 고정: 6, 19, 32, 45
-    std::vector<int> center_indices = {6, 19, 32, 45};
     
-    // 선택된 경로의 인덱스 찾기
-    int selected_idx = -1;
-    for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
-        if (std::fabs(lattice_ctrl.candidates[i].offset - lattice_ctrl.best_path.offset) < 0.1 &&
-            std::fabs(lattice_ctrl.candidates[i].cost - lattice_ctrl.best_path.cost) < 0.1) {
-            selected_idx = i;
-            break;
-        }
-    }
-
-    // 🆕 중앙 경로 선택 여부 판별
-    bool is_center_path = false;
-    for (int center_idx : center_indices) {
-        if (selected_idx == center_idx) {
-            is_center_path = true;
-            break;
-        }
-    }
-
-    // 🆕 중앙 경로일 때: 왼쪽/오른쪽 VeryLong 전부 막혔는지 체크
-    if (is_center_path) {  // VeryLong 그룹 중앙 (idx=6)
-        // 가장 가까운 idx중, 좌 그리고 우가 동시에 점유
-        // 감속
-        int left_idx = 6 - 2;  // 왼쪽
-        int right_idx = 6 + 2;  // 오른쪽
-
-        if (!lattice_ctrl.candidates[left_idx].valid && !lattice_ctrl.candidates[right_idx].valid) {
-            base_vel *= 0.5;
-            ROS_WARN_THROTTLE(1.0, "[Speed] Center path(idx=%d) selected | Left blocked: YES | Right blocked: YES → Reducing speed!", selected_idx);
-        }
-        else if (!lattice_ctrl.candidates[left_idx].valid || !lattice_ctrl.candidates[right_idx].valid) {
-            base_vel *= 0.9;
-            ROS_WARN_THROTTLE(1.0, "[Speed] Center path(idx=%d) selected | One side blocked → Slightly reducing speed!", selected_idx);
-        }
-    }
-
-    // 🔽 기존 감속 로직 (위 조건을 만족하지 않을 때만 실행)
-    
-    // 제일 먼 곳 (VeryLong) 감속 로직
-    if (very_long_ratio < 0.6) {
-        base_vel *= 0.5;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Path Blocked! Reducing (VeryLong Ratio: %.2f)", very_long_ratio);
-    }
-    
-    // 매우 위험 (경로가 거의 없음, 10% 미만) -> 정지
     if (valid_ratio < 0.1) {
+        // 극도로 위험: 경로가 거의 없음 → 정지
         base_vel = 5;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Path Blocked! Stopping (Local Ratio: %.2f)", valid_ratio);
-    } 
-    // 양호 (약간의 장애물, 60% ~ 90%) -> 살짝 감속
-    else if (valid_ratio < 0.9) {
-        base_vel *= 0.75;  // 25% 감속
+        ROS_WARN_THROTTLE(1.0, "[Speed] CRITICAL: Almost all paths blocked (Valid Ratio: %.2f%%) → STOP", 
+                          valid_ratio * 100.0);
     }
-
+    else if (valid_ratio < 0.3) {
+        // 매우 위험: 경로 30% 미만 유효
+        base_vel *= 0.5;
+        ROS_WARN_THROTTLE(1.0, "[Speed] Very dangerous: Limited paths available (Valid Ratio: %.2f%%) → Severe reduction", 
+                          valid_ratio * 100.0);
+    }
+    else if (valid_ratio < 0.6) {
+        // 위험: 경로 60% 미만 유효
+        base_vel *= 0.75;
+        ROS_WARN_THROTTLE(1.0, "[Speed] Danger: Restricted paths (Valid Ratio: %.2f%%) → Moderate reduction", 
+                          valid_ratio * 100.0);
+    }
+    else if (valid_ratio < 0.9) {
+        // 경미: 경로 90% 미만 유효
+        base_vel *= 0.9;
+        ROS_WARN_THROTTLE(1.0, "[Speed] Minor: Few obstacles (Valid Ratio: %.2f%%) → Slight reduction", 
+                          valid_ratio * 100.0);
+    }
+    
+    // 최종 속도 설정
     out_target_vel = base_vel;
+    ROS_INFO_THROTTLE(1.0, "[Speed] Final: %.2f m/s (Ego: %.2f%%, Valid: %.2f%%, Curvature: %.3f)", 
+                      base_vel, ego_ratio * 100.0, valid_ratio * 100.0, max_curvature);
 }

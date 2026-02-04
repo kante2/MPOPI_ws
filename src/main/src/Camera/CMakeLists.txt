@@ -28,10 +28,10 @@ catkin_package(
 
 ## [중요] 파이썬 스크립트 설치 설정
 ## src 폴더 안에 있는 lane_drive.py를 실행 가능한 프로그램으로 설치합니다.
-catkin_install_python(PROGRAMS
-  Camera.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+# catkin_install_python(PROGRAMS
+#   Camera.py
+#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
 # [추가] C++ 노드 빌드 설정
 # 1. 헤더 파일 경로 (OpenCV 포함)
