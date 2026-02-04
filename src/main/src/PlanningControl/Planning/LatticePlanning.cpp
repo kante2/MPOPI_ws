@@ -34,6 +34,9 @@ void LatticePlanningProcess() {
     // getTargetWaypoint(ego, ctrl.close_idx, ctrl.target_idx, ctrl.ld);
     getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx, ego.max_curvature);
     getTargetSpeed(ego.max_curvature, ctrl.target_vel, ctrl.lookahead_idx);
+    // LatticePlanningProcess 함수 맨 마지막 부분
+    ROS_INFO_THROTTLE(1.0, "[Curve] Max Kappa: %.3f | Target Vel: %.1f", 
+                    ego.max_curvature, ctrl.target_vel * 3.6);
     
 
 }
@@ -396,6 +399,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
                                std::sqrt(dx2*dx2 + dy2*dy2) + 1e-6);
                 double curvature = std::fabs((dx1*dy2 - dy1*dx2) / denom);
 
+                path.points[i].curvature = curvature;
                 path.curvature_cost = std::max(path.curvature_cost, curvature);
             }
         }
@@ -412,9 +416,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
                     // 1,1,1
     }
 }
-// ========================================
-// 최적 경로 선택
-// ========================================
+
 // ========================================
 // 최적 경로 선택 (계층적 선택 로직)
 // ========================================
@@ -566,24 +568,96 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
 // 타겟 속도 (곡률 + 장애물 회피율 기반)
 // ========================================
 //---------------------------------------------------------------------------------------------------------
-void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx){
-    double base_vel = target_vel;  // 기본 속도
+// void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx){
+//     double base_vel = target_vel;  // 기본 속도
     
+//     // (1) 곡률 기반 속도 조정
+//     if (max_curvature > curve_standard) {
+//         base_vel = curve_vel;  // 곡선 구간 감속
+//     }
+
+//     // (2) 장애물 회피율 기반 추가 감속
+//     double valid_ratio = lattice_ctrl.valid_path_ratio;
+//     double very_long_ratio = lattice_ctrl.very_long_path_ratio;
+
+//     int n = planner_params.num_offsets;  // 13
+
+//     // 🆕 중앙 경로 인덱스 고정: 6, 19, 32, 45
+//     std::vector<int> center_indices = {6, 19, 32, 45};
+    
+//     // 선택된 경로의 인덱스 찾기
+//     int selected_idx = -1;
+//     for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
+//         if (std::fabs(lattice_ctrl.candidates[i].offset - lattice_ctrl.best_path.offset) < 0.1 &&
+//             std::fabs(lattice_ctrl.candidates[i].cost - lattice_ctrl.best_path.cost) < 0.1) {
+//             selected_idx = i;
+//             break;
+//         }
+//     }
+
+//     // 🆕 중앙 경로 선택 여부 판별
+//     bool is_center_path = false;
+//     for (int center_idx : center_indices) {
+//         if (selected_idx == center_idx) {
+//             is_center_path = true;
+//             break;
+//         }
+//     }
+
+//     // 🆕 중앙 경로일 때: 왼쪽/오른쪽 VeryLong 전부 막혔는지 체크
+//     if (is_center_path) {  // VeryLong 그룹 중앙 (idx=6)
+//         // 가장 가까운 idx중, 좌 그리고 우가 동시에 점유
+//         // 감속
+//         int left_idx = 6 - 2;  // 왼쪽
+//         int right_idx = 6 + 2;  // 오른쪽
+
+//         if (!lattice_ctrl.candidates[left_idx].valid && !lattice_ctrl.candidates[right_idx].valid) {
+//             base_vel *= 0.5;
+//             ROS_WARN_THROTTLE(1.0, "[Speed] Center path(idx=%d) selected | Left blocked: YES | Right blocked: YES → Reducing speed!", selected_idx);
+//         }
+//         else if (!lattice_ctrl.candidates[left_idx].valid || !lattice_ctrl.candidates[right_idx].valid) {
+//             base_vel *= 0.9;
+//             ROS_WARN_THROTTLE(1.0, "[Speed] Center path(idx=%d) selected | One side blocked → Slightly reducing speed!", selected_idx);
+//         }
+//     }
+
+//     // 🔽 기존 감속 로직 (위 조건을 만족하지 않을 때만 실행)
+    
+//     // 제일 먼 곳 (VeryLong) 감속 로직
+//     if (very_long_ratio < 0.6) {
+//         base_vel *= 0.5;
+//         ROS_WARN_THROTTLE(1.0, "[Speed] Path Blocked! Reducing (VeryLong Ratio: %.2f)", very_long_ratio);
+//     }
+    
+//     // 매우 위험 (경로가 거의 없음, 10% 미만) -> 정지
+//     if (valid_ratio < 0.1) {
+//         base_vel = 5;
+//         ROS_WARN_THROTTLE(1.0, "[Speed] Path Blocked! Stopping (Local Ratio: %.2f)", valid_ratio);
+//     } 
+//     // 양호 (약간의 장애물, 60% ~ 90%) -> 살짝 감속
+//     else if (valid_ratio < 0.9) {
+//         base_vel *= 0.75;  // 25% 감속
+//     }
+
+//     out_target_vel = base_vel;
+// }
+void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx) {
+    double base_vel = target_vel;  // 기본 속도 (70km/h 등)
+    bool is_curving = false;       // [수정] 곡선 주행 상태 플래그
+
     // (1) 곡률 기반 속도 조정
-    if (max_curvature > curve_standard - 0.5) {
-        base_vel = curve_vel;  // 곡선 구간 감속
+    // 설정된 곡률 기준(curve_standard - 0.5)보다 크면 곡선으로 판단
+    if (max_curvature > curve_standard) {
+        base_vel = curve_vel;  // 곡선 속도로 설정 (40km/h 등)
+        is_curving = true;     // [수정] "지금은 곡선 주행 중이다"라고 표시
     }
 
-    // (2) 장애물 회피율 기반 추가 감속
-    double valid_ratio = lattice_ctrl.valid_path_ratio;
-    double very_long_ratio = lattice_ctrl.very_long_path_ratio;
-
-    int n = planner_params.num_offsets;  // 13
-
-    // 🆕 중앙 경로 인덱스 고정: 6, 19, 32, 45
+    // (2) 중앙 경로 특수 로직 (기존 유지)
+    // ---------------------------------------------------------
+    int n = planner_params.num_offsets;
     std::vector<int> center_indices = {6, 19, 32, 45};
     
-    // 선택된 경로의 인덱스 찾기
+    // 현재 선택된 경로가 중앙 그룹인지 확인
     int selected_idx = -1;
     for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
         if (std::fabs(lattice_ctrl.candidates[i].offset - lattice_ctrl.best_path.offset) < 0.1 &&
@@ -593,7 +667,6 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
         }
     }
 
-    // 🆕 중앙 경로 선택 여부 판별
     bool is_center_path = false;
     for (int center_idx : center_indices) {
         if (selected_idx == center_idx) {
@@ -602,39 +675,46 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
         }
     }
 
-    // 🆕 중앙 경로일 때: 왼쪽/오른쪽 VeryLong 전부 막혔는지 체크
-    if (is_center_path) {  // VeryLong 그룹 중앙 (idx=6)
-        // 가장 가까운 idx중, 좌 그리고 우가 동시에 점유
-        // 감속
-        int left_idx = 6 - 2;  // 왼쪽
+    // 중앙 경로일 때 좌우가 막혀있으면 감속 (좁은 길/터널 등)
+    if (is_center_path) {
+        int left_idx = 6 - 2;   // 왼쪽
         int right_idx = 6 + 2;  // 오른쪽
 
-        if (!lattice_ctrl.candidates[left_idx].valid && !lattice_ctrl.candidates[right_idx].valid) {
-            base_vel *= 0.5;
-            ROS_WARN_THROTTLE(1.0, "[Speed] Center path(idx=%d) selected | Left blocked: YES | Right blocked: YES → Reducing speed!", selected_idx);
-        }
-        else if (!lattice_ctrl.candidates[left_idx].valid || !lattice_ctrl.candidates[right_idx].valid) {
-            base_vel *= 0.9;
-            ROS_WARN_THROTTLE(1.0, "[Speed] Center path(idx=%d) selected | One side blocked → Slightly reducing speed!", selected_idx);
+        // 인덱스 범위 체크 안전장치 추가
+        if (left_idx >= 0 && right_idx < (int)lattice_ctrl.candidates.size()) {
+            if (!lattice_ctrl.candidates[left_idx].valid && !lattice_ctrl.candidates[right_idx].valid) {
+                base_vel *= 0.5; // 양쪽 다 막힘 -> 대폭 감속
+                ROS_WARN_THROTTLE(1.0, "[Speed] Center path selected | Both sides blocked -> Slow down!");
+            }
+            else if (!lattice_ctrl.candidates[left_idx].valid || !lattice_ctrl.candidates[right_idx].valid) {
+                base_vel *= 0.9; // 한쪽만 막힘 -> 소폭 감속
+            }
         }
     }
+    // ---------------------------------------------------------
 
-    // 🔽 기존 감속 로직 (위 조건을 만족하지 않을 때만 실행)
-    
-    // 제일 먼 곳 (VeryLong) 감속 로직
-    if (very_long_ratio < 0.6) {
+    // (3) 장애물 회피율 기반 추가 감속 (수정됨)
+
+    double valid_ratio = lattice_ctrl.valid_path_ratio;      // 내 주변(Local)이 얼마나 뚫렸나
+    double very_long_ratio = lattice_ctrl.very_long_path_ratio; // 저 멀리(VeryLong)가 얼마나 뚫렸나
+
+    // [핵심 수정] 곡선 주행 중이 아닐 때만 '먼 경로 막힘'을 체크함.
+    // 곡선에서는 직진 경로(VeryLong)가 벽에 막히는 게 당연하므로, 이 감속을 무시해야 속도가 안 줄어듦.
+    if (!is_curving && very_long_ratio < 0.6) {
         base_vel *= 0.5;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Path Blocked! Reducing (VeryLong Ratio: %.2f)", very_long_ratio);
+        ROS_WARN_THROTTLE(1.0, "[Speed] Straight blocked! Reducing (VeryLong: %.2f)", very_long_ratio);
     }
     
-    // 매우 위험 (경로가 거의 없음, 10% 미만) -> 정지
+    // [수정] 주변 경로 막힘(Local Ratio) 대응
+    // valid_ratio가 너무 낮으면(0.1 미만) 정말 갇힌 것이므로 비상 서행(5) 유지
     if (valid_ratio < 0.1) {
-        base_vel = 5;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Path Blocked! Stopping (Local Ratio: %.2f)", valid_ratio);
+        base_vel = 5.0; 
+        ROS_WARN_THROTTLE(1.0, "[Speed] Emergency! Narrow/Blocked (Local Ratio: %.2f)", valid_ratio);
     } 
-    // 양호 (약간의 장애물, 60% ~ 90%) -> 살짝 감속
-    else if (valid_ratio < 0.9) {
-        base_vel *= 0.75;  // 25% 감속
+    // [튜닝] 0.9 -> 0.8로 완화, 감속폭도 0.75 -> 0.85로 완화
+    // 곡선 도는 동안 벽에 가까워지면 valid_ratio가 떨어질 수 있는데, 너무 확 줄지 않게 함
+    else if (valid_ratio < 0.8) { 
+        base_vel *= 0.85;  // 15% 정도만 살짝 감속
     }
 
     out_target_vel = base_vel;

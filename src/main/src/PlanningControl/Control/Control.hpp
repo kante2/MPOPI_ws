@@ -5,9 +5,9 @@
 // Control Functions
 // ========================================
 void ControlProcess();
+void decideSteering(const VehicleState& ego, ControlData& ctrl, const JammingParams& jamming_params);
 void getsteering(const VehicleState& ego, ControlData& ctrl);
 void computePID(double vel, double target_vel, double& out_accel, double& out_brake);
 void pubCmd(const ControlData& data);
 double lateralPathError(int target_idx, double x, double y);
 double headingError(double yaw, int target_idx);
-

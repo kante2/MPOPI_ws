@@ -38,16 +38,16 @@ struct Jamming_offset{
 
 struct JammingParams
 {
-    const double Ld = 50.0;
+    const double Ld = 40.0;
     const float wheel_base = 3.0;
     double gps_steering = 0.0;
     const double gps_alpha = 0.1; 
-    const double pid_Kp = 0.05;
-    const double pid_Ki = 0.0;
-    const double pid_Kd = 0.0;
+    const double gps_k_p = 0.15;
+    const double gps_k_d = 0.02; 
     const double dt = 0.02;
-    const double gps_target_vel = 50.0/3.6;
+    const double gps_target_vel = 60.0/3.6;
 };
+
 
 // ========================================
 // 기본 구조체
@@ -212,10 +212,8 @@ extern GPSJammingState gps_state;
 extern LaneData lane;
 extern JammingParams jamming_params;
 extern Jamming_offset offset;
-extern bool gps_first_received;
 extern VehicleState gps_ego;
-extern bool is_gps_jamming;
-extern ros::Time last_gps_time;     // 마지막으로 GPS 들어온 시간
+extern bool gps_jamming_perception;    // 마지막으로 GPS 들어온 시간
 
 
 //기본

@@ -41,11 +41,14 @@ void costmapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
 
 void gpsCallback(const morai_msgs::GPSMessage::ConstPtr& msg) {
 
-    if (std::abs(msg->latitude) > 0.000001) { 
-            last_gps_time = ros::Time::now();
-        }
+    if (msg ->status ==0)
+    { gps_jamming_perception = true; return;}
+    else
+    { gps_jamming_perception = false;}
+    
+    gps_state.last_valid_gps_time = ros::Time::now();
 
-    // 2. 좌표계 초기화 (기존 코드 유지)
+     // 2. 좌표계 초기화 (기존 코드 유지)
     if (!coord_ref_initialized) {
         coord_ref.lat0 = msg->latitude;
         coord_ref.lon0 = msg->longitude;
@@ -56,9 +59,6 @@ void gpsCallback(const morai_msgs::GPSMessage::ConstPtr& msg) {
         ROS_INFO("[GPS] Reference point set: lat=%.6f, lon=%.6f", 
                  coord_ref.lat0, coord_ref.lon0);
     }
-
-    // 3. [삭제됨] 과거의 'msg->latitude == 0' 확인 로직은 삭제합니다.
-    // (이제 mainControlLoop에서 시간 차이로 재밍을 판단합니다)
 
     // 4. 좌표 변환 (기존 코드 유지)
     double x, y, z;
@@ -86,25 +86,10 @@ void laneCallback(const std_msgs::Float32MultiArray::ConstPtr& msg) {
 }
 
 void mainControlLoop(const ros::TimerEvent&) {
-
-    // 현재 시간 - 마지막 수신 시간
-    double time_diff = (ros::Time::now() - last_gps_time).toSec();
-
-    // 1.0초 이상 연락 없으면 재밍으로 판단
-    if (time_diff > 0.5) { 
-        if (!is_gps_jamming) {
-            ROS_WARN("GPS Signal Lost! (Timeout: %.2f sec) -> Jamming Mode ON", time_diff);
-        }
-        is_gps_jamming = true;
-    } 
-    else {
-        // 연락이 잘 오고 있으면 정상
-        is_gps_jamming = false;
-    }
-
     // (기존 로직) 분기 처리
-    if (is_gps_jamming) {
+    if (gps_jamming_perception) {
        JammingPlanningProcess();    
+       ControlProcess();
     }
     else {
         LatticePlanningProcess();     
@@ -141,11 +126,7 @@ int main(int argc, char** argv) {
     ros::Subscriber gps_sub = nh.subscribe("/gps", 1, gpsCallback);
     ros::Subscriber imu_sub = nh.subscribe("/imu", 1, imuCallback);
     ros::Subscriber ego_sub = nh.subscribe("/Ego_topic", 1, egoCallback);
-    // lidar_costmap
     ros::Subscriber costmap_sub = nh.subscribe("/costmap", 1, costmapCallback);
-    // camera_costmap
-    // ros::Subscriber camera_costmap_sub = nh.subscribe("/camera_costmap", 1, costmapCallback);` <- 
-
     // ros::Subscriber lane_sub = nh.subscribe<camera::LaneInfo>("/lane/path", 1, laneCallback);
     // path_msg = Float32MultiArray()
     ros::Subscriber lane_sub = nh.subscribe<std_msgs::Float32MultiArray>("/lane/path", 1, laneCallback);

@@ -8,10 +8,10 @@
 using namespace std;
 
 // ========================================
-// Control Process
+// Control ControlProcess
 // ========================================
 void ControlProcess() {
-    getsteering(ego, ctrl);
+    decideSteering(ego, ctrl, jamming_params);
     computePID(ego.vel, ctrl.target_vel, ctrl.accel, ctrl.brake);
     pubCmd(ctrl);
     
@@ -20,11 +20,16 @@ void ControlProcess() {
                      ctrl.accel, ctrl.brake);
 }
 
-//--------------- 함수정의 ---------------------------------------------------------
-
-// collision check 
-
-
+void decideSteering(const VehicleState& ego, ControlData& ctrl, const JammingParams& jamming_params){
+ if (gps_jamming_perception) {
+        // GPS 재밍 시 → 재밍 조향 사용
+        ctrl.steering = jamming_params.gps_steering;
+        ctrl.target_vel = jamming_params.gps_target_vel;
+    } else {
+        // 정상 주행 → 기존 Stanley
+        getsteering(ego, ctrl);
+    }
+}
 
 // ========================================
 // 조향각 계산 (Stanley)
@@ -131,7 +136,3 @@ double headingError(double yaw,int target_idx){
     }
     else {return 0.0;}
 }
-
-
-
-

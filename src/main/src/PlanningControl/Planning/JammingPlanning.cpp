@@ -5,30 +5,21 @@
 #include <ros/package.h>
 #include <utility>
 #include <iostream>
-#include "Global.hpp" // ** 
+#include "Global.hpp" 
 #include <std_msgs/Bool.h>
 #include "Planning.hpp"
 #include <morai_msgs/CtrlCmd.h>
 #include <cmath>
 #include <algorithm>
 using namespace std;
-// ========================================
-// JammingPlanningProcess
-// ========================================
+
 void JammingPlanningProcess()
-{
-    double accel = 0.0;
-    double brake = 0.0;
+{       
     filterOffset(lane, offset,jamming_params);
     computePurePursuitSteering(lane, offset, jamming_params);
     computeOffsetPD(offset,jamming_params);
-    computeLastSteering(offset, jamming_params);
-    computePID(accel, brake, ego, jamming_params);
-    publishCtrlCmd(accel, brake, ego);
-    // 2. [디버깅용 로그] 제발 찍혀라! (0.2초마다 출력)
-    // Offset이 0이면 카메라가 안 켜진 것이고, Steer가 나오면 로직은 정상입니다.
-    ROS_WARN_THROTTLE(0.2, "[JAMMING] Off:%.2f | Ang:%.2f | Steer:%.4f | Acc:%.2f", 
-                      lane.offset, lane.angle, jamming_params.gps_steering, accel);
+    computeLastSteering(offset,jamming_params);
+    printGPSJammingStatistics();
 }
 
 //--------------------------함수 정의----------------------------------------------------------
@@ -47,7 +38,7 @@ void computePurePursuitSteering(const LaneData& lane, Jamming_offset& offset,con
 void computeOffsetPD(Jamming_offset& offset,const JammingParams& jamming_params)
 {
     double d_offset = (offset.filtered_offset - offset.last_offset) / jamming_params.dt;
-    offset.offset_steering = jamming_params.pid_Kp * offset.filtered_offset + jamming_params.pid_Kd * d_offset;
+    offset.offset_steering = jamming_params.gps_k_p * offset.filtered_offset + jamming_params.gps_k_d * d_offset;
     offset.last_offset = offset.filtered_offset;
 }
 void computeLastSteering(const Jamming_offset& offset,JammingParams& jamming_params)
@@ -55,42 +46,18 @@ void computeLastSteering(const Jamming_offset& offset,JammingParams& jamming_par
     jamming_params.gps_steering = offset.pp_steering-offset.offset_steering;
 }
 
-
-void computePID(double& accel, double& brake, const VehicleState& ego,const JammingParams& jamming_params)
-{   
-    static double prev_error = 0.0;
-    static double integral_error = 0.0;
-
-    double error = jamming_params.gps_target_vel - ego.vel;
-    integral_error += error * 0.02;
-    
-    if (integral_error > 10.0) integral_error = 10.0;
-    if (integral_error < -10.0) integral_error = -10.0;
-    
-    double p_error = jamming_params.pid_Kp * error;
-    double i_error = jamming_params.pid_Ki * integral_error;
-    double d_error = jamming_params.pid_Kd * ((error - prev_error) / 0.02);
-    prev_error = error;
-    
-    double total_output = p_error + i_error + d_error;
-    morai_msgs::CtrlCmd cmd;
-    
-    if (total_output > 0) {
-        accel = min(total_output, 1.0);
-        brake = 0.0;
-
-    } else {
-        accel = 0.0;
-        brake = min(-total_output, 1.0);
-    }
-}
-
-void publishCtrlCmd(double& accel, double& brake,const VehicleState& ego)
+void printGPSJammingStatistics() 
 {
-    morai_msgs::CtrlCmd cmd;
-    cmd.longlCmdType = 1;
-    cmd.accel = accel;
-    cmd.brake = brake;
-    cmd.steering = jamming_params.gps_steering;
-    cmd_pub.publish(cmd);
+    ROS_INFO("\n\n========== GPS JAMMING STAT ==========");
+    ROS_INFO("Count           : %d", gps_state.jamming_count);
+    ROS_INFO("Total duration  : %.3f sec", gps_state.total_jamming_duration);
+    if (gps_state.is_jamming) {
+        ROS_INFO("Current duration: %.3f sec (ONGOING)",
+                 gps_state.current_jamming_duration);
+    } else {
+        ROS_INFO("Current state   : NORMAL");
+    }
+    cout << "===== LanePath Received =====" << endl;
+    cout << "offset    : " << lane.offset    << endl;
+    cout << "angle_deg : " << lane.angle << endl;
 }

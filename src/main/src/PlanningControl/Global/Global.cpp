@@ -1,11 +1,14 @@
 #include "Global.hpp"   // 파일명이 GLOBAL_HPP 헤더인 그대로 include
 
 // 재밍용
-ros::Time last_gps_time;
-bool is_gps_jamming = false;
+GPSJammingState gps_state;
 LaneData lane;
 JammingParams jamming_params;
 Jamming_offset offset;
+VehicleState gps_ego;
+    
+bool gps_jamming_perception = false;
+
 
 // 기본
 std::vector<Waypoint> waypoints;

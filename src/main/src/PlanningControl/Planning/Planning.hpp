@@ -29,8 +29,8 @@ void filterOffset(const LaneData& lane, Jamming_offset& offset, const JammingPar
 void computePurePursuitSteering(const LaneData& lane, Jamming_offset& offset, const JammingParams& jamming_params);
 void computeOffsetPD(Jamming_offset& offset, const JammingParams& jamming_params);
 void computeLastSteering(const Jamming_offset& offset, JammingParams& jamming_params);
-void computePID(double& accel, double& brake, const VehicleState& ego,const JammingParams& jamming_params);
-void publishCtrlCmd(double& accel, double& brake,const VehicleState& ego);
+void printGPSJammingStatistics();
+
 
 
 

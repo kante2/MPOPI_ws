@@ -10,7 +10,7 @@
 void initializePlannerParameters() {
     planner_params.num_offsets = 13; // ** 9 -> 13
     planner_params.lateral_offset_step = 1.0; // ** 
-    planner_params.sample_spacing = 0.2;
+    planner_params.sample_spacing = 0.1;
     planner_params.lethal_cost_threshold = 90.0;
     planner_params.vehicle_front_offset = 4.0;
     
@@ -24,8 +24,8 @@ void initializeControlParameters() {
     Ki = 0.0;
     Kd = 0.0;
     k_gain = 1.0;
-    curve_standard = 0.8;
-    curve_vel = 40.0 / 3.6;
+    curve_standard = 0.02;
+    curve_vel = 30.0 / 3.6;
     target_vel = 70.0 / 3.6;
     
     ROS_INFO("[Control] Target vel: %.1f km/h", target_vel * 3.6);
