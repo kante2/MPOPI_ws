@@ -172,7 +172,7 @@ struct LatticeControl {
     double ld_short = 5.0;
     double ld_medium = 10.0;
     double ld_long = 15.0;
-    double ld_very_long = 20.0;
+    double ld_very_long = 23.0;
     double valid_path_ratio = 1.0;
     double very_long_path_ratio = 1.0; // 매우 긴 경로의 유효 경로 비율
     double ego_path_ratio = 1.0; // 내 차선의 유효 경로 비율
@@ -231,6 +231,9 @@ extern Point2D best_waypoint;
 extern PlannerParams planner_params;
 extern CostmapInfo costmap_info;
 extern double last_selected_offset;
+//추월
+extern std::vector<Point2D> overtaking_zone;
+extern bool is_in_overtaking_zone;
 
 // 임시
 extern ControlData ctrl;

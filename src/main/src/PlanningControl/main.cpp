@@ -108,12 +108,11 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
 
     // Waypoints 로드
-    if (!loadWaypoints()) {
-        ROS_FATAL("Failed to load waypoints!");
-        return -1;
-    }
-    // 파라미터 초기화 
-    initializePlannerParameters();    
+    loadWaypoints();
+    load_overtakingZone();
+
+    // 파라미터 초기화
+    initializePlannerParameters();
     initializeControlParameters();
     
     // 초기값

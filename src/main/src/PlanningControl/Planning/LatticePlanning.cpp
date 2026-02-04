@@ -11,9 +11,10 @@ using namespace std;
 // LatticePlanningProcess
 // ========================================
 void LatticePlanningProcess() {
-
+    
     lock_guard<std::mutex> lock(costmap_mutex);
     
+    checkOvertakingZone(ego);
     if (!checkCostmapAvailable()) {
         ROS_WARN_THROTTLE(1.0, "[Lattice] Waiting for costmap...");
         return;
@@ -32,8 +33,8 @@ void LatticePlanningProcess() {
     getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);
 
     // getTargetWaypoint(ego, ctrl.close_idx, ctrl.target_idx, ctrl.ld);
-    getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx, ego.max_curvature);
-    getTargetSpeed(ego.max_curvature, ctrl.target_vel, ctrl.lookahead_idx);
+    getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx * 3, ego.max_curvature);
+    getTargetSpeed(ego.max_curvature1, ctrl.target_vel, ctrl.lookahead_idx);
     // LatticePlanningProcess 함수 맨 마지막 부분
     ROS_INFO_THROTTLE(1.0, "[Curve] Max Kappa: %.3f | Target Vel: %.1f", 
                     ego.max_curvature, ctrl.target_vel * 3.6);
@@ -42,6 +43,39 @@ void LatticePlanningProcess() {
 }
 
 //--------------------------함수 정의----------------------------------------------------------
+
+void checkOvertakingZone(const VehicleState& ego) {
+    if (overtaking_zone.empty()) {
+        is_in_overtaking_zone = false;
+        
+        return;
+    }
+    if (!overtaking_zone.empty()) {
+    ROS_INFO_THROTTLE(1.0, "Ego: (%.2f, %.2f) | First Zone Pt: (%.2f, %.2f)", 
+                     ego.x, ego.y, overtaking_zone[0].x, overtaking_zone[0].y);
+    }
+
+    double min_dist = 1e10;
+    
+    // 가장 가까운 추월 차선 포인트와의 거리 계산 (L2 Distance)
+    for (const auto& pt : overtaking_zone) {
+        double dx = pt.x - ego.x;
+        double dy = pt.y - ego.y;
+        double dist = std::sqrt(dx*dx + dy*dy);
+        if (dist < min_dist) {
+            min_dist = dist;
+        }
+    }
+
+    // 도로 폭이 양옆 2m이므로, 경로 중심에서 2m 이내면 영역 안으로 판단
+    const double OVERTAKING_ROI_THRESHOLD = 5.0; 
+
+    if (min_dist < OVERTAKING_ROI_THRESHOLD) {
+        is_in_overtaking_zone = true;
+    } else {
+        is_in_overtaking_zone = false;
+    }
+}
 
 
 // ========================================
@@ -465,7 +499,8 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
 
     // 🆕 계층적 경로 선택 (1~4단계)
     std::vector<std::pair<int, int>> path_groups = {
-        {0, 2*n},           // 1단계: VeryLong (0~12)
+        {0, n}, 
+        {n, 2*n},   // 1단계: VeryLong (0~12)
         {2*n, 4*n},         // 2단계: Medium (26~38)
     };
 
@@ -624,74 +659,105 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
 // ========================================
 // 타겟 속도 (곡률 + 장애물 회피율 기반)
 // ========================================
-//---------------------------------------------------------------------------------------------------------
-void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx){
-    double base_vel = target_vel;  // 기본 속도
-    
-    // ========================================
-    // (1) 곡률 기반 속도 감속 (고정 기준)
-    // ========================================
-    if (max_curvature > curve_standard - 0.5) {
-        base_vel = curve_vel;  // 곡선 구간 감속
-        ROS_WARN_THROTTLE(1.0, "[Speed] Curvature-based reduction (curvature: %.3f)", max_curvature);
+void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx) {
+    // [강력 수정] 추월 구간이면 곡률이고 장애물이고 뭐고 무조건 target_vel 고정
+    if (is_in_overtaking_zone) {
+        out_target_vel = target_vel; 
+        ROS_INFO_THROTTLE(1.0, ">> [OVERTAKING ACTIVE] Forcing Target Speed: %.1f km/h", out_target_vel * 3.6);
+        return; // 아래의 모든 감속 로직을 완전히 무시하고 즉시 종료
     }
-    
-    // ========================================
-    // (2) 내 차선 주변부 비율 기반 감속
-    // ========================================
-    double ego_ratio = lattice_ctrl.ego_path_ratio;
-    
-    if (ego_ratio < 0.33) {
-        // 심각: 내 차선의 12개 경로 중 4개 이하만 유효
-        base_vel *= 0.4;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane severely blocked (Ratio: %.2f) → Speed: %.2f m/s", 
-                          ego_ratio, base_vel);
+
+    double base_vel = target_vel; 
+
+    // 1. 코너 감속 (일반 주행 시에만 적용)
+    if (max_curvature > curve_standard) {
+        base_vel = curve_vel; 
+        ROS_WARN_THROTTLE(1.0, "[Speed] Curve reduction active.");
+    } 
+    // 2. 일반 주행 구간 (장애물에 따른 감속 적용)
+    else {
+        double ego_ratio = lattice_ctrl.ego_path_ratio;
+        double valid_ratio = lattice_ctrl.valid_path_ratio;
+
+        if (ego_ratio < 0.33) base_vel *= 0.4;
+        else if (ego_ratio < 0.66) base_vel *= 0.65;
+        else if (ego_ratio < 1.0) base_vel *= 0.85;
+
+        if (valid_ratio < 0.1) base_vel = 5.0 / 3.6; 
+        else if (valid_ratio < 0.3) base_vel *= 0.5;
+        else if (valid_ratio < 0.6) base_vel *= 0.75;
     }
-    else if (ego_ratio < 0.66) {
-        // 주의: 내 차선의 12개 경로 중 8개 미만 유효
-        base_vel *= 0.65;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane partially blocked (Ratio: %.2f) → Speed: %.2f m/s", 
-                          ego_ratio, base_vel);
-    }
-    else if (ego_ratio < 1.0) {
-        // 경미: 내 차선의 12개 경로 중 모두 유효하지는 않음
-        base_vel *= 0.85;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane minor obstacle (Ratio: %.2f) → Speed: %.2f m/s", 
-                          ego_ratio, base_vel);
-    }
-    
-    // ========================================
-    // (3) 전체 후보 경로 비율 기반 감속 (최종 보안)
-    // ========================================
-    double valid_ratio = lattice_ctrl.valid_path_ratio;
-    
-    if (valid_ratio < 0.1) {
-        // 극도로 위험: 경로가 거의 없음 → 정지
-        base_vel = 5;
-        ROS_WARN_THROTTLE(1.0, "[Speed] CRITICAL: Almost all paths blocked (Valid Ratio: %.2f%%) → STOP", 
-                          valid_ratio * 100.0);
-    }
-    else if (valid_ratio < 0.3) {
-        // 매우 위험: 경로 30% 미만 유효
-        base_vel *= 0.5;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Very dangerous: Limited paths available (Valid Ratio: %.2f%%) → Severe reduction", 
-                          valid_ratio * 100.0);
-    }
-    else if (valid_ratio < 0.6) {
-        // 위험: 경로 60% 미만 유효
-        base_vel *= 0.75;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Danger: Restricted paths (Valid Ratio: %.2f%%) → Moderate reduction", 
-                          valid_ratio * 100.0);
-    }
-    else if (valid_ratio < 0.9) {
-        // 경미: 경로 90% 미만 유효
-        base_vel *= 0.9;
-        ROS_WARN_THROTTLE(1.0, "[Speed] Minor: Few obstacles (Valid Ratio: %.2f%%) → Slight reduction", 
-                          valid_ratio * 100.0);
-    }
-    
-    // 최종 속도 설정
+
     out_target_vel = base_vel;
-    ROS_INFO_THROTTLE(1.0, "[Speed] Final: %.2f m/s (Ego: %.2f%%, Valid: %.2f%%, Curvature: %.3f)", 
-                      base_vel, ego_ratio * 100.0, valid_ratio * 100.0, max_curvature);
-    }
+}
+//---------------------------------------------------------------------------------------------------------
+// void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx){
+//     double base_vel = target_vel;  // 기본 속도
+    
+//     // ========================================
+//     // (1) 곡률 기반 속도 감속 (고정 기준)
+//     // ========================================
+//     if (max_curvature > curve_standard) {
+//         base_vel = curve_vel;  // 곡선 구간 감속
+//         ROS_WARN_THROTTLE(1.0, "[Speed] Curvature-based reduction (curvature: %.3f)", max_curvature);
+//     }
+    
+//     // ========================================
+//     // (2) 내 차선 주변부 비율 기반 감속
+//     // ========================================
+//     double ego_ratio = lattice_ctrl.ego_path_ratio;
+    
+//     if (ego_ratio < 0.33) {
+//         // 심각: 내 차선의 12개 경로 중 4개 이하만 유효
+//         base_vel *= 0.4;
+//         ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane severely blocked (Ratio: %.2f) → Speed: %.2f m/s", 
+//                           ego_ratio, base_vel);
+//     }
+//     else if (ego_ratio < 0.66) {
+//         // 주의: 내 차선의 12개 경로 중 8개 미만 유효
+//         base_vel *= 0.65;
+//         ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane partially blocked (Ratio: %.2f) → Speed: %.2f m/s", 
+//                           ego_ratio, base_vel);
+//     }
+//     else if (ego_ratio < 1.0) {
+//         // 경미: 내 차선의 12개 경로 중 모두 유효하지는 않음
+//         base_vel *= 0.85;
+//         ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane minor obstacle (Ratio: %.2f) → Speed: %.2f m/s", 
+//                           ego_ratio, base_vel);
+//     }
+    
+//     // ========================================
+//     // (3) 전체 후보 경로 비율 기반 감속 (최종 보안)
+//     // ========================================
+//     double valid_ratio = lattice_ctrl.valid_path_ratio;
+    
+//     if (valid_ratio < 0.1) {
+//         // 극도로 위험: 경로가 거의 없음 → 정지
+//         base_vel = 5;
+//         ROS_WARN_THROTTLE(1.0, "[Speed] CRITICAL: Almost all paths blocked (Valid Ratio: %.2f%%) → STOP", 
+//                           valid_ratio * 100.0);
+//     }
+//     else if (valid_ratio < 0.3) {
+//         // 매우 위험: 경로 30% 미만 유효
+//         base_vel *= 0.5;
+//         ROS_WARN_THROTTLE(1.0, "[Speed] Very dangerous: Limited paths available (Valid Ratio: %.2f%%) → Severe reduction", 
+//                           valid_ratio * 100.0);
+//     }
+//     else if (valid_ratio < 0.6) {
+//         // 위험: 경로 60% 미만 유효
+//         base_vel *= 0.75;
+//         ROS_WARN_THROTTLE(1.0, "[Speed] Danger: Restricted paths (Valid Ratio: %.2f%%) → Moderate reduction", 
+//                           valid_ratio * 100.0);
+//     }
+//     else if (valid_ratio < 0.9) {
+//         // 경미: 경로 90% 미만 유효
+//         base_vel *= 0.9;
+//         ROS_WARN_THROTTLE(1.0, "[Speed] Minor: Few obstacles (Valid Ratio: %.2f%%) → Slight reduction", 
+//                           valid_ratio * 100.0);
+//     }
+    
+//     // 최종 속도 설정
+//     out_target_vel = base_vel;
+//     ROS_INFO_THROTTLE(1.0, "[Speed] Final: %.2f m/s (Ego: %.2f%%, Valid: %.2f%%, Curvature: %.3f)", 
+//                       base_vel, ego_ratio * 100.0, valid_ratio * 100.0, max_curvature);
+//     }

@@ -22,6 +22,9 @@ Point2D best_waypoint;               // Point2D 안에 curvature도 있어서 �
 PlannerParams planner_params;
 CostmapInfo costmap_info;
 double last_selected_offset = 0.0;
+//추월
+std::vector<Point2D> overtaking_zone; 
+bool is_in_overtaking_zone = false;
 
 // 임시(Control)
 ControlData ctrl;

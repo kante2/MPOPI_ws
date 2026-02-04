@@ -6,6 +6,7 @@
 // ========================================
 
 void LatticePlanningProcess();
+void checkOvertakingZone(const VehicleState& ego);
 bool checkCostmapAvailable();
 void findClosestWaypoint(const VehicleState& ego, int& out_idx);
 void findLookaheadGoal(const VehicleState& ego, int close_idx, LatticeControl& lattice_ctrl);

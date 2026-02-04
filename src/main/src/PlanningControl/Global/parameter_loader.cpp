@@ -24,7 +24,7 @@ void initializeControlParameters() {
     Ki = 0.0;
     Kd = 0.0;
     k_gain = 1.0;
-    curve_standard = 0.02;
+    curve_standard = 0.0025;
     curve_vel = 30.0 / 3.6;
     target_vel = 70.0 / 3.6;
     
@@ -119,5 +119,42 @@ bool loadWaypoints() {
     }
 
     ROS_INFO("[Waypoints] Loaded %zu waypoints from %s", waypoints.size(), path_file_name.c_str());
+    return true;
+}
+
+bool load_overtakingZone() {
+    overtaking_zone.clear();
+    // 파일 경로는 실제 환경에 맞춰 수정해주세요 (예: src/main/config/...)
+    const std::string path_file_name = "src/main/config/overtaking_zone.csv";
+
+    ROS_INFO("Opening overtaking zone file: %s", path_file_name.c_str());
+    std::ifstream path_file(path_file_name);
+    
+    if (!path_file.is_open()) {
+        ROS_ERROR("Failed to open overtaking zone file!");
+        return false;
+    }
+
+    std::string line;
+    while (std::getline(path_file, line)) {
+        if (line.empty()) continue;
+        std::stringstream ss(line);
+        std::string val;
+        std::vector<double> row;
+
+        // CSV 파싱 (콤마 구분)
+        while (std::getline(ss, val, ',')) {
+            try { row.push_back(std::stod(val)); } catch (...) {}
+        }
+
+        if (row.size() >= 2) {
+            Point2D wp;
+            wp.x = row[0];
+            wp.y = row[1];
+            overtaking_zone.push_back(wp);
+        }
+    }
+    path_file.close();
+    ROS_INFO("[OvertakingZone] Loaded %zu points.", overtaking_zone.size());
     return true;
 }
