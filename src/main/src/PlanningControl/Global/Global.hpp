@@ -245,8 +245,7 @@ extern double obstacle_vel;
 extern double curve_vel;
 extern double curve_standard;
 extern int lookahead_idx;
-extern double min_ld;  
-extern double gain_ld;
+
 
 
 // ROS Publishers

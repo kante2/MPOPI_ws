@@ -27,7 +27,7 @@ void LatticePlanningProcess() {
     sampleAllCandidatePaths(lattice_ctrl);
     evaluateAllCandidates(lattice_ctrl);
     selectBestPath(lattice_ctrl);
-    getTargetLocalPathIdx(lattice_ctrl, ego, ctrl);
+    getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);
     getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx * 3, ego.max_curvature);
     getTargetSpeed(ego.max_curvature, ctrl.target_vel, ctrl.lookahead_idx);
 }
@@ -618,27 +618,21 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
 // ========================================
 // 타겟 로컬 경로 인덱스 계산
 // ========================================
-void getTargetLocalPathIdx(LatticeControl& lattice_ctrl, const VehicleState& ego, ControlData& ctrl) {
+void getTargetLocalPathIdx(LatticeControl& lattice_ctrl, double ld, int& out_idx) {
     
-    // ctrl 구조체의 값 직접 업데이트
-    ctrl.ld = min_ld + ego.vel * gain_ld; 
-    
-    // 최대 거리 제한 (예: 15m)
-    if (ctrl.ld > 25.0) ctrl.ld = 25.0;
-
     int target_idx = 0;
     for(int i = 0; i < lattice_ctrl.best_path.points.size(); ++i){
         double local_path_x = lattice_ctrl.best_path.points[i].x;
         double local_path_y = lattice_ctrl.best_path.points[i].y;
         double local_dist = sqrt(local_path_x*local_path_x + local_path_y*local_path_y);
 
-        if(local_dist > ctrl.ld){
+        if(local_dist > ld){
             target_idx = i;
             break;
         }
     }
 
-    ctrl.lookahead_idx = target_idx;
+    out_idx = target_idx;
 }
 // ========================================
 // 최대 곡률 계산
