@@ -11,7 +11,7 @@ using namespace std;
 // LatticePlanningProcess
 // ========================================
 void LatticePlanningProcess() {
-    
+
     lock_guard<std::mutex> lock(costmap_mutex);
     
     checkOvertakingZone(ego);
@@ -19,7 +19,6 @@ void LatticePlanningProcess() {
         ROS_WARN_THROTTLE(1.0, "[Lattice] Waiting for costmap...");
         return;
     }
-
     findClosestWaypoint(ego, lattice_ctrl.close_idx);
     findLookaheadGoal(ego, lattice_ctrl.close_idx, lattice_ctrl);
     generateOffsetGoals(lattice_ctrl);
@@ -28,18 +27,9 @@ void LatticePlanningProcess() {
     sampleAllCandidatePaths(lattice_ctrl);
     evaluateAllCandidates(lattice_ctrl);
     selectBestPath(lattice_ctrl);
-
-    // closeWaypointsIdx(ego, ctrl.close_idx); => getLocalPathIdx 로 변경
-    getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);
-
-    // getTargetWaypoint(ego, ctrl.close_idx, ctrl.target_idx, ctrl.ld);
+    getTargetLocalPathIdx(lattice_ctrl, ego, ctrl);
     getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx * 3, ego.max_curvature);
-    getTargetSpeed(ego.max_curvature1, ctrl.target_vel, ctrl.lookahead_idx);
-    // LatticePlanningProcess 함수 맨 마지막 부분
-    ROS_INFO_THROTTLE(1.0, "[Curve] Max Kappa: %.3f | Target Vel: %.1f", 
-                    ego.max_curvature, ctrl.target_vel * 3.6);
-    
-
+    getTargetSpeed(ego.max_curvature, ctrl.target_vel, ctrl.lookahead_idx);
 }
 
 //--------------------------함수 정의----------------------------------------------------------
@@ -623,22 +613,33 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
 }
 // lattice_ctrl.best_path.points == local_path
 // local path 에서 일정 ld이상인 index 인 out_idx 생성 ==> closewaypointsIdx 대체 
-//
-void getTargetLocalPathIdx(LatticeControl& lattice_ctrl, double ld, int& out_idx){
+
+
+// ========================================
+// 타겟 로컬 경로 인덱스 계산
+// ========================================
+void getTargetLocalPathIdx(LatticeControl& lattice_ctrl, const VehicleState& ego, ControlData& ctrl) {
+    
+    // ctrl 구조체의 값 직접 업데이트
+    ctrl.ld = min_ld + ego.vel * gain_ld; 
+    
+    // 최대 거리 제한 (예: 15m)
+    if (ctrl.ld > 25.0) ctrl.ld = 25.0;
+
     int target_idx = 0;
     for(int i = 0; i < lattice_ctrl.best_path.points.size(); ++i){
         double local_path_x = lattice_ctrl.best_path.points[i].x;
         double local_path_y = lattice_ctrl.best_path.points[i].y;
-        double local_dist = sqrt(local_path_x*local_path_x + local_path_y*local_path_y); // <- ego ~ local_path point 거리
-        if(local_dist > ld){
+        double local_dist = sqrt(local_path_x*local_path_x + local_path_y*local_path_y);
+
+        if(local_dist > ctrl.ld){
             target_idx = i;
             break;
         }
     }
-    out_idx = target_idx;
+
+    ctrl.lookahead_idx = target_idx;
 }
-
-
 // ========================================
 // 최대 곡률 계산
 // ========================================
@@ -654,7 +655,6 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
         }
     } 
     max_curvature = max_kappa;
-//;;
 }
 // ========================================
 // 타겟 속도 (곡률 + 장애물 회피율 기반)
@@ -690,74 +690,3 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
 
     out_target_vel = base_vel;
 }
-//---------------------------------------------------------------------------------------------------------
-// void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx){
-//     double base_vel = target_vel;  // 기본 속도
-    
-//     // ========================================
-//     // (1) 곡률 기반 속도 감속 (고정 기준)
-//     // ========================================
-//     if (max_curvature > curve_standard) {
-//         base_vel = curve_vel;  // 곡선 구간 감속
-//         ROS_WARN_THROTTLE(1.0, "[Speed] Curvature-based reduction (curvature: %.3f)", max_curvature);
-//     }
-    
-//     // ========================================
-//     // (2) 내 차선 주변부 비율 기반 감속
-//     // ========================================
-//     double ego_ratio = lattice_ctrl.ego_path_ratio;
-    
-//     if (ego_ratio < 0.33) {
-//         // 심각: 내 차선의 12개 경로 중 4개 이하만 유효
-//         base_vel *= 0.4;
-//         ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane severely blocked (Ratio: %.2f) → Speed: %.2f m/s", 
-//                           ego_ratio, base_vel);
-//     }
-//     else if (ego_ratio < 0.66) {
-//         // 주의: 내 차선의 12개 경로 중 8개 미만 유효
-//         base_vel *= 0.65;
-//         ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane partially blocked (Ratio: %.2f) → Speed: %.2f m/s", 
-//                           ego_ratio, base_vel);
-//     }
-//     else if (ego_ratio < 1.0) {
-//         // 경미: 내 차선의 12개 경로 중 모두 유효하지는 않음
-//         base_vel *= 0.85;
-//         ROS_WARN_THROTTLE(1.0, "[Speed] Ego lane minor obstacle (Ratio: %.2f) → Speed: %.2f m/s", 
-//                           ego_ratio, base_vel);
-//     }
-    
-//     // ========================================
-//     // (3) 전체 후보 경로 비율 기반 감속 (최종 보안)
-//     // ========================================
-//     double valid_ratio = lattice_ctrl.valid_path_ratio;
-    
-//     if (valid_ratio < 0.1) {
-//         // 극도로 위험: 경로가 거의 없음 → 정지
-//         base_vel = 5;
-//         ROS_WARN_THROTTLE(1.0, "[Speed] CRITICAL: Almost all paths blocked (Valid Ratio: %.2f%%) → STOP", 
-//                           valid_ratio * 100.0);
-//     }
-//     else if (valid_ratio < 0.3) {
-//         // 매우 위험: 경로 30% 미만 유효
-//         base_vel *= 0.5;
-//         ROS_WARN_THROTTLE(1.0, "[Speed] Very dangerous: Limited paths available (Valid Ratio: %.2f%%) → Severe reduction", 
-//                           valid_ratio * 100.0);
-//     }
-//     else if (valid_ratio < 0.6) {
-//         // 위험: 경로 60% 미만 유효
-//         base_vel *= 0.75;
-//         ROS_WARN_THROTTLE(1.0, "[Speed] Danger: Restricted paths (Valid Ratio: %.2f%%) → Moderate reduction", 
-//                           valid_ratio * 100.0);
-//     }
-//     else if (valid_ratio < 0.9) {
-//         // 경미: 경로 90% 미만 유효
-//         base_vel *= 0.9;
-//         ROS_WARN_THROTTLE(1.0, "[Speed] Minor: Few obstacles (Valid Ratio: %.2f%%) → Slight reduction", 
-//                           valid_ratio * 100.0);
-//     }
-    
-//     // 최종 속도 설정
-//     out_target_vel = base_vel;
-//     ROS_INFO_THROTTLE(1.0, "[Speed] Final: %.2f m/s (Ego: %.2f%%, Valid: %.2f%%, Curvature: %.3f)", 
-//                       base_vel, ego_ratio * 100.0, valid_ratio * 100.0, max_curvature);
-//     }

@@ -27,6 +27,12 @@ void initializeControlParameters() {
     curve_standard = 0.0025;
     curve_vel = 30.0 / 3.6;
     target_vel = 70.0 / 3.6;
+    min_ld = 3.0;   // 최소 거리 (m)
+    gain_ld = 0.1;  // 속도 비례 이득 
+    lattice_ctrl.ld_short = 5.0;      // 5m
+    lattice_ctrl.ld_medium = 10.0;    // 10m
+    lattice_ctrl.ld_long = 15.0;      // 15m
+    lattice_ctrl.ld_very_long = 20.0; // 20m
     
     ROS_INFO("[Control] Target vel: %.1f km/h", target_vel * 3.6);
 }

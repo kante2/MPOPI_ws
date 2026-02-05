@@ -36,6 +36,8 @@ double obstacle_vel = 0.0;
 double curve_vel = 0.0;
 double curve_standard = 0.0;
 int lookahead_idx = 0;
+double min_ld = 0.0;
+double gain_ld = 0.0;
 
 // Publishers
 ros::Publisher marker_pub;

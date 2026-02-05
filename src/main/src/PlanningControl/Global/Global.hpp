@@ -169,10 +169,10 @@ struct LatticeControl {
     int target_idx_long = 0;
     int target_idx_short = 0;
     int target_idx_medium = 0;
-    double ld_short = 5.0;
-    double ld_medium = 10.0;
-    double ld_long = 15.0;
-    double ld_very_long = 23.0;
+    double ld_short;
+    double ld_medium;
+    double ld_long;
+    double ld_very_long;
     double valid_path_ratio = 1.0;
     double very_long_path_ratio = 1.0; // 매우 긴 경로의 유효 경로 비율
     double ego_path_ratio = 1.0; // 내 차선의 유효 경로 비율
@@ -245,6 +245,8 @@ extern double obstacle_vel;
 extern double curve_vel;
 extern double curve_standard;
 extern int lookahead_idx;
+extern double min_ld;  
+extern double gain_ld;
 
 
 // ROS Publishers
