@@ -25,6 +25,9 @@ double last_selected_offset = 0.0;
 //추월
 std::vector<Point2D> overtaking_zone; 
 bool is_in_overtaking_zone = false;
+//카메라 코스트맵
+CostmapInfo Camera_costmap_info;
+std::vector<Point2D> no_camera_zones;
 
 // 임시(Control)
 ControlData ctrl;
