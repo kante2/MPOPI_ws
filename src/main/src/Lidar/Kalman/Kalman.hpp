@@ -25,7 +25,7 @@ public:
 
 
     // =================== 마할라노비스 거리 ======================
-    double getMahalanobisDistance(double measured_x, double measured_y);
+    double getMahalanobisDistance(double measured_x, double measured_y, double measured_theta, double measured_v);
 
 
     // =============== 1. 예측 단계: 식 (40) ===============
@@ -41,7 +41,7 @@ public:
 
 
     // =============== 2. 보정 단계: 식 (41) =================
-    void update(double measured_x, double measured_y);
+    void update(double measured_x, double measured_y, double measured_theta, double measured_v);
     // 1. 센서 측정값(관측값) 벡터 구성 (z_t) 
     // 2. 비선형 관측 함수 h 적용 
     //   : 라이다 센서가 물체의 중심 좌표 (x, y)를 알려준다고 할 때, 상태 변수 x 에서 px, py만 추출

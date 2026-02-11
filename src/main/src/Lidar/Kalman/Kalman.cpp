@@ -39,17 +39,21 @@ EKFTracker::EKFTracker(int id, float init_x, float init_y, const Eigen::MatrixXd
 // 마할라노비스 거리 계산 함수
 // ===========================================================================================
 
-double EKFTracker::getMahalanobisDistance(double measured_x, double measured_y) {
-    Eigen::VectorXd z(2);
-    z << measured_x, measured_y;
+double EKFTracker::getMahalanobisDistance(double measured_x, double measured_y, double measured_theta, double measured_v) {
+    Eigen::VectorXd z(4);
+    z << measured_x, measured_y, measured_theta, measured_v;
 
-    Eigen::VectorXd h_x(2);
-    h_x << px, py; // 예측 위치
+    Eigen::VectorXd h_x(4);
+    h_x << px, py, theta, v; // 예측 위치
 
     Eigen::MatrixXd H = calculateJacobianH();
     Eigen::MatrixXd S = H * P * H.transpose() + R;
     
     Eigen::VectorXd y = z - h_x; // 잔차 (Innovation)
+
+    while (y(2) >  M_PI) y(2) -= 2.0 * M_PI;
+    while (y(2) < -M_PI) y(2) += 2.0 * M_PI;
+
     double m_dist = std::sqrt(y.transpose() * S.inverse() * y);
     return m_dist;
 }
@@ -70,7 +74,7 @@ void EKFTracker::predict(double dt) {
     v  = v + a * dt;             
 
     // 계산된 변수들을 다시 벡터 x에 동기화 (행렬 연산을 위해)
-    x << px, py, theta, v, a;
+    x  << px, py, theta, v, a;
 
     // 2. 자코비안 F_t 생성 (식 32)
     Eigen::MatrixXd F = calculateJacobianF(dt);
@@ -117,19 +121,26 @@ Eigen::MatrixXd EKFTracker::calculateJacobianF(double dt) {
 // update() -> 센서 측정값 (z)(= LShapeFitting 결과값)을 받아 predict 값을 수정하는 과정
 // ===========================================================================================
 
-void EKFTracker::update(double measured_x, double measured_y) {
+void EKFTracker::update(double measured_x, double measured_y, double measured_theta, double measured_v) {
     // 1. 측정값 벡터 구성 (z_t) -> 현재 위치 함수
-    Eigen::VectorXd z(2);
-    z << measured_x, measured_y;
+
+    double dx = measured_x - px;
+    double dy = measured_y - py;
+    double meas_v = std::sqrt(dx*dx + dy*dy) / dy;
+
+    Eigen::VectorXd z(4);
+    z << measured_x, measured_y, measured_theta, measured_v;
 
     // 2. 예측값
-    Eigen::VectorXd h_x(2);
-    h_x << px, py; 
+    Eigen::VectorXd h_x(4);
+    h_x << px, py, theta, v;
 
     // 3. 자코비안 H 
-    Eigen::MatrixXd H = Eigen::MatrixXd::Zero(2, 5);
+    Eigen::MatrixXd H = Eigen::MatrixXd::Zero(4, 5);
     H(0, 0) = 1.0; // x 위치
     H(1, 1) = 1.0; // y 위치
+    H(2, 2) = 1.0; // theta 위치
+    H(3, 3) = 1.0; // v 위치
 
     // << 자코비안 H >>
     // : 상태벡터 x의 5개 값 중 뭐가 측정값에 영향을 주냐. 
@@ -150,6 +161,9 @@ void EKFTracker::update(double measured_x, double measured_y) {
     // z : 측정값
     // h_x : 예측값
     // => y가 0에 가깝다면 - 예측 정확. 
+
+    while (y(2) >  M_PI) y(2) -= 2.0 * M_PI;
+    while (y(2) < -M_PI) y(2) += 2.0 * M_PI;
 
     Eigen::VectorXd delta_x = K * y;
     // 측정/예측 오차에 칼만게인을 곱한 값을 delta_x : 현재 상태는 어느 방향(측정 or 예측)으로 수정해야 하는가?를 판단하는 값
@@ -185,9 +199,11 @@ void EKFTracker::update(double measured_x, double measured_y) {
 
 Eigen::MatrixXd EKFTracker::calculateJacobianH() {
     // x, y 위치만 측정하는 경우의 야코비안 (2x5 행렬)
-    Eigen::MatrixXd H = Eigen::MatrixXd::Zero(2, 5);
+    Eigen::MatrixXd H = Eigen::MatrixXd::Zero(4, 5);
     H(0, 0) = 1.0;
     H(1, 1) = 1.0;
+    H(2, 2) = 1.0; // theta -> theta
+    H(3, 3) = 1.0; // v -> v
     return H;
 }
 
@@ -206,7 +222,12 @@ MultiObjectTracker::MultiObjectTracker() : next_id(0), last_timestamp(0.0) {
     this -> Q = Eigen::MatrixXd::Identity(5, 5) * 0.1;
 
     // 측정 노이즈 공분산 R : 측정값이 얼마나 부정확한가. 
-    this -> R = Eigen::MatrixXd::Identity(2, 2) * 0.1;
+    this -> R = Eigen::MatrixXd::Identity(4, 4);
+    this->R(0, 0) = 0.1; // x 오차
+    this->R(1, 1) = 0.1; // y 오차
+    this->R(2, 2) = 0.1; // theta 오차
+    this->R(3, 3) = 0.5; // v 오차 (위치 기반 계산이라 오차가 큼)
+
 }
 // ?? : 개별 트랙에 대한 Q, R 을 설정했는데, 여러 클러스터에 대한 공분산 정도를 왜 또 설정해야하는 거지
 
@@ -271,7 +292,8 @@ void MultiObjectTracker::updateTracks(Lidar& st_Lidar, double current_time)
             for (int j = 0; j < num_clusters; ++j) 
             {
                 // 마할라노비스 거리 적용
-                cost_matrix[i][j] = vec_EKFtracks[i].getMahalanobisDistance(st_Lidar.vec_clusters[j].centroid_x, st_Lidar.vec_clusters[j].centroid_y);
+                cost_matrix[i][j] = vec_EKFtracks[i].getMahalanobisDistance(st_Lidar.vec_clusters[j].centroid_x, 
+                    st_Lidar.vec_clusters[j].centroid_y, st_Lidar.vec_clusters[j].heading_theta, st_Lidar.vec_clusters[j].velocity);
             }
         }
 
@@ -313,7 +335,9 @@ void MultiObjectTracker::updateTracks(Lidar& st_Lidar, double current_time)
                     << " | Mahalanobis Dist: " << cost_matrix[i][matched_cluster_idx] << endl;
 
                 vec_EKFtracks[i].update(st_Lidar.vec_clusters[matched_cluster_idx].centroid_x, 
-                                    st_Lidar.vec_clusters[matched_cluster_idx].centroid_y);
+                                    st_Lidar.vec_clusters[matched_cluster_idx].centroid_y,
+                                    st_Lidar.vec_clusters[matched_cluster_idx].heading_theta,
+                                    this->dt);
 
                 vec_EKFtracks[i].real_cluster_count++;
                 vec_EKFtracks[i].miss_count = 0;
@@ -371,7 +395,11 @@ void MultiObjectTracker::updateTracks(Lidar& st_Lidar, double current_time)
         
         res.is_confirmed = true;
 
+        res.yaw_x = cos(t.x(2));
+        res.yaw_y = sin(t.x(2));
+
         st_Lidar.vec_kalman_clusters.push_back(res);
+        cout << res.yaw_x << ", " << res.yaw_y << endl;
     }
     last_timestamp = current_time;
 }

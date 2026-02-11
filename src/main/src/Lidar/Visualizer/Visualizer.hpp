@@ -24,12 +24,16 @@ void PublishOBBLineStrip (const ros::Publisher &pub_bounding_box,
                           Lidar& st_Lidar,
                           const std_msgs::Header& header);
 
-void PublishHeading(const ros::Publisher& pub_heading, 
-                    Lidar& st_Lidar, 
-                    const std_msgs::Header& header);
+// void PublishHeading(const ros::Publisher& pub_heading, 
+//                     Lidar& st_Lidar, 
+//                     const std_msgs::Header& header);
 
 void PublishKalman(const ros::Publisher& pub_kalman, 
                   const std::vector<KalmanDetection>& detections, 
                   const std_msgs::Header& header);
+
+void PublishKalmanHeading(const ros::Publisher& pub_heading, 
+                        const std::vector<KalmanDetection>& detections, 
+                        const std_msgs::Header& header);
 
 #endif

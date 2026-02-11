@@ -14,7 +14,7 @@ ros::Publisher pub_cluster_all;
 ros::Publisher pub_bounding_box;
 ros::Publisher pub_OBB_bounding_box;
 ros::Publisher pub_kalman;
-// ros::Publisher pub_heading;
+ros::Publisher pub_heading;
 
 ros::Subscriber sub;
 
@@ -33,6 +33,7 @@ void LidarCallback (const sensor_msgs::PointCloud2ConstPtr& msg)
     PublishOBBLineStrip (pub_OBB_bounding_box, st_Lidar, msg -> header);
     // PublishHeading(pub_heading, st_Lidar, msg->header);
     PublishKalman(pub_kalman, st_Lidar.vec_kalman_clusters, msg->header);
+    PublishKalmanHeading(pub_heading, st_Lidar.vec_kalman_clusters, msg->header);
 }
 
 int main(int argc, char** argv)
@@ -54,6 +55,7 @@ int main(int argc, char** argv)
     pub_costmap = nh.advertise<nav_msgs::OccupancyGrid>("/costmap", 1);
     // pub_heading = nh.advertise<visualization_msgs::MarkerArray>("/heading", 1);
     pub_kalman = nh.advertise<visualization_msgs::MarkerArray>("/kalman", 1);
+    pub_heading = nh.advertise<visualization_msgs::MarkerArray>("/kalman_heading", 1);
 
     sub = nh.subscribe("/lidar3D", 1, LidarCallback);
 

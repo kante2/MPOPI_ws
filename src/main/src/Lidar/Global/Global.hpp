@@ -129,7 +129,6 @@ struct LidarCluster
 struct CostmapParams {
   float resolution = 0.05f;
   float width = 100.0f; //차량 전방 방향 80 -> 100
-  // roi는 전방 40, 후방 10 잡고 있ㅇ서 costmap도 max_x, min_x 으로 바꿔야 
   float height = 50.0f; //차량 좌우 방향 24 -> 50
   int unknown_cost = -1;
   int free_cost = 0;
@@ -179,6 +178,8 @@ struct KalmanDetection
   double yaw;
   double v;
   double a;
+  double yaw_x;
+  double yaw_y;
   // double l;
   bool is_confirmed;
 };

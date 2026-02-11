@@ -369,3 +369,58 @@ void PublishKalman(const ros::Publisher& pub_kalman,
     }
     pub_kalman.publish(marker_array);
 }
+
+// =========================================================
+// kalman 헤딩벡터 시각화
+// =========================================================
+
+void PublishKalmanHeading(const ros::Publisher& pub_heading, 
+                          const std::vector<KalmanDetection>& detections, 
+                          const std_msgs::Header& header) 
+{
+    if (detections.empty()) return;
+
+    visualization_msgs::MarkerArray marker_array;
+    ros::Time now = ros::Time::now();
+    
+    for (const KalmanDetection& det : detections) 
+    {
+        visualization_msgs::Marker arrow_marker;
+        arrow_marker.header = header;
+        arrow_marker.header.frame_id = "Lidar3D";
+        arrow_marker.header.stamp = now;
+        arrow_marker.ns = "kalman_heading";
+        arrow_marker.id = det.id; 
+        arrow_marker.type = visualization_msgs::Marker::ARROW;
+        arrow_marker.action = visualization_msgs::Marker::ADD;
+        
+        // 시작점 (트랙 위치)
+        geometry_msgs::Point start;
+        start.x = det.x;
+        start.y = det.y;
+        start.z = 0.5; 
+        
+        // 끝점 (헤딩 방향으로 1m 이동)
+        geometry_msgs::Point end;
+        end.x = start.x + det.yaw_x * 1.0; 
+        end.y = start.y + det.yaw_y * 1.0; 
+        end.z = 0.5; 
+        
+        arrow_marker.points.push_back(start);
+        arrow_marker.points.push_back(end);
+        
+        // 화살표 두께 및 색상 설정
+        arrow_marker.scale.x = 0.1; 
+        arrow_marker.scale.y = 0.2; 
+        arrow_marker.scale.z = 0.2; 
+        
+        arrow_marker.color.r = 1.0f; 
+        arrow_marker.color.g = 0.0f; 
+        arrow_marker.color.b = 0.0f; 
+        arrow_marker.color.a = 1.0f;
+        
+        arrow_marker.lifetime = ros::Duration(0.1);
+        marker_array.markers.push_back(arrow_marker);
+    }
+    pub_heading.publish(marker_array);
+}
