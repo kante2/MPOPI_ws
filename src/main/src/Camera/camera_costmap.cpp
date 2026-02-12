@@ -133,7 +133,7 @@ public:
 
                     if (val < 100) // 어두운 색(검은색) = 도로 아님 = 장애물
                     {
-                        costmap.data[index] = 100; // 벽 생성
+                        costmap.data[index] = 60; // 벽 생성dd
                     }
                     else // 밝은 색(초록색/흰색) = 도로 = 주행 가능
                     {

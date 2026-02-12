@@ -59,5 +59,7 @@ void globalYawToBaselink(double yaw_global, const VehicleState& ego, double& yaw
 bool BaseLinkToCostmap(const Point2D& pt_bl, int& grid_x, int& grid_y);
 int getCostmapCostFromGrid(int grid_x, int grid_y);
 
+bool isInsideNoCameraZone();
 bool worldToCostmapCoord(double world_x, double world_y, int& grid_x, int& grid_y);
 int getCostmapCost(double world_x, double world_y);
+int getCameraCost(double x, double y);

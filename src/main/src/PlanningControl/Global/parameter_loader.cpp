@@ -1,3 +1,4 @@
+#include <new>
 #include "parameter_loader.hpp"
 #include "Global.hpp"
 #include "Planning.hpp"
@@ -6,6 +7,7 @@
 #include <fstream>   
 #include <sstream>     
 #include <string>       
+#include <vector>
 
 void initializePlannerParameters() {
     planner_params.num_offsets = 13; // ** 9 -> 13
@@ -23,14 +25,14 @@ void initializeControlParameters() {
     Kp = 0.2; // 
     Ki = 0.0;
     Kd = 0.0;
-    k_gain = 1.0;
+    k_gain = 0.7;
     curve_standard = 0.0025;
     curve_vel = 30.0 / 3.6;
-    target_vel = 70.0 / 3.6;
+    target_vel = 65.0 / 3.6;
     lattice_ctrl.ld_short = 5.0;      // 5m
     lattice_ctrl.ld_medium = 10.0;    // 10m
     lattice_ctrl.ld_long = 15.0;      // 15m
-    lattice_ctrl.ld_very_long = 20.0; // 20m
+    lattice_ctrl.ld_very_long = 30.0; // 20m
     
     ROS_INFO("[Control] Target vel: %.1f km/h", target_vel * 3.6);
 }
@@ -161,4 +163,31 @@ bool load_overtakingZone() {
     path_file.close();
     ROS_INFO("[OvertakingZone] Loaded %zu points.", overtaking_zone.size());
     return true;
+}
+
+// 노카메라 존 로딩 함수
+void loadNoCameraZones() {
+    no_camera_zones.clear();
+    // 경로 주의: 실제 파일 경로로 수정하세요!
+    std::ifstream file("src/main/config/No_CameraCostmap_zone.csv");
+
+    if (!file.is_open()) {
+        ROS_ERROR("Failed to open No_CameraCostmap_zone.csv");
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string val;
+        std::vector<double> row;
+        while (std::getline(ss, val, ',')) {
+            row.push_back(std::stod(val));
+        }
+        if (row.size() >= 2) {
+            // CSV가 x, y 순서라고 가정
+            no_camera_zones.push_back({row[0], row[1]});
+        }
+    }
+    ROS_INFO("Loaded %lu No-Camera Zones.", no_camera_zones.size());
 }

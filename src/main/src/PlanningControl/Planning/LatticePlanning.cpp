@@ -324,18 +324,23 @@ void sampleAllCandidatePaths(LatticeControl& lattice_ctrl) {
 // 경로 평가 (costmap query는 map 좌표로 변환 후)
 // ========================================
 // LatticePlanning.cpp
+// LatticePlanning.cpp
+
 void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
     double front_offset = planner_params.vehicle_front_offset; // 4.0m
     double width = 2.0; // 차폭
     double half_width = width / 2.0;
 
-    double consistency_weight = 0.5;  // 히스테리시스 무시// ← 매우 감소 (특정 경로에 갇히지 않도록) 
+    double consistency_weight = 0.5;  
 
     for (auto& path : lattice_ctrl.candidates) {
         path.obstacle_cost = 0.0;
+        path.lane_cost = 0.0; // [추가] 차선 비용 초기화
         path.valid = true;
+        
         int lethal_count = 0;
         int valid_point_count = 0;
+        double lane_penalty_sum = 0.0; // [추가] 차선 페널티 합산용 변수
 
         for (size_t i = 0; i < path.points.size(); ++i) {
             Point2D pt_rear = path.points[i]; // base_link 좌표
@@ -353,15 +358,13 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
             double sin_heading = sin(heading);
 
             // ====================================================
-            // [핵심 수정] 몸통 전체 검사 - 첫 번째 코드 스타일
+            // 1. LiDAR 기반 물리적 장애물 검사 (Hard Constraint)
             // ====================================================
             int max_cost_in_step = 0;
             bool inside_map = false;
 
             // d는 차량 길이 방향 거리 (0m ~ 4.0m)
             for (double front_dx = 0.0; front_dx <= front_offset; front_dx += 0.5) {
-                
-                // 검사할 가상의 차량 중심점 (뒷바퀴에서 d만큼 앞)
                 double cx = pt_rear.x + front_dx * cos_heading;
                 double cy = pt_rear.y + front_dx * sin_heading;
 
@@ -371,34 +374,39 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
                 body_points.push_back({cx - half_width * sin_heading, cy + half_width * cos_heading}); // 왼쪽
                 body_points.push_back({cx + half_width * sin_heading, cy - half_width * cos_heading}); // 오른쪽
 
-                // 핵심: 직접 costmap 조회 (변환 함수 없음)
                 for (const auto& body_point : body_points) {
-                    int grid_x, grid_y;
-                    
-                    // base_link → grid 직접 계산
-                    if (worldToCostmapCoord(body_point.x, body_point.y, grid_x, grid_y)) {
-                        inside_map = true;
-                        
-                        // grid에서 직접 비용 읽기
-                        int cost = getCostmapCost(body_point.x, body_point.y);
-                        
-                        if (cost > max_cost_in_step) {
-                            max_cost_in_step = cost;
-                        }
+                    // LiDAR Costmap 직접 조회
+                    if (checkCostmapAvailable()) { // 안전 장치
+                         int cost = getCostmapCost(body_point.x, body_point.y);
+                         if (cost > max_cost_in_step) {
+                             max_cost_in_step = cost;
+                         }
+                         // 하나라도 맵 안에 있으면 유효한 포인트로 간주
+                         if (cost >= 0) inside_map = true;
                     }
                 }
             }
+
+            // ====================================================
+            // 2. Camera 기반 차선 이탈 검사 (Soft Constraint)
+            // ====================================================
+            // 차량 중심점 하나만 체크해도 충분 (연산 최적화)
+            // 혹은 필요 시 위처럼 body_points 루프를 돌려도 됨.
+            int cam_cost = getCameraCost(pt_rear.x, pt_rear.y); 
+            lane_penalty_sum += cam_cost; // 차선 밖이면 5~10점 누적
 
             if (!inside_map) continue;
 
             valid_point_count++;
 
+            // [LiDAR] 치명적 장애물(100)이면 즉시 카운트
             if (max_cost_in_step >= (int)planner_params.lethal_cost_threshold) {
                 lethal_count++;
             }
             path.obstacle_cost += max_cost_in_step / 100.0;
         }
-        // fatal point --> not valid
+
+        // [LiDAR] 장애물 충돌 시 즉시 경로 폐기 (Hard Constraint)
         if (lethal_count > 0) {
             path.valid = false;
             path.cost = 1e10;
@@ -407,9 +415,12 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
 
         if (valid_point_count > 0) {
             path.obstacle_cost /= valid_point_count;
+            // [Camera] 차선 비용 평균 계산
+            path.lane_cost = lane_penalty_sum / valid_point_count; 
         }
         
         // 곡률 비용 계산 - curvature_cost
+        path.curvature_cost = 0.0;
         if (path.points.size() >= 3) {
             for (size_t i = 1; i < path.points.size() - 1; i++) {
                 double x0 = path.points[i-1].x, y0 = path.points[i-1].y;
@@ -419,8 +430,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
                 double dx1 = x1 - x0, dy1 = y1 - y0;
                 double dx2 = x2 - x1, dy2 = y2 - y1;
 
-                double denom = (std::sqrt(dx1*dx1 + dy1*dy1) * 
-                               std::sqrt(dx2*dx2 + dy2*dy2) + 1e-6);
+                double denom = (std::sqrt(dx1*dx1 + dy1*dy1) * std::sqrt(dx2*dx2 + dy2*dy2) + 1e-6);
                 double curvature = std::fabs((dx1*dy2 - dy1*dx2) / denom);
 
                 path.points[i].curvature = curvature;
@@ -431,14 +441,14 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
         path.offset_cost = std::fabs(path.offset);
         path.offset_change_cost = std::fabs(path.offset - last_selected_offset);
         
-        // 임시로 cost 설정 (나중에 정규화됨)
-        path.cost = 0.0; // selectBestPath에서 정규화하기 전 임시값
+        path.cost = 0.0; 
     }
     
     // ========================================
     // 모든 코스트 정규화 (0~1 범위)
     // ========================================
     double max_obstacle = 0.0;
+    double max_lane = 0.0; // [추가] 차선 비용 최대값
     double max_offset = 0.0;
     double max_curvature = 0.0;
     double max_offset_change = 0.0;
@@ -446,6 +456,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
     for (const auto& path : lattice_ctrl.candidates) {
         if (!path.valid) continue;
         max_obstacle = std::max(max_obstacle, path.obstacle_cost);
+        max_lane = std::max(max_lane, path.lane_cost); // [추가]
         max_offset = std::max(max_offset, path.offset_cost);
         max_curvature = std::max(max_curvature, path.curvature_cost);
         max_offset_change = std::max(max_offset_change, path.offset_change_cost);
@@ -453,6 +464,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
     
     // 0으로 나누기 방지
     if (max_obstacle < 1e-6) max_obstacle = 1.0;
+    if (max_lane < 1e-6) max_lane = 1.0; // [추가]
     if (max_offset < 1e-6) max_offset = 1.0;
     if (max_curvature < 1e-6) max_curvature = 1.0;
     if (max_offset_change < 1e-6) max_offset_change = 1.0;
@@ -465,15 +477,18 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
         }
         
         double norm_obstacle = path.obstacle_cost / max_obstacle;
+        double norm_lane = path.lane_cost / max_lane; // [추가] 차선 비용 정규화
         double norm_offset = path.offset_cost / max_offset;
         double norm_curvature = path.curvature_cost / max_curvature;
         double norm_offset_change = path.offset_change_cost / max_offset_change;
         
-        // 정규화된 코스트를 가중합으로 계산 (가중치 합 = 1.0)
-        path.cost = norm_obstacle * 0.40 +        // 장애물 회피 40%
-                    norm_offset * 0.20 +          // 차선 유지 20%
-                    norm_curvature * 0.25 +       // 부드러운 경로 25%
-                    norm_offset_change * 0.15;    // 안정적인 선택 15%
+        // [최종 가중치 튜닝]
+        // 장애물(40%) > 차선유지(30%) > 부드러움(15%) > 직진성(10%) > 안정성(5%)
+        path.cost = norm_obstacle * 0.40 +        // 장애물 회피 (LiDAR)
+                    norm_lane * 0.25 +            // 주행 가능 영역 (Camera)
+                    norm_curvature * 0.05 +       // 급커브 방지
+                    norm_offset * 0.15 +          // 중앙 차선 선호
+                    norm_offset_change * 0.15;    // 경로 급변경 방지
     }
 }
 
@@ -489,8 +504,8 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
 
     // 🆕 계층적 경로 선택 (1~4단계)
     std::vector<std::pair<int, int>> path_groups = {
-        {0, n}, 
-        {n, 2*n},   // 1단계: VeryLong (0~12)
+        {0, 2*n}, 
+        // {n, 2*n},   // 1단계: VeryLong (0~12)
         {2*n, 4*n},         // 2단계: Medium (26~38)
     };
 
@@ -572,6 +587,19 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
     //         very_long_valid++;
     //     }
     // }
+    // // 모든 Very Long이 아니라, '내 차선 주변'의 Very Long만 검사
+    // int center_idx = n / 2; // 보통 6 (13개일 경우)
+    // int ego_vl_indices[] = {center_idx - 1, center_idx, center_idx + 1}; 
+    
+    // int ego_vl_valid_count = 0;
+    // for (int idx : ego_vl_indices) {
+    //     if (idx >= 0 && idx < n && lattice_ctrl.candidates[idx].valid) {
+    //         ego_vl_valid_count++;
+    //     }
+    // }
+
+    // // // 내 차선 Very Long 3개 중 하나라도 막히면(valid가 아니면) 1.0보다 작아짐
+    // lattice_ctrl.very_long_path_ratio = (double)ego_vl_valid_count / 3.0;
 
     // 내 차선의 그룹 평가 (중앙 ± 1 범위)
     // 각 그룹(VeryLong, Long, Medium, Short)에서 중앙 경로(i%n==4)와 좌우 경로의 유효성 확인
@@ -672,10 +700,16 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
     else {
         double ego_ratio = lattice_ctrl.ego_path_ratio;
         double valid_ratio = lattice_ctrl.valid_path_ratio;
+        // double very_long_ratio = lattice_ctrl.very_long_path_ratio;
 
-        if (ego_ratio < 0.33) base_vel *= 0.4;
-        else if (ego_ratio < 0.66) base_vel *= 0.65;
-        else if (ego_ratio < 1.0) base_vel *= 0.85;
+        // if (very_long_ratio < 1.0) {
+        //     base_vel *= 0.5; // 70% 수준으로 감속 (수치 조절 가능)
+        //     ROS_WARN_THROTTLE(1.0, "[Speed] Distant obstacle detected (Very Long). Slowing down...");
+        // }
+
+        if (ego_ratio < 0.4) base_vel *= 0.3;
+        else if (ego_ratio < 0.66) base_vel *= 0.4;
+        else if (ego_ratio < 1.0) base_vel *= 0.5;
 
         if (valid_ratio < 0.1) base_vel = 5.0 / 3.6; 
         else if (valid_ratio < 0.3) base_vel *= 0.5;

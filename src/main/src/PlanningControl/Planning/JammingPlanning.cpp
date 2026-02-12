@@ -37,27 +37,32 @@ void computePurePursuitSteering(const LaneData& lane, Jamming_offset& offset,con
 
 void computeOffsetPD(Jamming_offset& offset,const JammingParams& jamming_params)
 {
-    double d_offset = (offset.filtered_offset - offset.last_offset) / jamming_params.dt;
-    offset.offset_steering = jamming_params.gps_k_p * offset.filtered_offset + jamming_params.gps_k_d * d_offset;
-    offset.last_offset = offset.filtered_offset;
+    offset.offset_steering = jamming_params.gps_k_p * offset.filtered_offset;
 }
 void computeLastSteering(const Jamming_offset& offset,JammingParams& jamming_params)
 {
-    jamming_params.gps_steering = offset.pp_steering-offset.offset_steering;
+    double w_pp = 0.7;
+    double w_offset = 0.3;
+
+    jamming_params.gps_steering =
+    w_pp * offset.pp_steering -
+    w_offset * offset.offset_steering;
+
 }
 
 void printGPSJammingStatistics() 
 {
-    ROS_INFO("\n\n========== GPS JAMMING STAT ==========");
-    ROS_INFO("Count           : %d", gps_state.jamming_count);
-    ROS_INFO("Total duration  : %.3f sec", gps_state.total_jamming_duration);
-    if (gps_state.is_jamming) {
-        ROS_INFO("Current duration: %.3f sec (ONGOING)",
-                 gps_state.current_jamming_duration);
-    } else {
-        ROS_INFO("Current state   : NORMAL");
+    static bool prev_jamming = false;
+
+    // 재밍 시작 순간에만 count 증가
+    if (!prev_jamming && gps_jamming_perception) {
+        gps_state.jamming_count++;
     }
-    cout << "===== LanePath Received =====" << endl;
-    cout << "offset    : " << lane.offset    << endl;
-    cout << "angle_deg : " << lane.angle << endl;
+    prev_jamming = gps_jamming_perception;
+
+    ROS_WARN("\n\n========== GPS JAMMING STAT ==========");
+    ROS_WARN("\nCount           : %d", gps_state.jamming_count);
+    ROS_WARN("\n===== LanePath Received =====");
+    ROS_WARN("\noffset    : %.6f", lane.offset);
+    ROS_WARN("\nangle_deg : %.6f", lane.angle);
 }

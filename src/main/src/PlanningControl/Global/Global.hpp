@@ -7,6 +7,7 @@
 #include <cmath>
 #include <mutex>
 #include <nav_msgs/OccupancyGrid.h>
+#include <new>
 
 // ========================================
 // 재밍 구조체
@@ -128,6 +129,7 @@ struct CandidatePath {
     double offset; // 옆으로 얼마나 이동한 경로인지 (vertical offset)
     // scores
     double obstacle_cost;
+    double lane_cost;
     double curvature_cost;
     double offset_cost;
     double offset_change_cost;  // 이전 경로와의 일관성 코스트
@@ -139,6 +141,7 @@ struct CandidatePath {
     CandidatePath()
         : offset(0.0),
           obstacle_cost(0.0),
+          lane_cost(0.0),
           curvature_cost(0.0),
           offset_cost(0.0),
           offset_change_cost(0.0),
@@ -234,6 +237,9 @@ extern double last_selected_offset;
 //추월
 extern std::vector<Point2D> overtaking_zone;
 extern bool is_in_overtaking_zone;
+//카메라 코스트맵
+extern CostmapInfo Camera_costmap_info;
+extern std::vector<Point2D> no_camera_zones;
 
 // 임시
 extern ControlData ctrl;

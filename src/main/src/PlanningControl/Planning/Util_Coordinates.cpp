@@ -89,6 +89,22 @@ bool worldToCostmapCoord(double world_x, double world_y, int& grid_x, int& grid_
     return true;
 }
 // ========================================
+// 노카메라 존에 있는지 확인
+// ========================================
+bool isInsideNoCameraZone() {
+    // 반경 5m 이내면 존 안으로 인식 (조절 가능)
+    const double ZONE_RADIUS = 5.0; 
+
+    for (const auto& zone_pt : no_camera_zones) {
+        // ego는 Global.hpp에 있는 전역 차량 상태 변수
+        double dist = std::sqrt(pow(ego.x - zone_pt.x, 2) + pow(ego.y - zone_pt.y, 2));
+        if (dist < ZONE_RADIUS) {
+            return true;
+        }
+    }
+    return false;
+}
+// ========================================
 // costmap에서 비용 읽기
 // ========================================
 int getCostmapCost(double world_x, double world_y) {
@@ -115,6 +131,27 @@ int getCostmapCost(double world_x, double world_y) {
     if (cost < 0) cost = 0;
     if (cost > 100) cost = 100;
     return cost;
+}
+
+int getCameraCost(double x, double y) {
+
+    if (isInsideNoCameraZone()) {
+        return 0; 
+    }
+    if (Camera_costmap_info.msg == nullptr) return 0;
+
+    double grid_x = (x - Camera_costmap_info.origin_x) / Camera_costmap_info.resolution;
+    double grid_y = (y - Camera_costmap_info.origin_y) / Camera_costmap_info.resolution;
+
+    int gx = (int)grid_x;
+    int gy = (int)grid_y;
+
+    if (gx < 0 || gx >= Camera_costmap_info.width || gy < 0 || gy >= Camera_costmap_info.height) {
+        return 0; // 맵 밖은 페널티 없음 (혹은 상황에 따라 10 줄수도 있음)
+    }
+
+    int index = gy * Camera_costmap_info.width + gx;
+    return Camera_costmap_info.msg->data[index];
 }
 
 

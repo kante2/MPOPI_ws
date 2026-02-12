@@ -38,6 +38,17 @@ void costmapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
                   costmap_info.width, costmap_info.height, costmap_info.resolution);
 }
 
+void CameraCostmapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
+    // 굳이 mutex 잠글 필요까진 없지만 안전하게 하려면 사용
+    // lock_guard<std::mutex> lock(costmap_mutex); 
+    Camera_costmap_info.msg = msg;
+    Camera_costmap_info.origin_x = msg->info.origin.position.x;
+    Camera_costmap_info.origin_y = msg->info.origin.position.y;
+    Camera_costmap_info.resolution = msg->info.resolution;
+    Camera_costmap_info.width = (int)msg->info.width;
+    Camera_costmap_info.height = (int)msg->info.height;
+}
+
 
 void gpsCallback(const morai_msgs::GPSMessage::ConstPtr& msg) {
 
@@ -80,13 +91,13 @@ void imuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
 }
 
 void laneCallback(const std_msgs::Float32MultiArray::ConstPtr& msg) {
-    // Lane 정보를 처리하는 로직 추가
+
     lane.offset = msg->data[0];
     lane.angle = msg->data[1];
 }
 
 void mainControlLoop(const ros::TimerEvent&) {
-    // (기존 로직) 분기 처리
+
     if (gps_jamming_perception) {
        JammingPlanningProcess();    
        ControlProcess();
@@ -110,6 +121,7 @@ int main(int argc, char** argv) {
     // Waypoints 로드
     loadWaypoints();
     load_overtakingZone();
+    loadNoCameraZones();
 
     // 파라미터 초기화
     initializePlannerParameters();
@@ -129,7 +141,7 @@ int main(int argc, char** argv) {
     // ros::Subscriber lane_sub = nh.subscribe<camera::LaneInfo>("/lane/path", 1, laneCallback);
     // path_msg = Float32MultiArray()
     ros::Subscriber lane_sub = nh.subscribe<std_msgs::Float32MultiArray>("/lane/path", 1, laneCallback);
-
+    ros::Subscriber camera_costmap_sub = nh.subscribe("/costmap/camera", 1, CameraCostmapCallback);
     // Publisher
     marker_pub = nh.advertise<visualization_msgs::MarkerArray>("/lattice/paths", 1);
     local_path_pub = nh.advertise<visualization_msgs::MarkerArray>("/local_path", 1);

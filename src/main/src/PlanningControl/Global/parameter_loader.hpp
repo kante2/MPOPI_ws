@@ -8,5 +8,5 @@ void initializeControlParameters();
 // Waypoint 로드 함수 선언
 bool loadWaypoints();
 bool load_overtakingZone();
-
+void loadNoCameraZones();
 #endif // PARAMETER_LOADER_HPP
