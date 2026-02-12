@@ -1,0 +1,7 @@
+<launch>
+    <node pkg="Camera" type="bev_test.py" name="bev_test_node" output="screen" />
+
+    <node pkg="Camera" type="camera_costmap" name="costmap_node" output="screen" />
+
+    <node pkg="Camera" type="Camera.py" name="camera_main_node" output="screen" />
+</launch>

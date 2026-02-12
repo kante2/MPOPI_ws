@@ -28,6 +28,7 @@ bool is_in_overtaking_zone = false;
 //카메라 코스트맵
 CostmapInfo Camera_costmap_info;
 std::vector<Point2D> no_camera_zones;
+std::vector<Point2D> no_lidar_zones;
 
 // 임시(Control)
 ControlData ctrl;

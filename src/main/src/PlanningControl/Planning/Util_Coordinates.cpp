@@ -104,6 +104,23 @@ bool isInsideNoCameraZone() {
     }
     return false;
 }
+
+// ========================================
+// 노라이다 존에 있는지 확인
+// ========================================
+bool isInsideNoLidarZone() {
+    // 반경 5m 이내면 존 안으로 인식 (조절 가능)
+    const double ZONE_RADIUS = 5.0; 
+
+    for (const auto& zone_pt : no_lidar_zones) {
+        // ego는 Global.hpp에 있는 전역 차량 상태 변수
+        double dist = std::sqrt(pow(ego.x - zone_pt.x, 2) + pow(ego.y - zone_pt.y, 2));
+        if (dist < ZONE_RADIUS) {
+            return true;
+        }
+    }
+    return false;
+}
 // ========================================
 // costmap에서 비용 읽기
 // ========================================

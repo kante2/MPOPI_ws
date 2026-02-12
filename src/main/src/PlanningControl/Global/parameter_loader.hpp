@@ -9,4 +9,5 @@ void initializeControlParameters();
 bool loadWaypoints();
 bool load_overtakingZone();
 void loadNoCameraZones();
+void loadNoLidarZones();
 #endif // PARAMETER_LOADER_HPP

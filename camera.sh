@@ -1,2 +1,3 @@
+#!/bin/bash
 source ~/aim_ws/devel/setup.bash
-rosrun Camera Camera.py
+roslaunch Camera camera.launch

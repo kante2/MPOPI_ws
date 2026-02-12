@@ -122,6 +122,7 @@ int main(int argc, char** argv) {
     loadWaypoints();
     load_overtakingZone();
     loadNoCameraZones();
+    loadNoLidarZones();
 
     // 파라미터 초기화
     initializePlannerParameters();

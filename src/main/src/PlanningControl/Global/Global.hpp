@@ -39,14 +39,14 @@ struct Jamming_offset{
 
 struct JammingParams
 {
-    const double Ld = 40.0;
+    const double Ld = 30.0;
     const float wheel_base = 3.0;
     double gps_steering = 0.0;
     const double gps_alpha = 0.1; 
     const double gps_k_p = 0.15;
     const double gps_k_d = 0.02; 
     const double dt = 0.02;
-    const double gps_target_vel = 60.0/3.6;
+    const double gps_target_vel = 50.0/3.6;
 };
 
 
@@ -234,6 +234,8 @@ extern Point2D best_waypoint;
 extern PlannerParams planner_params;
 extern CostmapInfo costmap_info;
 extern double last_selected_offset;
+//노라이다 존
+extern std::vector<Point2D> no_lidar_zones;
 //추월
 extern std::vector<Point2D> overtaking_zone;
 extern bool is_in_overtaking_zone;

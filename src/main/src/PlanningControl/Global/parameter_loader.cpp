@@ -191,3 +191,30 @@ void loadNoCameraZones() {
     }
     ROS_INFO("Loaded %lu No-Camera Zones.", no_camera_zones.size());
 }
+
+// 노라이다 존 로딩 함수
+void loadNoLidarZones() {
+    no_lidar_zones.clear();
+    // 경로 주의: 실제 파일 경로로 수정하세요!
+    std::ifstream file("src/main/config/No_LidarCostmap_zone.csv");
+
+    if (!file.is_open()) {
+        ROS_ERROR("Failed to open No_LidarCostmap_zone.csv");
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string val;
+        std::vector<double> row;
+        while (std::getline(ss, val, ',')) {
+            row.push_back(std::stod(val));
+        }
+        if (row.size() >= 2) {
+            // CSV가 x, y 순서라고 가정
+            no_lidar_zones.push_back({row[0], row[1]});
+        }
+    }
+    ROS_INFO("Loaded %lu No-Lidar Zones.", no_lidar_zones.size());
+}
