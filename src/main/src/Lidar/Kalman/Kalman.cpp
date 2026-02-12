@@ -126,7 +126,36 @@ void EKFTracker::update(double measured_x, double measured_y, double measured_th
     double dist = std::sqrt(dx*dx + dy*dy);
     double calculated_v = dist / dt;
 
-    // 부작용 방지: 최소 0.2m 이상 움직였을 때만 방향을 새로 세팅
+    // // 부작용 방지: 최소 0.2m 이상 움직였을 때만 방향을 새로 세팅
+    // if (this->real_cluster_count == 1 && dist > 0.2) {
+    //     this->theta = std::atan2(dy, dx);
+    //     this->x(2) = this->theta;
+    // }
+
+    // ---------------------------------------------------------
+    // [핵심 추가] 각도 모호성(180도 플립) 해결 로직
+    // ---------------------------------------------------------
+    // L-Shape Fitting은 앞뒤 구분이 안 되어 180도 반대 각도를 줄 때가 많음.
+    // 현재 필터가 추정하는 theta와 측정값 measured_theta의 차이를 계산.
+    
+    double angle_diff = measured_theta - this->theta;
+
+    // 각도 차이를 -PI ~ PI 범위로 정규화
+    while (angle_diff > M_PI)  angle_diff -= 2.0 * M_PI;
+    while (angle_diff < -M_PI) angle_diff += 2.0 * M_PI;
+
+    // 만약 차이가 90도(PI/2)보다 크다면, 센서가 물체의 뒤쪽을 앞쪽으로 착각한 것임.
+    if (std::abs(angle_diff) > M_PI / 2.0) {
+        if (angle_diff > 0) measured_theta -= M_PI;
+        else               measured_theta += M_PI;
+    }
+    
+    // 보정된 measured_theta를 다시 한번 정규화
+    while (measured_theta > M_PI)  measured_theta -= 2.0 * M_PI;
+    while (measured_theta < -M_PI) measured_theta += 2.0 * M_PI;
+    // ---------------------------------------------------------
+
+    // 초기 상태에서 움직임이 감지되었을 때 방향 초기화 (기존 로직 유지)
     if (this->real_cluster_count == 1 && dist > 0.2) {
         this->theta = std::atan2(dy, dx);
         this->x(2) = this->theta;
@@ -219,7 +248,7 @@ MultiObjectTracker::MultiObjectTracker() : next_id(0), last_timestamp(0.0) {
     this->Q = Eigen::MatrixXd::Identity(5, 5)* 0.1;
     this->Q(0, 0) = 0.01;   // x 위치 예측 유연성
     this->Q(1, 1) = 0.01;   // y 위치 예측 유연성
-    this->Q(2, 2) = 0.05; 
+    this->Q(2, 2) = 0.05;   // 세타의 안정성을 더 높이려면 (**0.05->0.01) 으로 줄여야. 
     this->Q(3, 3) = 0.01;  // 속도 변화 허용 ** 0.1 -> 0.01
     this->Q(4, 4) = 0.0001; // 가속도는 거의 변하지 않음. 
 
@@ -227,7 +256,7 @@ MultiObjectTracker::MultiObjectTracker() : next_id(0), last_timestamp(0.0) {
     this->R = Eigen::MatrixXd::Identity(4, 4);
     this->R(0, 0) = 2.0; // x 오차
     this->R(1, 1) = 2.0; // y 오차
-    this->R(2, 2) = 1.0; // theta 오차 ** 1.0
+    this->R(2, 2) = 1.0; // LShapeFitting 에서 theta가 무조건 차량 전방방향으로 나오지 않기 때문에 2.0-5.0 정도로 높게 잡아야
     this->R(3, 3) = 30.0; // v 오차 (위치 기반 계산이라 오차가 큼)
 
 }
