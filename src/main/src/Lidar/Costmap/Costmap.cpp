@@ -138,7 +138,7 @@ void transformLidarToBaselink(const LidarCluster& st_LidarCluster)
         state.baselink_cloud.heading_direction_x = cos(state.baselink_cloud.heading_theta);
         state.baselink_cloud.heading_direction_y = sin(state.baselink_cloud.heading_theta);
 
-        cout << "base_link heading : " << state.baselink_cloud.heading_direction_x << endl;
+        // cout << "base_link heading : " << state.baselink_cloud.heading_direction_x << endl;
 
         state.tf_ok = true;
     }
