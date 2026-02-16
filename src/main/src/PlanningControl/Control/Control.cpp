@@ -14,10 +14,7 @@ void ControlProcess() {
     decideSteering(ego, ctrl, jamming_params);
     computePID(ego.vel, ctrl.target_vel, ctrl.accel, ctrl.brake);
     pubCmd(ctrl);
-    
-    ROS_INFO_THROTTLE(1.0, "[Control] V:%.1f(%.1f) | Steer:%.2f | Acc:%.2f | Brk:%.2f", 
-                     ego.vel, ctrl.target_vel, ctrl.steering, 
-                     ctrl.accel, ctrl.brake);
+
 }
 
 void decideSteering(const VehicleState& ego, ControlData& ctrl, const JammingParams& jamming_params){
@@ -44,9 +41,7 @@ void getsteering(const VehicleState& ego, ControlData& ctrl)
     
     const double MAX_STEERING = 45.0 * M_PI / 180.0; // 30 -> 45 TUNE
     ctrl.steering = std::max(-MAX_STEERING, std::min(MAX_STEERING, steering_raw));
-    
-    ROS_INFO("[Steering] path_e: %.3f, heading_e: %.3f, raw: %.3f, limited: %.3f deg",
-             path_e, heading_e, steering_raw, ctrl.steering * 180.0 / M_PI);
+
 }
 
 // ========================================

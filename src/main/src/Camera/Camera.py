@@ -17,7 +17,7 @@ class LaneDrive:
         self.bridge = CvBridge()
 
         # [판제팀에서 수정 필요] 학습된 가중치 모델 경로 설정
-        self.model_path = '/home/autonav/aim_ws/src/main/src/Camera/new_best.pt'
+        self.model_path = '/root/aim_ws/src/main/src/Camera/new_best.pt'
 
         self.model = YOLO(self.model_path)
 

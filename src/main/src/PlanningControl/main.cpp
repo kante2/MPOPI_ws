@@ -15,6 +15,7 @@
 #include <sstream>
 #include <morai_msgs/CtrlCmd.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Int32.h>
 
 using namespace std;
 mutex costmap_mutex;
@@ -96,6 +97,11 @@ void laneCallback(const std_msgs::Float32MultiArray::ConstPtr& msg) {
     lane.angle = msg->data[1];
 }
 
+void driving_modeCallback(const std_msgs::Int32::ConstPtr& msg) {
+    driving_mode = msg->data;  // 0: Normal, 1: Overtaking
+    ROS_INFO("[Mode] Driving mode changed to: %d", driving_mode);
+}
+
 void mainControlLoop(const ros::TimerEvent&) {
 
     if (gps_jamming_perception) {
@@ -143,6 +149,7 @@ int main(int argc, char** argv) {
     // path_msg = Float32MultiArray()
     ros::Subscriber lane_sub = nh.subscribe<std_msgs::Float32MultiArray>("/lane/path", 1, laneCallback);
     ros::Subscriber camera_costmap_sub = nh.subscribe("/costmap/camera", 1, CameraCostmapCallback);
+    ros::Subscriber mode_sub = nh.subscribe("/driving_mode", 10, driving_modeCallback);
     // Publisher
     marker_pub = nh.advertise<visualization_msgs::MarkerArray>("/lattice/paths", 1);
     local_path_pub = nh.advertise<visualization_msgs::MarkerArray>("/local_path", 1);

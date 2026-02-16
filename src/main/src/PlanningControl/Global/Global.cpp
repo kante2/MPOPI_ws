@@ -43,6 +43,10 @@ int lookahead_idx = 0;
 double min_ld = 0.0;
 double gain_ld = 0.0;
 
+// Driving Mode
+int driving_mode = 0;  // 0: Normal, 1: Overtaking
+int prev_driving_mode = -1;  // 모드 변경 감지용
+
 // Publishers
 ros::Publisher marker_pub;
 ros::Publisher local_path_pub;

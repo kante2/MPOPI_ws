@@ -41,8 +41,12 @@ void checkOvertakingZone(const VehicleState& ego) {
         return;
     }
     if (!overtaking_zone.empty()) {
-    ROS_INFO_THROTTLE(1.0, "Ego: (%.2f, %.2f) | First Zone Pt: (%.2f, %.2f)", 
-                     ego.x, ego.y, overtaking_zone[0].x, overtaking_zone[0].y);
+        // 모드 변경시에만 로그 출력
+        if (driving_mode != prev_driving_mode) {
+            ROS_INFO("[Mode Changed] Ego: (%.2f, %.2f) | First Zone Pt: (%.2f, %.2f) | Mode: %d", 
+                     ego.x, ego.y, overtaking_zone[0].x, overtaking_zone[0].y, driving_mode);
+            prev_driving_mode = driving_mode;
+        }
     }
 
     double min_dist = 1e10;
@@ -503,7 +507,7 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
 // ========================================
 void selectBestPath(LatticeControl& lattice_ctrl) {
     if (lattice_ctrl.candidates.empty()) return;
-    int n = planner_params.num_offsets;  // 13
+    int n = planner_params.num_offsets;  // 13 ( per layer)
 
     double best_cost = 1e10;
     int best_idx = -1;
@@ -569,81 +573,94 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
     lattice_ctrl.best_path = lattice_ctrl.candidates[best_idx];
     last_selected_offset = lattice_ctrl.best_path.offset;
     
-    // 🆕 선택된 경로 주변만 유효성 계산
-    int search_radius = 2;
-    int start_idx = std::max(0, best_idx - search_radius);
-    int end_idx = std::min((int)lattice_ctrl.candidates.size() - 1, best_idx + search_radius);
+    // ========================================
+    // 경로 유효성 평가 (3가지 거리 레이어)
+    // ========================================
     
-    int local_valid_count = 0;
-    int local_search_range = end_idx - start_idx + 1;
-    
-    for (int i = start_idx; i <= end_idx; i++) {
-        if (lattice_ctrl.candidates[i].valid) {
-            local_valid_count++;
+    // [1] valid_path_ratio: 선택된 경로 주변 유효성 (중거리)
+    // 선택 경로의 좌우 ±2칸 범위 [best_idx-2 ~ best_idx+2]
+    {
+        int search_radius = 2;
+        int start_idx = std::max(0, best_idx - search_radius);
+        int end_idx = std::min((int)lattice_ctrl.candidates.size() - 1, best_idx + search_radius);
+        
+        int local_valid_count = 0;
+        int local_search_range = end_idx - start_idx + 1;
+        
+        for (int i = start_idx; i <= end_idx; i++) {
+            if (lattice_ctrl.candidates[i].valid) {
+                local_valid_count++;
+            }
         }
-    }
-    
-    lattice_ctrl.valid_path_ratio = (double)local_valid_count / (double)local_search_range;
-
-    // VeryLong 그룹 평가
-    // int very_long_valid = 0;
-    // int very_long_range = std::min(n, (int)lattice_ctrl.candidates.size());
-    // for (int i = 0; i < very_long_range; i++) {
-    //     if (lattice_ctrl.candidates[i].valid) {
-    //         very_long_valid++;
-    //     }
-    // }
-    // // 모든 Very Long이 아니라, '내 차선 주변'의 Very Long만 검사
-    int center_idx = n / 2; // 보통 6 (13개일 경우)
-    int ego_vl_indices[] = {center_idx - 1, center_idx, center_idx + 1}; 
-    
-    int ego_vl_valid_count = 0;
-    for (int idx : ego_vl_indices) {
-        if (idx >= 0 && idx < n && lattice_ctrl.candidates[idx].valid) {
-            ego_vl_valid_count++;
-        }
+        
+        lattice_ctrl.valid_path_ratio = (double)local_valid_count / (double)local_search_range;
+        ROS_DEBUG_THROTTLE(1.0, "[Ratio] valid_path_ratio: %.2f (%d/%d)", 
+                          lattice_ctrl.valid_path_ratio, local_valid_count, local_search_range);
     }
 
-    // // 내 차선 Very Long 3개 중 하나라도 막히면(valid가 아니면) 1.0보다 작아짐
-    lattice_ctrl.very_long_path_ratio = (double)ego_vl_valid_count / 3.0;
+    // [2] very_long_path_ratio: VeryLong 그룹 중앙 유효성 (원거리)
+    // VeryLong 그룹(가장 먼 거리)에서 중앙 ±1 범위만 검사 [center-1, center, center+1]
+    {
+        int center_idx = n / 2;  // 13개 오프셋 기준: 인덱스 6
+        int ego_vl_indices[] = {center_idx - 1, center_idx, center_idx + 1};  // [5, 6, 7]
+        
+        int ego_vl_valid_count = 0;
+        for (int idx : ego_vl_indices) {
+            if (idx >= 0 && idx < n && lattice_ctrl.candidates[idx].valid) {
+                ego_vl_valid_count++;
+            }
+        }
+        
+        lattice_ctrl.very_long_path_ratio = (double)ego_vl_valid_count / 3.0;
+        ROS_DEBUG_THROTTLE(1.0, "[Ratio] very_long_path_ratio: %.2f (%d/3)", 
+                          lattice_ctrl.very_long_path_ratio, ego_vl_valid_count);
+    }
 
-    // 내 차선의 그룹 평가 (중앙 ± 1 범위)
-    // 각 그룹(VeryLong, Long, Medium, Short)에서 중앙 경로(i%n==4)와 좌우 경로의 유효성 확인
-    int center_remainder = n / 2;  // 중앙 인덱스의 나머지 값
-    int ego_lane_valid = 0;   // 유효한 경로 개수 (center + left + right)
-    int ego_lane_range = 0;   // 전체 체크 경로 개수
-    
-    for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
-        if (i % n == 4) {  // 각 그룹의 중앙 인덱스
-            int ego_lane_center = i;
-            int ego_lane_right = ego_lane_center - 1;
-            int ego_lane_left = ego_lane_center + 1;
+    // [3] ego_path_ratio: 내 차선 근거리 유효성 (근거리)
+    // 모든 거리 그룹에서 각각의 중앙 ±1 범위를 종합 평가
+    // 구조: [VeryLong(0~12)][Long(13~25)][Medium(26~38)][Short(39~51)]
+    //       각 그룹에서 i%n==4인 지점(중앙)의 좌/중/우 3개씩 검사
+    {
+        int ego_lane_valid = 0;   // 유효한 경로 개수
+        int ego_lane_range = 0;   // 전체 검사 경로 개수
+        
+        for (int i = 0; i < (int)lattice_ctrl.candidates.size(); i++) {
+            // 각 그룹의 특정 중앙 인덱스만 선택 (i % n == 4)
+            if (i % n == 4) {
+                int ego_lane_center = i;
+                int ego_lane_left = ego_lane_center + 1;
+                int ego_lane_right = ego_lane_center - 1;
 
-            // 좌우 범위 체크 (같은 그룹 내에서만)
-            if (ego_lane_right >= 0 && ego_lane_right / n == i / n) {
+                // 우측 경로 (같은 그룹 내에서만)
+                if (ego_lane_right >= 0 && ego_lane_right / n == i / n) {
+                    ego_lane_range++;
+                    if (lattice_ctrl.candidates[ego_lane_right].valid) {
+                        ego_lane_valid++;
+                    }
+                }
+                
+                // 중앙 경로
                 ego_lane_range++;
-                if (lattice_ctrl.candidates[ego_lane_right].valid) {
+                if (lattice_ctrl.candidates[ego_lane_center].valid) {
                     ego_lane_valid++;
                 }
-            }
-            
-            ego_lane_range++;
-            if (lattice_ctrl.candidates[ego_lane_center].valid) {
-                ego_lane_valid++;
-            }
-            
-            if (ego_lane_left < (int)lattice_ctrl.candidates.size() && ego_lane_left / n == i / n) {
-                ego_lane_range++;
-                if (lattice_ctrl.candidates[ego_lane_left].valid) {
-                    ego_lane_valid++;
+                
+                // 좌측 경로 (같은 그룹 내에서만)
+                if (ego_lane_left < (int)lattice_ctrl.candidates.size() && 
+                    ego_lane_left / n == i / n) {
+                    ego_lane_range++;
+                    if (lattice_ctrl.candidates[ego_lane_left].valid) {
+                        ego_lane_valid++;
+                    }
                 }
             }
         }
+        
+        lattice_ctrl.ego_path_ratio = ego_lane_range > 0 ? 
+            (double)ego_lane_valid / (double)ego_lane_range : 0.0;
+        ROS_DEBUG_THROTTLE(1.0, "[Ratio] ego_path_ratio: %.2f (%d/%d)", 
+                          lattice_ctrl.ego_path_ratio, ego_lane_valid, ego_lane_range);
     }
-
-    // lattice_ctrl.very_long_path_ratio = (double)very_long_valid / (double)very_long_range;
-    // 주행 차선을 포함하여, 주변부를 포함한, 내 차선의 비율 ( 속도에 이용할 예정) 
-    lattice_ctrl.ego_path_ratio = ego_lane_range > 0 ? (double)ego_lane_valid / (double)ego_lane_range : 0.0; // 내 차선 + 양옆 1개씩 총 3개
 }
 // lattice_ctrl.best_path.points == local_path
 // local path 에서 일정 ld이상인 index 인 out_idx 생성 ==> closewaypointsIdx 대체 
@@ -685,44 +702,86 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
     max_curvature = max_kappa;
 }
 // ========================================
-// 타겟 속도 (곡률 + 장애물 회피율 기반)
+// 타겟 속도 계산 (곡률 + 장애물 회피율 기반)
 // ========================================
 void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx) {
-
-
-    // 추월 구간이면 곡률이고 장애물이고 뭐고 무조건 target_vel 고정
-    if (is_in_overtaking_zone) {
-        out_target_vel = target_vel; 
-        ROS_INFO_THROTTLE(1.0, ">> [OVERTAKING ACTIVE] Forcing Target Speed: %.1f km/h", out_target_vel * 3.6);
-        return; // 아래의 모든 감속 로직을 완전히 무시하고 즉시 종료
+    
+    // ====================================================
+    // 1단계: 곡률 기반 감속 (최우선 - 모든 모드 공통)
+    // ====================================================
+    if (max_curvature > curve_standard) {
+        out_target_vel = curve_vel;
+        ROS_WARN_THROTTLE(1.0, "[Speed] [Curve] Reduction active: %.1f km/h (curvature: %.4f)", 
+                          curve_vel * 3.6, max_curvature);
+        return;
     }
 
-    double base_vel = target_vel; 
-
-    // 1. 코너 감속 (일반 주행 시에만 적용)
-    if (max_curvature > curve_standard) {
-        base_vel = curve_vel; 
-        ROS_WARN_THROTTLE(1.0, "[Speed] Curve reduction active.");
-    } 
-    // 2. 일반 주행 구간 (장애물에 따른 감속 적용)
+    // ====================================================
+    // 2단계: 모드별 기본 속도 설정
+    // ====================================================
+    double base_vel;
+    
+    if (driving_mode == 1) {
+        // 추월 모드: 70 km/h 고정 (장애물 감속 없음)
+        out_target_vel = 75.0 / 3.6;
+        ROS_INFO("[Speed] [MODE:OVERTAKING] 70 km/h fixed (curvature: %.4f)", max_curvature);
+        return;
+    }
     else {
-        double ego_ratio = lattice_ctrl.ego_path_ratio;
-        double valid_ratio = lattice_ctrl.valid_path_ratio;
-        double very_long_ratio = lattice_ctrl.very_long_path_ratio;
+        // 일반 모드: target_vel 사용 + 장애물 기반 감속
+        base_vel = target_vel;
+        ROS_INFO_THROTTLE(1.0, "[Speed] [MODE:NORMAL] Base: %.1f km/h", target_vel * 3.6);
+    
+        // ====================================================
+        // 3단계: 장애물 기반 감속 (일반 모드만 적용)
+        // ====================================================
+        double ego_ratio = lattice_ctrl.ego_path_ratio;             // 근거리: 내 차선 유효성
+        double valid_ratio = lattice_ctrl.valid_path_ratio;         // 중거리: 선택 경로 주변 유효성
+        double very_long_ratio = lattice_ctrl.very_long_path_ratio; // 원거리: 먼 거리 중앙 유효성
 
+        // [원거리 장애물 감지] 15~20m 앞 중앙 경로에 장애물
         if (very_long_ratio < 1.0) {
-            base_vel *= 0.5; // 70% 수준으로 감속 (수치 조절 가능)
-            ROS_WARN_THROTTLE(1.0, "[Speed] Distant obstacle detected (Very Long). Slowing down...");
+            base_vel *= 0.5;
+            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] VeryLong: %.1f km/h (ratio: %.2f)", 
+                            base_vel * 3.6, very_long_ratio);
         }
 
-        // if (ego_ratio < 0.4) base_vel *= 0.3;
-        // else if (ego_ratio < 0.66) base_vel *= 0.4;
-        // else if (ego_ratio < 1.0) base_vel *= 0.5;
+        // [근거리 장애물 감지] 내 차선 주변 경로 유효성
+        if (ego_ratio < 0.4) {
+            base_vel *= 0.3;  // 30% 수준
+            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] CRITICAL - Ego lane blocked: %.1f km/h (ratio: %.2f)", 
+                            base_vel * 3.6, ego_ratio);
+        } 
+        else if (ego_ratio < 0.66) {
+            base_vel *= 0.4;  // 40% 수준
+            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] SERIOUS - Ego lane partially blocked: %.1f km/h (ratio: %.2f)", 
+                            base_vel * 3.6, ego_ratio);
+        } 
+        else if (ego_ratio < 1.0) {
+            base_vel *= 0.5;  // 50% 수준
+            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] WARNING - Ego lane slightly blocked: %.1f km/h (ratio: %.2f)", 
+                            base_vel * 3.6, ego_ratio);
+        }
 
-        // if (valid_ratio < 0.1) base_vel = 5.0 / 3.6; 
-        // else if (valid_ratio < 0.3) base_vel *= 0.5;
-        // else if (valid_ratio < 0.6) base_vel *= 0.75;
+        // [중거리 장애물 감지] 선택된 경로 주변 유효성
+        if (valid_ratio < 0.1) {
+            base_vel = 5.0 / 3.6;  // 절대값: 5m/s (18km/h)
+            ROS_ERROR_THROTTLE(1.0, "[Speed] [Obstacle] EMERGENCY - Path completely blocked: %.1f km/h (ratio: %.2f)", 
+                            base_vel * 3.6, valid_ratio);
+        } 
+        else if (valid_ratio < 0.3) {
+            base_vel *= 0.5;  // 50% 수준
+            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] ALERT - Selected path blocked: %.1f km/h (ratio: %.2f)", 
+                            base_vel * 3.6, valid_ratio);
+        } 
+        else if (valid_ratio < 0.6) {
+            base_vel *= 0.75;  // 75% 수준
+            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] NOTICE - Selected path partially blocked: %.1f km/h (ratio: %.2f)", 
+                            base_vel * 3.6, valid_ratio);
+        }
     }
 
     out_target_vel = base_vel;
+    ROS_DEBUG_THROTTLE(1.0, "[Speed] Final target speed: %.1f km/h (%.2f m/s)", base_vel * 3.6, base_vel);
 }
+

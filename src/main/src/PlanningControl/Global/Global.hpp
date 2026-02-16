@@ -254,7 +254,9 @@ extern double curve_vel;
 extern double curve_standard;
 extern int lookahead_idx;
 
-
+// driving mode
+extern int driving_mode; // 0: Normal, 1: Overtaking
+extern int prev_driving_mode; // 모드 변경 감지용
 
 // ROS Publishers
 extern ros::Publisher marker_pub;
