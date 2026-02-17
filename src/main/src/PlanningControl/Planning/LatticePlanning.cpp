@@ -502,10 +502,10 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl, int mode) {
         if (mode == 1) {
             
             // 추월 모드: 극도로 공격적 
-            path.cost = norm_obstacle * 0.70 +        
-                        norm_lane * 0.25 +            
-                        norm_curvature * 0.0 +       
-                        norm_offset * 0.15 +          
+            path.cost = norm_obstacle * 0.70 +  // LIDAR COST       
+                        norm_lane * 0.3 +      // CAMERA COST      
+                        norm_curvature * 0.1 +  // 곡률 비용      
+                        norm_offset * 0.1 +    // 횡방향 오프셋 - 차선 중앙에서 멀어지는 것에 대한 패널티      
                         norm_offset_change * 0.20;    
             
         } 
@@ -749,18 +749,34 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
     // 2단계: 모드별 기본 속도 설정
     // ====================================================
     double base_vel;
-    
+    // []
     if (mode == 1) {
-        // 추월 모드: 70 km/h 고정 (장애물 감속 없음)
-        out_target_vel = 65.0 / 3.6;
-        ROS_INFO("[Speed] [MODE:OVERTAKING] 70 km/h fixed (curvature: %.4f)", max_curvature);
-        // if (valid_ratio < 0.6) {
-        //     base_vel *= 0.75;  // 75% 수준
-        //     ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] NOTICE - Selected path partially blocked: %.1f km/h (ratio: %.2f)", 
-        //                     base_vel * 3.6, valid_ratio);
-        // }
+        bool has_decelerated = false; // 추월 모드에서 이미 감속했는지 여부
+        double last_very_long_ratio = 1.0; // 이전 루프의 원거리 유효성 비율
+
+        double VERY_LONG_THRESHOLD = 0.7; // 원거리 유효성 임계값 (70%)
+
+        // [1] 추월 모드: ratio 가 임계값을 넘으면 감속플래그 설정
+        if (very_long_ratio < VERY_LONG_THRESHOLD) {
+            has_decelerated = true; // 감속 플래그 활성화 
+        } 
+        // [2] ratio 가 다시 임계값 이상으로 올라오면
+        if (very_long_ratio >= VERY_LONG_THRESHOLD && has_decelerated) {
+            has_decelerated = false; // 감속 플래그 해제
+        }
+        // 마지막 ratio 저장 (히스테리시스용)
+        last_very_long_ratio = very_long_ratio; // 현재 ratio 저장
+
+        // [3] 속도 결정
+        if (has_decelerated){
+            out_target_vel = 45.0 / 3.6; // 45km/h로 감속 유지
+        }
+        else {
+            out_target_vel = 65.0 / 3.6; // 원래 목표 속도 유지
+        }
         return;
     }
+
     else {
         // 일반 모드: target_vel 사용 + 장애물 기반 감속
         base_vel = target_vel;
