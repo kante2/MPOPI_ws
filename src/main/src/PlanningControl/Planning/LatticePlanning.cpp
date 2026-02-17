@@ -14,6 +14,9 @@ void LatticePlanningProcess() {
 
     lock_guard<std::mutex> lock(costmap_mutex);
     
+    // 시작 시점의 모드를 저장 (변경 방지)
+    int current_mode = driving_mode;
+
     checkOvertakingZone(ego);
     if (!checkCostmapAvailable()) {
         ROS_WARN_THROTTLE(1.0, "[Lattice] Waiting for costmap...");
@@ -25,11 +28,11 @@ void LatticePlanningProcess() {
     transformOffsetGoalsToBaselink(lattice_ctrl, ego);
     computeAllPolynomialPaths(lattice_ctrl);
     sampleAllCandidatePaths(lattice_ctrl);
-    evaluateAllCandidates(lattice_ctrl);
+    evaluateAllCandidates(lattice_ctrl, current_mode);
     selectBestPath(lattice_ctrl);
     getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);
     getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx * 3, ego.max_curvature);
-    getTargetSpeed(ego.max_curvature, ctrl.target_vel, ctrl.lookahead_idx);
+    getTargetSpeed(ego.max_curvature, ctrl.target_vel, ctrl.lookahead_idx, current_mode);
 }
 
 //--------------------------함수 정의----------------------------------------------------------
@@ -327,7 +330,7 @@ void sampleAllCandidatePaths(LatticeControl& lattice_ctrl) {
 // ========================================
 // 경로 평가 (costmap query는 map 좌표로 변환 후)
 // ========================================
-void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
+void evaluateAllCandidates(LatticeControl& lattice_ctrl, int mode) {
     double front_offset = planner_params.vehicle_front_offset; // 4.0m
     double width = 2.0; // 차폭
     double half_width = width / 2.0;
@@ -493,13 +496,27 @@ void evaluateAllCandidates(LatticeControl& lattice_ctrl) {
         double norm_curvature = path.curvature_cost / max_curvature;
         double norm_offset_change = path.offset_change_cost / max_offset_change;
         
-        // [최종 가중치 튜닝]
-        // 장애물(40%) > 차선유지(25%) > 부드러움(5%) > 직진성(15%) > 안정성(15%)
-        path.cost = norm_obstacle * 0.40 +        
-                    norm_lane * 0.25 +            
-                    norm_curvature * 0.05 +       
-                    norm_offset * 0.15 +          
-                    norm_offset_change * 0.15;    
+        // ====================================================
+        // 모드별 비용 계산
+        // ====================================================
+        if (mode == 1) {
+            
+            // 추월 모드: 극도로 공격적 
+            path.cost = norm_obstacle * 0.70 +        
+                        norm_lane * 0.25 +            
+                        norm_curvature * 0.0 +       
+                        norm_offset * 0.15 +          
+                        norm_offset_change * 0.20;    
+            
+        } 
+        else {
+            // 일반 모드: 장애물 회피 + 차선 유지 (기존 로직)
+            path.cost = norm_obstacle * 0.40 +        
+                        norm_lane * 0.25 +            
+                        norm_curvature * 0.05 +       
+                        norm_offset * 0.15 +          
+                        norm_offset_change * 0.15;    
+        }
     }
 }
 // ========================================
@@ -512,7 +529,16 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
     double best_cost = 1e10;
     int best_idx = -1;
 
-    // 🆕 계층적 경로 선택 (1~4단계)
+    // ====================================================
+    // 추월 모드: 유효한 경로 중 가장 왼쪽을 선택
+    // 여기서 하는게 아니라 앞서 COST 계산 부를 변경
+    // ====================================================
+        // if (driving_mode == 1) {   
+    // ====================================================
+    // 일반 모드: 최저 비용 경로 선택 (기존 로직)
+    // ====================================================
+
+    //  계층적 경로 선택 (1~4단계)
     std::vector<std::pair<int, int>> path_groups = {
         {0, 2*n}, 
         // {n, 2*n},   // 1단계: VeryLong (0~12)
@@ -560,6 +586,7 @@ void selectBestPath(LatticeControl& lattice_ctrl) {
             break;
         }
     }
+    
 
     // 모든 경로가 막혔을 때의 예외 처리
     if (best_idx == -1) {
@@ -704,8 +731,10 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
 // ========================================
 // 타겟 속도 계산 (곡률 + 장애물 회피율 기반)
 // ========================================
-void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx) {
-    
+void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx, int mode) {
+    double ego_ratio = lattice_ctrl.ego_path_ratio;             // 근거리: 내 차선 유효성
+    double valid_ratio = lattice_ctrl.valid_path_ratio;         // 중거리: 선택 경로 주변 유효성
+    double very_long_ratio = lattice_ctrl.very_long_path_ratio; // 원거리: 먼 거리 중앙 유효성
     // ====================================================
     // 1단계: 곡률 기반 감속 (최우선 - 모든 모드 공통)
     // ====================================================
@@ -721,10 +750,15 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
     // ====================================================
     double base_vel;
     
-    if (driving_mode == 1) {
+    if (mode == 1) {
         // 추월 모드: 70 km/h 고정 (장애물 감속 없음)
-        out_target_vel = 75.0 / 3.6;
+        out_target_vel = 65.0 / 3.6;
         ROS_INFO("[Speed] [MODE:OVERTAKING] 70 km/h fixed (curvature: %.4f)", max_curvature);
+        // if (valid_ratio < 0.6) {
+        //     base_vel *= 0.75;  // 75% 수준
+        //     ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] NOTICE - Selected path partially blocked: %.1f km/h (ratio: %.2f)", 
+        //                     base_vel * 3.6, valid_ratio);
+        // }
         return;
     }
     else {
@@ -735,9 +769,7 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
         // ====================================================
         // 3단계: 장애물 기반 감속 (일반 모드만 적용)
         // ====================================================
-        double ego_ratio = lattice_ctrl.ego_path_ratio;             // 근거리: 내 차선 유효성
-        double valid_ratio = lattice_ctrl.valid_path_ratio;         // 중거리: 선택 경로 주변 유효성
-        double very_long_ratio = lattice_ctrl.very_long_path_ratio; // 원거리: 먼 거리 중앙 유효성
+
 
         // [원거리 장애물 감지] 15~20m 앞 중앙 경로에 장애물
         if (very_long_ratio < 1.0) {
