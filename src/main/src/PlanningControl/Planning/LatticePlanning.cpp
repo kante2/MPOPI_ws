@@ -727,6 +727,10 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
         }
     } 
     max_curvature = max_kappa;
+    
+    // [디버깅] 최대곡률 값 출력
+    // ROS_INFO("[Curvature] Max: %.6f | Range: [%d ~ %d] | Lookahead: %d", 
+    //          max_curvature, close_idx, end_idx, lookahead_idx);
 }
 // ========================================
 // 타겟 속도 계산 (곡률 + 장애물 회피율 기반)
@@ -737,14 +741,33 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
     double very_long_ratio = lattice_ctrl.very_long_path_ratio; // 원거리: 먼 거리 중앙 유효성
     // ====================================================
     // 1단계: 곡률 기반 감속 (최우선 - 모든 모드 공통)
+    // curve_standard: 0.1 <- yaml_hybrid.yaml 에서 설정
     // ====================================================
-    if (max_curvature > curve_standard) {
-        out_target_vel = curve_vel;
-        ROS_WARN_THROTTLE(1.0, "[Speed] [Curve] Reduction active: %.1f km/h (curvature: %.4f)", 
-                          curve_vel * 3.6, max_curvature);
+    // if (max_curvature > curve_standard) {
+    //     out_target_vel = curve_vel;
+    //     ROS_WARN_THROTTLE(1.0, "[Speed] [Curve] Reduction active: %.1f km/h (curvature: %.4f)", 
+    //                       curve_vel * 3.6, max_curvature);
+    //     return;
+    // }
+
+    // ==> 곡률 기반 감속을 세분화 하였음, (kante)
+
+    // 1단계: 곡률 기반 감속 (다단계)
+    if (max_curvature > 0.01) {
+        out_target_vel = 30.0 / 3.6;  // 원형 주행로: 30 km/h
+        ROS_WARN_THROTTLE(1.0, "[Speed] [Curve-SHARP] 30 km/h (curvature: %.6f)", max_curvature);
         return;
     }
-
+    else if (max_curvature > 0.004) {
+        out_target_vel = 35.0 / 3.6;  // 중간 회피: 50 km/h
+        ROS_WARN_THROTTLE(1.0, "[Speed] [Curve-MEDIUM] 50 km/h (curvature: %.6f)", max_curvature);
+        return;
+    }
+    else if (max_curvature > 0.001) {
+        out_target_vel = 45.0 / 3.6;  // 완만 회피: 60 km/h
+        ROS_INFO_THROTTLE(1.0, "[Speed] [Curve-MILD] 60 km/h (curvature: %.6f)", max_curvature);
+        return;
+    }
     // ====================================================
     // 2단계: 모드별 기본 속도 설정
     // ====================================================

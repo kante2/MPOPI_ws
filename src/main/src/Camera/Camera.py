@@ -17,7 +17,7 @@ class LaneDrive:
         self.bridge = CvBridge()
 
         # [판제팀에서 수정 필요] 학습된 가중치 모델 경로 설정
-        self.model_path = '/root/aim_ws/src/main/src/Camera/new_best.pt'
+        self.model_path = '/root/aim_ws/src/main/src/Camera/best.pt'
 
         self.model = YOLO(self.model_path)
 
@@ -241,6 +241,13 @@ class LaneDrive:
             except Exception as viz_error:
                 rospy.logwarn(f"Visualization publish failed: {viz_error}")
 
+            # [시각화: CV2 윈도우 표시]
+            try:
+                cv2.imshow("Lane Detection", final_display)
+                cv2.waitKey(1)
+            except Exception as display_error:
+                rospy.logwarn(f"Display failed: {display_error}")
+
         except Exception as e:
             rospy.logerr(f"Error: {e}")
 
@@ -251,5 +258,4 @@ if __name__ == '__main__':
     except rospy.ROSInterruptException:
         pass
     finally:
-        # cv2.destroyAllWindows()
-        pass
+        cv2.destroyAllWindows()

@@ -5,8 +5,22 @@
 target_vel: 60.0
 curve_vel: 40.0
 obstacle_vel: 30.0
-# curve_standard: 0.0045
-curve_standard: 0.1
+
+#curve_standard: 0.1
+# ==> 
+# Level 3: 매우 높음 (Sharp)
+curve_level3_threshold: 0.008
+curve_level3_speed: 30.0
+
+# Level 2: 중간 (Medium)
+curve_level2_threshold: 0.004
+curve_level2_speed: 50.0
+
+# Level 1: 낮음 (Mild)
+curve_level1_threshold: 0.001
+curve_level1_speed: 60.0
+
+
 lookahead_idx: 50
 # ===============================================
 # gain
