@@ -795,7 +795,7 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
             out_target_vel = 45.0 / 3.6; // 45km/h로 감속 유지
         }
         else {
-            out_target_vel = 65.0 / 3.6; // 원래 목표 속도 유지
+            out_target_vel = 70.0 / 3.6; // 원래 목표 속도 유지
         }
         return;
     }
