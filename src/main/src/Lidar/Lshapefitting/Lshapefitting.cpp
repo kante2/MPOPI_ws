@@ -1,4 +1,4 @@
-#include <Lshapefitting/Lshapefitting.hpp>
+#include "Lshapefitting.hpp"
 
 class LshapefittingProcess
 {

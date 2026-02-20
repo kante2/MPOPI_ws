@@ -1,6 +1,6 @@
 #ifndef COSTMAP_HPP
 #define COSTMAP_HPP
-#include <Global/Global.hpp>
+#include "../Global/Global.hpp"
 
 using namespace std;
 
