@@ -1,7 +1,7 @@
-#include <Global/Global.hpp>
-#include <LidarProcess/LidarProcess.hpp>
-#include <Visualizer/Visualizer.hpp>
-#include <Costmap/Costmap.hpp>
+#include "Global/Global.hpp"
+#include "LidarProcess/LidarProcess.hpp"
+#include "Visualizer/Visualizer.hpp"
+#include "Costmap/Costmap.hpp"
 
 Lidar st_Lidar;
 LidarCluster st_LidarCluster;
@@ -21,6 +21,7 @@ ros::Subscriber sub;
 void LidarCallback (const sensor_msgs::PointCloud2ConstPtr& msg)
 {
     pcl::fromROSMsg (*msg, *st_Lidar.pcl_input_cloud);
+    ROS_INFO("Lidar callback - received %lu points", st_Lidar.pcl_input_cloud->size());
 
     LidarProcess(st_Lidar, st_LidarCluster, msg -> header);
 
@@ -41,10 +42,13 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "LidarNode");
     ros::NodeHandle nh;
 
+    ROS_INFO("========== LidarNode Starting ==========");
+    ROS_INFO("Initializing costmap module...");
     initCostmapModule(nh); 
 
     ros::Rate loop_rate(10);
 
+    ROS_INFO("Advertising topics...");
     pub_filtered_range = nh.advertise<sensor_msgs::PointCloud2>("/filtered_range", 1);
     pub_cropbox = nh.advertise<sensor_msgs::PointCloud2>("/cropbox", 1);
     pub_voxel = nh.advertise<sensor_msgs::PointCloud2>("/voxel", 1);
@@ -57,7 +61,11 @@ int main(int argc, char** argv)
     pub_kalman = nh.advertise<visualization_msgs::MarkerArray>("/kalman", 1);
     pub_heading = nh.advertise<visualization_msgs::MarkerArray>("/kalman_heading", 1);
 
+    ROS_INFO("Subscribing to /lidar3D topic...");
     sub = nh.subscribe("/lidar3D", 1, LidarCallback);
+
+    ROS_INFO("========== LidarNode Ready ==========");
+    ROS_INFO("Waiting for point cloud data...");
 
     ros::spin();
 

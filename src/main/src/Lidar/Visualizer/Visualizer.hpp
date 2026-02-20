@@ -2,7 +2,7 @@
 #define VISUALIZER_HPP
 
 #include <geometry_msgs/Point.h>
-#include <Global/Global.hpp>
+#include "../Global/Global.hpp"
 
 using namespace std;
 
