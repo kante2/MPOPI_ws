@@ -32,7 +32,7 @@ void LatticePlanningProcess() {
     selectBestPath(lattice_ctrl);
     getTargetLocalPathIdx(lattice_ctrl, ctrl.ld, ctrl.lookahead_idx);
     getMaxCurvature(ctrl.close_idx, ctrl.lookahead_idx * 3, ego.max_curvature);
-    getTargetSpeed(ego.max_curvature, ctrl.target_vel, ctrl.lookahead_idx, current_mode);
+    getTargetSpeed(ego.max_curvature, ctrl.target_vel, ctrl.lookahead_idx, current_mode,ego);
 }
 
 //--------------------------함수 정의----------------------------------------------------------
@@ -735,10 +735,30 @@ void getMaxCurvature(int close_idx, int lookahead_idx, double& max_curvature){
 // ========================================
 // 타겟 속도 계산 (곡률 + 장애물 회피율 기반)
 // ========================================
-void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx, int mode) {
+void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_idx, int mode,const VehicleState& ego) {
     double ego_ratio = lattice_ctrl.ego_path_ratio;             // 근거리: 내 차선 유효성
     double valid_ratio = lattice_ctrl.valid_path_ratio;         // 중거리: 선택 경로 주변 유효성
     double very_long_ratio = lattice_ctrl.very_long_path_ratio; // 원거리: 먼 거리 중앙 유효성
+
+    // ================================================
+    //  0단계: 특정 좌표 접근 시 완전 정지
+    // ================================================
+    double STOP_X = 47.325711;
+    double STOP_Y = -96.623228;
+
+    double dx = STOP_X - ego.x;
+    double dy = STOP_Y - ego.y;
+    double dist = sqrt(dx*dx + dy*dy);
+
+    ROS_WARN_THROTTLE(1.0, "[STOP CHECK] dist = %.2f", dist);
+
+    if (dist < 20.0)
+    {
+        out_target_vel = 0.0;   // 완전 정지
+        ROS_ERROR_THROTTLE(1.0, "[STOP] Goal reached → Speed 0");
+        return;
+    }
+
     // ====================================================
     // 1단계: 곡률 기반 감속 (최우선 - 모든 모드 공통)
     // curve_standard: 0.1 <- yaml_hybrid.yaml 에서 설정
@@ -758,16 +778,16 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
         ROS_WARN_THROTTLE(1.0, "[Speed] [Curve-SHARP] 30 km/h (curvature: %.6f)", max_curvature);
         return;
     }
-    else if (max_curvature > 0.004) {
+    else if (max_curvature > 0.005) {
         out_target_vel = 35.0 / 3.6;  // 중간 회피: 50 km/h
         ROS_WARN_THROTTLE(1.0, "[Speed] [Curve-MEDIUM] 50 km/h (curvature: %.6f)", max_curvature);
         return;
     }
-    else if (max_curvature > 0.001) {
-        out_target_vel = 45.0 / 3.6;  // 완만 회피: 60 km/h
-        ROS_INFO_THROTTLE(1.0, "[Speed] [Curve-MILD] 60 km/h (curvature: %.6f)", max_curvature);
-        return;
-    }
+    // else if (max_curvature > 0.001) {
+    //     out_target_vel = 45.0 / 3.6;  // 완만 회피: 60 km/h
+    //     ROS_INFO_THROTTLE(1.0, "[Speed] [Curve-MILD] 60 km/h (curvature: %.6f)", max_curvature);
+    //     return;
+    // }
     // ====================================================
     // 2단계: 모드별 기본 속도 설정
     // ====================================================
@@ -792,7 +812,7 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
 
         // [3] 속도 결정
         if (has_decelerated){
-            out_target_vel = 45.0 / 3.6; // 45km/h로 감속 유지
+            out_target_vel = 60.0 / 3.6; // 45km/h로 감속 유지
         }
         else {
             out_target_vel = 70.0 / 3.6; // 원래 목표 속도 유지
@@ -812,44 +832,44 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
 
         // [원거리 장애물 감지] 15~20m 앞 중앙 경로에 장애물
         if (very_long_ratio < 1.0) {
-            base_vel *= 0.5;
+            base_vel *= 0.6;
             ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] VeryLong: %.1f km/h (ratio: %.2f)", 
                             base_vel * 3.6, very_long_ratio);
         }
 
         // [근거리 장애물 감지] 내 차선 주변 경로 유효성
-        if (ego_ratio < 0.4) {
-            base_vel *= 0.3;  // 30% 수준
-            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] CRITICAL - Ego lane blocked: %.1f km/h (ratio: %.2f)", 
-                            base_vel * 3.6, ego_ratio);
-        } 
-        else if (ego_ratio < 0.66) {
-            base_vel *= 0.4;  // 40% 수준
-            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] SERIOUS - Ego lane partially blocked: %.1f km/h (ratio: %.2f)", 
-                            base_vel * 3.6, ego_ratio);
-        } 
-        else if (ego_ratio < 1.0) {
-            base_vel *= 0.5;  // 50% 수준
-            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] WARNING - Ego lane slightly blocked: %.1f km/h (ratio: %.2f)", 
-                            base_vel * 3.6, ego_ratio);
-        }
+        // if (ego_ratio < 0.4) {
+        //     base_vel *= 0.3;  // 30% 수준
+        //     ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] CRITICAL - Ego lane blocked: %.1f km/h (ratio: %.2f)", 
+        //                     base_vel * 3.6, ego_ratio);
+        // } 
+        // else if (ego_ratio < 0.66) {
+        //     base_vel *= 0.4;  // 40% 수준
+        //     ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] SERIOUS - Ego lane partially blocked: %.1f km/h (ratio: %.2f)", 
+        //                     base_vel * 3.6, ego_ratio);
+        // } 
+        // else if (ego_ratio < 1.0) {
+        //     base_vel *= 0.5;  // 50% 수준
+        //     ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] WARNING - Ego lane slightly blocked: %.1f km/h (ratio: %.2f)", 
+        //                     base_vel * 3.6, ego_ratio);
+        // }
 
         // [중거리 장애물 감지] 선택된 경로 주변 유효성
-        if (valid_ratio < 0.1) {
-            base_vel = 5.0 / 3.6;  // 절대값: 5m/s (18km/h)
-            ROS_ERROR_THROTTLE(1.0, "[Speed] [Obstacle] EMERGENCY - Path completely blocked: %.1f km/h (ratio: %.2f)", 
-                            base_vel * 3.6, valid_ratio);
-        } 
-        else if (valid_ratio < 0.3) {
-            base_vel *= 0.5;  // 50% 수준
-            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] ALERT - Selected path blocked: %.1f km/h (ratio: %.2f)", 
-                            base_vel * 3.6, valid_ratio);
-        } 
-        else if (valid_ratio < 0.6) {
-            base_vel *= 0.75;  // 75% 수준
-            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] NOTICE - Selected path partially blocked: %.1f km/h (ratio: %.2f)", 
-                            base_vel * 3.6, valid_ratio);
-        }
+        // if (valid_ratio < 0.1) {
+        //     base_vel = 5.0 / 3.6;  // 절대값: 5m/s (18km/h)
+        //     ROS_ERROR_THROTTLE(1.0, "[Speed] [Obstacle] EMERGENCY - Path completely blocked: %.1f km/h (ratio: %.2f)", 
+        //                     base_vel * 3.6, valid_ratio);
+        // } 
+        // else if (valid_ratio < 0.3) {
+        //     base_vel *= 0.5;  // 50% 수준
+        //     ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] ALERT - Selected path blocked: %.1f km/h (ratio: %.2f)", 
+        //                     base_vel * 3.6, valid_ratio);
+        // } 
+        // else if (valid_ratio < 0.6) {
+        //     base_vel *= 0.75;  // 75% 수준
+        //     ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] NOTICE - Selected path partially blocked: %.1f km/h (ratio: %.2f)", 
+        //                     base_vel * 3.6, valid_ratio);
+        // }
     }
 
     out_target_vel = base_vel;
