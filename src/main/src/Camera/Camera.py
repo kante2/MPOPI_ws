@@ -19,6 +19,10 @@ class LaneDrive:
         # [판제팀에서 수정 필요] 학습된 가중치 모델 경로 설정
         # self.model_path = '/root/aim_ws/src/main/src/Camera/best.pt'
         self.model_path = '/home/autonav/aim_ws/src/main/src/Camera/best.pt'
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8ec809943bb73b8cc7e6b9e8f6287a9ded555244
 
         self.model = YOLO(self.model_path)
 

@@ -1,6 +1,6 @@
 #ifndef LSHAPEFITTING_HPP
 #define LSHAPEFITTING_HPP
-#include <Global/Global.hpp>
+#include "../Global/Global.hpp"
 
 void LShapeFitting (Lidar& st_Lidar);
 

@@ -1,5 +1,5 @@
-#include <Euclidean/Euclidean.hpp>
-#include <Visualizer/Visualizer.hpp>
+#include "Euclidean.hpp"
+#include "../Visualizer/Visualizer.hpp"
 
 void Euclidean (Lidar &st_Lidar) 
 {
