@@ -752,7 +752,7 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
 
     ROS_WARN_THROTTLE(1.0, "[STOP CHECK] dist = %.2f", dist);
 
-    if (dist < 20.0)
+    if (dist < 25.0)
     {
         out_target_vel = 0.0;   // 완전 정지
         ROS_ERROR_THROTTLE(1.0, "[STOP] Goal reached → Speed 0");
@@ -832,27 +832,27 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
 
         // [원거리 장애물 감지] 15~20m 앞 중앙 경로에 장애물
         if (very_long_ratio < 1.0) {
-            base_vel *= 0.6;
+            base_vel *= 0.7;
             ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] VeryLong: %.1f km/h (ratio: %.2f)", 
                             base_vel * 3.6, very_long_ratio);
         }
 
-        // [근거리 장애물 감지] 내 차선 주변 경로 유효성
-        // if (ego_ratio < 0.4) {
-        //     base_vel *= 0.3;  // 30% 수준
-        //     ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] CRITICAL - Ego lane blocked: %.1f km/h (ratio: %.2f)", 
-        //                     base_vel * 3.6, ego_ratio);
-        // } 
-        // else if (ego_ratio < 0.66) {
-        //     base_vel *= 0.4;  // 40% 수준
-        //     ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] SERIOUS - Ego lane partially blocked: %.1f km/h (ratio: %.2f)", 
-        //                     base_vel * 3.6, ego_ratio);
-        // } 
-        // else if (ego_ratio < 1.0) {
-        //     base_vel *= 0.5;  // 50% 수준
-        //     ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] WARNING - Ego lane slightly blocked: %.1f km/h (ratio: %.2f)", 
-        //                     base_vel * 3.6, ego_ratio);
-        // }
+        //[근거리 장애물 감지] 내 차선 주변 경로 유효성
+        if (ego_ratio < 0.4) {
+            base_vel *= 0.5;  // 30% 수준
+            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] CRITICAL - Ego lane blocked: %.1f km/h (ratio: %.2f)", 
+                            base_vel * 3.6, ego_ratio);
+        } 
+        else if (ego_ratio < 0.66) {
+            base_vel *= 0.5;  // 40% 수준
+            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] SERIOUS - Ego lane partially blocked: %.1f km/h (ratio: %.2f)", 
+                            base_vel * 3.6, ego_ratio);
+        } 
+        else if (ego_ratio < 1.0) {
+            base_vel *= 0.6;  // 50% 수준
+            ROS_WARN_THROTTLE(1.0, "[Speed] [Obstacle] WARNING - Ego lane slightly blocked: %.1f km/h (ratio: %.2f)", 
+                            base_vel * 3.6, ego_ratio);
+        }
 
         // [중거리 장애물 감지] 선택된 경로 주변 유효성
         // if (valid_ratio < 0.1) {
