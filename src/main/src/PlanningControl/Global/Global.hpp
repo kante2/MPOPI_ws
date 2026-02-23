@@ -39,7 +39,7 @@ struct Jamming_offset{
 
 struct JammingParams
 {
-    const double Ld = 50.0;
+    const double Ld = 30.0;
     const float wheel_base = 3.0;
     double gps_steering = 0.0;
     const double gps_alpha = 0.1; 
