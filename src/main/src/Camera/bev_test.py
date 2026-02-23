@@ -15,7 +15,8 @@ class DrivableInference:
         self.bridge = CvBridge()
         
         # 모델 경로
-        self.model_path = '/root/aim_ws/src/main/src/Camera/new_best.pt'
+        # self.model_path = '/root/aim_ws/src/main/src/Camera/new_best.pt'
+        self.model_path = '/home/autonav/aim_ws/src/main/src/Camera/new_best.pt'
         
         # 빈 틈 메꾸고, 잔디 부분 깎기 위한 파라미터 조절(홀수만 가능)
         self.USE_MORPH = True      # 기능 켜기

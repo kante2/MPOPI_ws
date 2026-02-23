@@ -29,7 +29,7 @@ void initializeControlParameters() {
     curve_standard = 0.0025;
     curve_vel = 30.0 / 3.6;
     target_vel = 65.0 / 3.6;
-    lattice_ctrl.ld_short = 5.0;      // 5m
+    lattice_ctrl.ld_short = 8.0;      // 5m
     lattice_ctrl.ld_medium = 10.0;    // 10m
     lattice_ctrl.ld_long = 15.0;      // 15m
     lattice_ctrl.ld_very_long = 30.0; // 20m
