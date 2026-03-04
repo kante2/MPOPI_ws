@@ -104,17 +104,20 @@ void driving_modeCallback(const std_msgs::Int32::ConstPtr& msg) {
 
 void mainControlLoop(const ros::TimerEvent&) {
 
-    if (gps_jamming_perception) {
-       JammingPlanningProcess();    
-       ControlProcess();
-    }
-    else {
-        LatticePlanningProcess();     
-        ControlProcess();             
-        publishCandidatePaths();      
-        publishVehicleFootprint();    
-        publishLocalPath();           
-    }
+    // if (gps_jamming_perception) {
+    //    JammingPlanningProcess();    
+    //    ControlProcess();
+    // }
+    // else {
+    //     LatticePlanningProcess();     
+    //     ControlProcess();             
+    //     publishCandidatePaths();      
+    //     publishVehicleFootprint();    
+    //     publishLocalPath();           
+    // }
+
+    // MPOPI * MPOPI가 제어 명령 발행까지 다 처리하므로, 여기서는 MPOPI 관련 함수만 호출
+    mpopisPlanningProcess();
 }
 
 // ========================================

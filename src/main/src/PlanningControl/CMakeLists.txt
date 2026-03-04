@@ -36,6 +36,7 @@ add_executable(lattice_test_node
   Global/Global.cpp             
   Planning/LatticePlanning.cpp
   Planning/JammingPlanning.cpp
+  Planning/mpopisPlanning.cpp
   Planning/Util_Coordinates.cpp
   Control/Control.cpp
   Visualizer/Visualizer.cpp

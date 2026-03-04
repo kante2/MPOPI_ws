@@ -15,16 +15,6 @@
 #include <morai_msgs/CtrlCmd.h>
 using namespace std;
 
-
-// ========================================
-// Helper Functions
-// ========================================
-bool checkCostmapAvailable() {
-    // MPOPI는 현재 costmap을 직접 사용하지 않으므로 항상 true 반환
-    // (향후 costmap 기반 비용 함수를 추가할 때 이 함수를 확장)
-    return true;
-}
-
 // ========================================
 // Algorithm 1: mpopisPlanningProcess
 // 0.1초마다 (10Hz) 실행되는 메인 mpopis 경로 계획 함수
@@ -89,34 +79,6 @@ void mpopisPlanningProcess() {
 }
 
 //
-
-// ========================================
-// Algorithm 1: MPOPI (Model Predictive Optimized Path Integral)
-// 라인 1-3: 초기화
-// ========================================
-void initializeMPOPIState() {
-    const int K = mpopi_params.K;
-    const int N = mpopi_params.N;
-    
-    // 크기만 조정 (값은 유지!)
-    mpopi_state.U_samples.resize(K, std::vector<ControlInput>(N));
-    mpopi_state.trajectories.resize(K);
-    mpopi_state.costs.resize(K, 0.0);
-    mpopi_state.weights.resize(K, 0.0);
-    
-    // 첫 실행 시에만 초기화
-    // updateDistribution()이 적응적으로 줄인 분산(std_v, std_delta)을 보존
-    static bool first_init = true;
-    if (first_init) {
-        mpopi_state.U_nominal.assign(N, {5.0, 0.0});
-        mpopi_state.std_v.assign(N, mpopi_params.sigma_v);
-        mpopi_state.std_delta.assign(N, mpopi_params.sigma_delta);
-        mpopi_state.mean_v.assign(N, 0.0);
-        mpopi_state.mean_delta.assign(N, 0.0);
-        first_init = false;
-    }
-    // 이후 루프에서는 이전 state 유지
-}
 
 // ========================================
 // 라인 5-6: 샘플링 (sampleKcontrols)
@@ -226,7 +188,7 @@ void rollout(const VehicleState& ego,
             VehicleState& next_state = trajectories[sampleIdx].states[timeStep + 1];
             
             // 제어 입력 가져오기
-            ControlInput& control = U_samples[sampleIdx][timeStep];
+            const ControlInput& control = U_samples[sampleIdx][timeStep];
             
             // Bicycle Model (동역학 함수 F)
             // x_t = F(x_{t-1}, g(u_{t-1}))
@@ -491,15 +453,17 @@ void updateDistribution(std::vector<double>& mpopi_weights) {
     }
     
     // 3️3. 상태 업데이트
-    mpopi_state.U_nominal = new_U_nominal;
-    mpopi_state.mean_v = std::vector<double>(N);
-    mpopi_state.mean_delta = std::vector<double>(N);
-    for (int t = 0; t < N; t++) {
+    mpopi_state.U_nominal = new_U_nominal; // 1. 새로운 기준 제어값
+    mpopi_state.mean_v = std::vector<double>(N); // 2. 속도 평균
+    mpopi_state.mean_delta = std::vector<double>(N); // 3. 조향각 평균 -- 여기까지는 초기화 + 만들어준 벡터에 값을 채워주는 형태로 구현함.
+    for (int t = 0; t < N; t++) { 
         mpopi_state.mean_v[t] = new_U_nominal[t].v;
         mpopi_state.mean_delta[t] = new_U_nominal[t].delta;
     }
-    mpopi_state.std_v = new_std_v;
-    mpopi_state.std_delta = new_std_delta;
+    mpopi_state.std_v = new_std_v;          // 4.속도의 표준편차 업데이트
+    mpopi_state.std_delta = new_std_delta;  // 5.조향각의 표준편차 업데이트
+
+    // 이 함수의 결과 : mpopi_state 의 U_nominal, mean_v, mean_delta, std_v, std_delta 가 모두 업데이트 된다.!
 }
 
 // ========================================
@@ -572,7 +536,7 @@ void visualizeMPOPITrajectories() {
     
     // 1. 최적 경로 publish
     nav_msgs::Path optimal_path;
-    optimal_path.header.frame_id = "base_link";
+    optimal_path.header.frame_id = "map";  // 전역 좌표계
     optimal_path.header.stamp = ros::Time::now();
     
     // 최소 cost를 가진 궤적 찾기
@@ -588,7 +552,7 @@ void visualizeMPOPITrajectories() {
     // 최적 궤적의 모든 점을 경로로 추가
     for (int t = 0; t < N; t++) {
         geometry_msgs::PoseStamped pose;
-        pose.header.frame_id = "base_link";
+        pose.header.frame_id = "map";  // 전역 좌표계
         pose.header.stamp = ros::Time::now() + ros::Duration(t * DT);
         pose.pose.position.x = mpopi_state.trajectories[best_idx].states[t].x;
         pose.pose.position.y = mpopi_state.trajectories[best_idx].states[t].y;
@@ -607,12 +571,12 @@ void visualizeMPOPITrajectories() {
     
     // 2. 참조 경로 publish
     nav_msgs::Path reference_path;
-    reference_path.header.frame_id = "base_link";
+    reference_path.header.frame_id = "map";  // 전역 좌표계 (map 또는 odom)
     reference_path.header.stamp = ros::Time::now();
     
     for (int i = 0; i < waypoints.size(); i++) {
         geometry_msgs::PoseStamped pose;
-        pose.header.frame_id = "base_link";
+        pose.header.frame_id = "map";  // 전역 좌표계
         pose.header.stamp = ros::Time::now();
         pose.pose.position.x = waypoints[i].x;
         pose.pose.position.y = waypoints[i].y;
@@ -643,7 +607,7 @@ void visualizeMPOPITrajectories() {
         double cost = cost_indices[n].first;
         
         visualization_msgs::Marker line_marker;
-        line_marker.header.frame_id = "base_link";
+        line_marker.header.frame_id = "map";  // 전역 좌표계
         line_marker.header.stamp = ros::Time::now();
         line_marker.id = n;
         line_marker.type = visualization_msgs::Marker::LINE_STRIP;
@@ -672,4 +636,37 @@ void visualizeMPOPITrajectories() {
     pub_samples.publish(sample_markers);
     
     ROS_DEBUG("[MPOPI] Trajectories visualization published");
+}
+
+// ========================================
+// Helper: Compute Lateral Error
+// ========================================
+double computeLateralError(double x, double y, int ego_closest_wp_idx) {
+    // 경로 상의 가장 가까운 두 웨이포인트 찾기
+    if (ego_closest_wp_idx < 0 || ego_closest_wp_idx >= (int)waypoints.size() - 1) {
+        return 10.0;  // 유효하지 않은 인덱스면 큰 오차 반환
+    }
+    
+    const Waypoint& wp1 = waypoints[ego_closest_wp_idx];
+    const Waypoint& wp2 = waypoints[ego_closest_wp_idx + 1];
+    
+    // 두 웨이포인트 사이의 거리
+    double dx = wp2.x - wp1.x;
+    double dy = wp2.y - wp1.y;
+    double line_len = std::sqrt(dx * dx + dy * dy);
+    
+    if (line_len < 1e-6) {
+        return std::sqrt((x - wp1.x) * (x - wp1.x) + (y - wp1.y) * (y - wp1.y));
+    }
+    
+    // 점(x, y)에서 직선(wp1, wp2)까지의 최단거리 (부호 있는 거리)
+    // 공식: |ax + by + c| / sqrt(a^2 + b^2)
+    // 직선: (wp2.y - wp1.y)*x - (wp2.x - wp1.x)*y + wp2.x*wp1.y - wp2.y*wp1.x = 0
+    double a = wp2.y - wp1.y;
+    double b = -(wp2.x - wp1.x);
+    double c = wp2.x * wp1.y - wp2.y * wp1.x;
+    
+    double lateral_error = std::fabs(a * x + b * y + c) / line_len;
+    
+    return lateral_error;
 }

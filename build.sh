@@ -1,3 +1,3 @@
-cd ~/aim_ws
+cd ~/MPOPI_ws
 source devel/setup.bash
 catkin_make

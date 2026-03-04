@@ -14,6 +14,17 @@
 // MPOPI 핵심 구조체
 // ========================================
 
+// 차량 상태
+struct VehicleState {
+    double x = 0.0;
+    double y = 0.0;
+    double yaw = 0.0;
+    double vel = 0.0;
+    double max_curvature = 0.0;
+    double accel = 0.0;
+    double brake = 0.0;
+};
+
 // 제어 입력
 struct ControlInput {
     double v;          // 속도 (m/s)
@@ -147,19 +158,6 @@ struct Point3D {
 struct Waypoint {
     double x, y;
     double curvature;
-};
-
-
-// 차량 상태
-struct VehicleState {
-    double x = 0.0;
-    double y = 0.0;
-    double yaw = 0.0;
-    double vel = 0.0;
-    double max_curvature = 0.0;
-    double accel = 0.0;
-    double brake = 0.0;
-
 };
 
 

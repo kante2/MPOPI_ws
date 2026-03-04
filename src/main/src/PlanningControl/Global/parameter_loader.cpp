@@ -9,7 +9,7 @@
 #include <string>       
 #include <vector>
 
-void initializeMPOPI() {
+void initializeMPOPIState() {
     const int K = mpopi_params.K;
     const int N = mpopi_params.N;
     

@@ -22,6 +22,24 @@ void getTargetSpeed(double max_curvature, double& out_target_vel, int lookahead_
 
 
 // ========================================
+// MPOPI Planning Functions
+// ========================================
+
+void mpopisPlanningProcess();
+void initializeMPOPIState();
+void sampleKcontrols(MPOPIState& mpopi_state);
+void rollout(const VehicleState& ego,
+             const std::vector<std::vector<ControlInput>>& U_samples,
+             std::vector<MPOPITrajectory>& trajectories);
+void computeCost(int ego_closest_wp_idx);
+void computeWeight(std::vector<double>& mpopi_costs);
+void updateDistribution(std::vector<double>& mpopi_weights);
+void shiftSequence();
+void visualizeMPOPITrajectories();
+double computeLateralError(double x, double y, int ego_closest_wp_idx);
+
+
+// ========================================
 // Jamming Planning Functions
 // ========================================
 
