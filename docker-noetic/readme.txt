@@ -2,17 +2,17 @@
 xhost +local:docker
 
 #2. 빌드/ 실행
-cd ~/aim_ws/docker-noetic
+cd ~/MPOPI_ws/docker-noetic
 docker compose -f docker-compose.pc.yaml build --no-cache
 docker compose -f docker-compose.pc.yaml up -d --force-recreate
-docker ps -a --filter "name=aim-noetic-pc"
+docker ps -a --filter "name=mpopi-noetic-pc"
 
 #3. 접속 
-docker exec -it aim-noetic-pc bash
+docker exec -it mpopi-noetic-pc bash
 # (컨테이너 안)
 source /opt/ros/noetic/setup.bash
-# 네가 마운트한 워크스페이스에 catkin_ws가 있다면:
-# source /root/ws/devel/setup.bash   # (catkin_make 완료된 상태일 때)
+# 네가 마운트한 워크스페이스에 catkin이 있다면:
+# source /root/MPOPI_ws/devel/setup.bash   # (catkin_make 완료된 상태일 때)
 roscore
 
 

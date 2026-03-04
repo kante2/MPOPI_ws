@@ -1,5 +1,13 @@
 #include "Global.hpp"   // 파일명이 GLOBAL_HPP 헤더인 그대로 include
 
+
+// MPOPI 관련
+ControlData mpopi_ctrl;
+MPOPIParams mpopi_params;
+MPOPIState mpopi_state;
+ControlInput mpopi_cmd;
+VehicleState mpopi_vehicle_state;
+
 // 재밍용
 GPSJammingState gps_state;
 LaneData lane;

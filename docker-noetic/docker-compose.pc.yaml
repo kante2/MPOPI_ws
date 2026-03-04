@@ -1,10 +1,10 @@
 services:
-  aim-noetic-pc:
+  mpopi-noetic-pc:
     build:
       context: ..                 # 리포 루트(~/''')
       dockerfile: docker-noetic/Dockerfile
-    image: aim-noetic:pc
-    container_name: aim-noetic-pc
+    image: mpopi-noetic:pc
+    container_name: mpopi-noetic-pc
 
     # 호스트와 같은 네트워크 네임스페이스 사용(ROS 통신 편의)
     network_mode: host
@@ -26,7 +26,7 @@ services:
 
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ${HOME}/aim_ws:/root/aim_ws:rw
+      - ${HOME}/MPOPI_ws:/root/MPOPI_ws:rw
       - /etc/localtime:/etc/localtime:ro
       - ${HOME}/Downloads/MoraiLauncher_Lin:/mnt/MoraiLauncher_Lin:ro
       # Wayland 소켓(선택, Ubuntu 기본이 Wayland면 추천)

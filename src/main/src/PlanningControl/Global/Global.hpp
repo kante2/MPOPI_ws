@@ -9,6 +9,84 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <new>
 
+
+// ========================================
+// MPOPI 핵심 구조체
+// ========================================
+
+// 제어 입력
+struct ControlInput {
+    double v;          // 속도 (m/s)
+    double delta;       // 스티어링 (rad)
+};
+
+// MPOPI 예측 궤적
+struct MPOPITrajectory {
+    std::vector<VehicleState> states;   // t=0~t=N 의 상태들
+    double total_cost = 0.0;
+    double weight = 0.0;
+};
+
+// MPOPI 파라미터를 하나의 구조체로 정리
+struct MPOPIParams {
+    // ========== 샘플링 파라미터 ==========
+    int K = 500;              // 샘플 수
+    int N = 20;               // 예측 스텝 수
+    double DT = 0.1;          // 샘플링 시간 (20 × 0.1 = 2초)
+    double L = 2.7;           // 차량 축간거리 (wheelbase)
+    
+    // ========== 분포 파라미터 ==========
+    double sigma_v = 1.0;            // 초기 속도 분산
+    double sigma_delta = 0.1;        // 초기 조향 분산
+    double sigma_v_min = 0.1;        // 최소 속도 분산
+    double sigma_delta_min = 0.01;   // 최소 조향 분산
+    double temperature = 1.0;        // 소프트맥스 온도 (λ)
+    
+    // ========== 제어 제한 ==========
+    double v_max = 10.0;       // 최대 속도
+    double v_min = 0.0;        // 최소 속도
+    double delta_max = 0.5;    // 최대 조향각
+    double delta_min = -0.5;   // 최소 조향각
+    
+    // ========== 비용 가중치 ==========
+    double w_path = 1.0;       // 경로 추종
+    double w_obstacle = 2.0;   // 장애물 회피
+    double w_drivable = 1.5;   // 운전가능 영역
+    double w_velocity = 0.5;   // 속도 추종
+    double w_goal = 0.5;       // 목표 진행
+};
+
+// MPOPI 상태를 하나의 구조체로 정리
+struct MPOPIState {
+    // 제어 입력 샘플들 [k][n]
+    std::vector<std::vector<ControlInput>> U_samples; // U_samples[k][n]
+    
+    // 예측 궤적들 [k]
+    std::vector<MPOPITrajectory> trajectories;
+    
+    // 평가 결과 [k]
+    std::vector<double> costs;
+    std::vector<double> weights;
+    
+    // 최적 제어 시퀀스 [n]
+    std::vector<ControlInput> U_nominal;
+    
+    // 분포 파라미터들 [n]
+    std::vector<double> mean_v;
+    std::vector<double> mean_delta;
+    std::vector<double> std_v;
+    std::vector<double> std_delta;
+    
+    // 최종 출력
+    ControlInput cmd;
+    
+    // AIS 반복 카운터
+    int current_iteration = 0;
+};
+
+
+
+
 // ========================================
 // 재밍 구조체
 // ========================================
@@ -212,6 +290,14 @@ struct CostmapInfo {
 // ========================================
 // 전역 변수 (extern) 
 // ========================================
+
+
+// MPOPI 관련
+extern ControlData mpopi_ctrl;
+extern MPOPIParams mpopi_params;
+extern MPOPIState mpopi_state;
+extern ControlInput mpopi_cmd;
+extern VehicleState mpopi_vehicle_state;  // 현재 차량 상태 <- enu 좌표계
 
 //재밍용
 extern GPSJammingState gps_state;

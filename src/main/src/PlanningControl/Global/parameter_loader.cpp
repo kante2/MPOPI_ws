@@ -9,6 +9,23 @@
 #include <string>       
 #include <vector>
 
+void initializeMPOPI() {
+    const int K = mpopi_params.K;
+    const int N = mpopi_params.N;
+    
+    mpopi_state.U_samples.assign(K, std::vector<ControlInput>(N));
+    mpopi_state.trajectories.resize(K);
+    mpopi_state.costs.assign(K, 0.0);
+    mpopi_state.weights.assign(K, 0.0);
+    mpopi_state.U_nominal.assign(N, {0.0, 0.0});
+    mpopi_state.mean_v.assign(N, 0.0);
+    mpopi_state.mean_delta.assign(N, 0.0);
+    mpopi_state.std_v.assign(N, mpopi_params.sigma_v);
+    mpopi_state.std_delta.assign(N, mpopi_params.sigma_delta);
+    mpopi_state.cmd = {0.0, 0.0};
+}
+
+
 void initializePlannerParameters() {
     planner_params.num_offsets = 13; // ** 9 -> 13
     planner_params.lateral_offset_step = 1.0; // ** 
