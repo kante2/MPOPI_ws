@@ -42,7 +42,7 @@ struct MPOPITrajectory {
 struct MPOPIParams {
     // ========== 샘플링 파라미터 ==========
     int K = 500;              // 샘플 수
-    int N = 20;               // 예측 스텝 수
+    int N = 200;               // 예측 스텝 수
     double DT = 0.1;          // 샘플링 시간 (20 × 0.1 = 2초)
     double L = 2.7;           // 차량 축간거리 (wheelbase)
     

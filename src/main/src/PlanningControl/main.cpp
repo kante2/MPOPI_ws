@@ -17,6 +17,10 @@
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int32.h>
 
+// tf broadcaster
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2/LinearMath/Quaternion.h>
+
 using namespace std;
 mutex costmap_mutex;
 
@@ -104,19 +108,28 @@ void driving_modeCallback(const std_msgs::Int32::ConstPtr& msg) {
 
 void mainControlLoop(const ros::TimerEvent&) {
 
-    // if (gps_jamming_perception) {
-    //    JammingPlanningProcess();    
-    //    ControlProcess();
-    // }
-    // else {
-    //     LatticePlanningProcess();     
-    //     ControlProcess();             
-    //     publishCandidatePaths();      
-    //     publishVehicleFootprint();    
-    //     publishLocalPath();           
-    // }
+    // map → base_link TF broadcast (매 루프마다)
+    static tf2_ros::TransformBroadcaster tf_broadcaster;
 
-    // MPOPI * MPOPI가 제어 명령 발행까지 다 처리하므로, 여기서는 MPOPI 관련 함수만 호출
+    geometry_msgs::TransformStamped tf_msg;
+    tf_msg.header.stamp    = ros::Time::now();
+    tf_msg.header.frame_id = "map";
+    tf_msg.child_frame_id  = "base_link";
+
+    tf_msg.transform.translation.x = ego.x;
+    tf_msg.transform.translation.y = ego.y;
+    tf_msg.transform.translation.z = 0.0;
+
+    tf2::Quaternion q;
+    q.setRPY(0, 0, ego.yaw);
+    tf_msg.transform.rotation.x = q.x();
+    tf_msg.transform.rotation.y = q.y();
+    tf_msg.transform.rotation.z = q.z();
+    tf_msg.transform.rotation.w = q.w();
+
+    tf_broadcaster.sendTransform(tf_msg);
+
+    // 기존 코드
     mpopisPlanningProcess();
 }
 
