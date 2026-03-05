@@ -267,51 +267,8 @@ void rollout(const VehicleState& ego,
 
 // ** 제거 예정 ----------------------------------------------------------------------------------------
 // ========================================
-// 좌표계 변환 함수들
-// trajectory는 ENU 좌표계로 되어있는데, costmap이 base_link 프레임이므로 변환 필요
+// 좌표계 변환 함수들은 Util_Coordinates.cpp에 정의되어 있음
 // ========================================
-
-// Map 좌표 (ENU) → base_link 좌표로 변환 (단일 점)
-// 이거는  utils부분에 이미 정의되어있어서, 나중에 지우거나 주석하면 됨, 
-// void mapToBaseLink(const Point2D& map_point, 
-//                    const VehicleState& ego,
-//                    Point2D& out_baselink) {
-//     double dx = map_point.x - ego.x;      // ego 위치 기준 상대 거리
-//     double dy = map_point.y - ego.y;
-    
-//     double c = cos(ego.yaw);              // ego의 현재 방향
-//     double s = sin(ego.yaw);
-    
-//     // 회전 변환: 맵 좌표 → 자차 기준(base_link) 좌표
-//     out_baselink.x =  c * dx + s * dy;    // 자차의 전방(X축)
-//     out_baselink.y = -s * dx + c * dy;    // 자차의 좌측(Y축)
-// }
-
-// // trajectories 전체를 ENU → base_link 좌표로 변환
-// void trajectoriesToBaseLink(std::vector<MPOPITrajectory>& trajectories,
-//                            const VehicleState& ego) {
-//     const int K = mpopi_params.K;  // 샘플 수
-//     const int N = mpopi_params.N;  // 예측 스텝 수
-    
-//     // 모든 샘플의 모든 상태를 변환
-//     for (int sampleIdx = 0; sampleIdx < K; sampleIdx++) {
-//         for (int timeStep = 0; timeStep <= N; timeStep++) {  // 0부터 N까지 (N+1개 상태)
-//             VehicleState& state = trajectories[sampleIdx].states[timeStep];
-            
-//             // ENU 좌표 저장
-//             Point2D enu_point{state.x, state.y};
-//             Point2D baselink_point;
-            
-//             // ENU → base_link 변환
-//             mapToBaseLink(enu_point, ego, baselink_point);
-            
-//             // 변환된 base_link 좌표로 업데이트
-//             state.x = baselink_point.x;
-//             state.y = baselink_point.y;
-//         }
-//     }
-// }
-// ----------------------------------- 제거 예정 ---------------------------------------------------------
 
 // ========================================
 // 라인 9: 비용 함수 계산
@@ -346,8 +303,14 @@ void computeCostMPOPI(const std::vector<MPOPITrajectory>& trajectories, int ego_
             // 경로이탈의 제곱을 주어, 많이 벗어나면 많은 벌점을 위해 제곱으로 표현
             // rollout의 결과 :trajectories[k].states[t] (rollout 의 결과)
             // state.x, state.y 는 k번째 샘플의 t번째 타임스텝에서 예측된 위치를 나타냄
+            // state는 base_link 좌표이므로, ENU 좌표로 역변환 후 경로와 비교
+            double cos_yaw = std::cos(ego.yaw);
+            double sin_yaw = std::sin(ego.yaw);
+            double enu_x = ego.x + state.x * cos_yaw - state.y * sin_yaw;
+            double enu_y = ego.y + state.x * sin_yaw + state.y * cos_yaw;
             
-            double lateral_error = computeLateralError(state.x, state.y, ego_closest_wp_idx);
+            // ego_closest_wp_idx -> 
+            double lateral_error = computeLateralError(enu_x, enu_y, ego_closest_wp_idx);
             pathCost += mpopi_params.w_path * (lateral_error * lateral_error);
             
             // (2) obstacle_cost 구현 (Costmap 활용)
@@ -381,7 +344,13 @@ void computeCostMPOPI(const std::vector<MPOPITrajectory>& trajectories, int ego_
         // 2초뒤에 예측의 마지막 지점인 N=20 이 어디에 있는지를 본다. 
         // states[N] 은 , 20번째 타임스텝의 상태를 나타냄 (즉, 2초 뒤의 예측된 위치 - 즉 예측 최종 위치라고 보면 됨.,)
         {
-            VehicleState& final_state = mpopi_state.trajectories[sampleIdx].states[N];
+            VehicleState& final_state = mpopi_state.trajectories[sampleIdx].states[N]; // base link 기준
+            
+            // base_link → ENU 역변환 (waypoints는 ENU 좌표)
+            double cos_yaw = std::cos(ego.yaw);
+            double sin_yaw = std::sin(ego.yaw);
+            double final_enu_x = ego.x + final_state.x * cos_yaw - final_state.y * sin_yaw;
+            double final_enu_y = ego.y + final_state.x * sin_yaw + final_state.y * cos_yaw;
             
             // 가장 가까운 waypoint 찾기
             if (!waypoints.empty()) {
@@ -393,8 +362,8 @@ void computeCostMPOPI(const std::vector<MPOPITrajectory>& trajectories, int ego_
                 int search_end   = std::min((int)waypoints.size()-1, ego_closest_wp_idx + 50);
                 
                 for (int i = search_start; i <= search_end; i++) {
-                    double dx = waypoints[i].x - final_state.x;
-                    double dy = waypoints[i].y - final_state.y;
+                    double dx = waypoints[i].x - final_enu_x;
+                    double dy = waypoints[i].y - final_enu_y;
                     double dist = std::sqrt(dx*dx + dy*dy);
                     if (dist < min_dist) {
                         min_dist = dist;
@@ -404,8 +373,8 @@ void computeCostMPOPI(const std::vector<MPOPITrajectory>& trajectories, int ego_
                 
                 // <목표점까지 거리>
                 // 종착역이 우리가 가야 할 기준 경로(Waypoints)와 얼마나 가까운지를 측정
-                double dx = final_state.x - waypoints[close_idx].x;
-                double dy = final_state.y - waypoints[close_idx].y;
+                double dx = final_enu_x - waypoints[close_idx].x;
+                double dy = final_enu_y - waypoints[close_idx].y;
                 terminalCost = mpopi_params.w_goal * (dx*dx + dy*dy);
             }
         }
