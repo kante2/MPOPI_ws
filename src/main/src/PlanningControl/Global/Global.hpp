@@ -87,6 +87,9 @@ struct MPOPIState {
     std::vector<double> mean_delta;
     std::vector<double> std_v;
     std::vector<double> std_delta;
+
+    // cloest waypoint index
+    int closest_wp_idx = 0;
     
     // 최종 출력
     ControlInput cmd;

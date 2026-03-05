@@ -32,11 +32,14 @@ void rollout(const VehicleState& ego,
              const std::vector<std::vector<ControlInput>>& U_samples,
              std::vector<MPOPITrajectory>& trajectories);
 void computeCost(int ego_closest_wp_idx);
+void computeCostMPOPI(const std::vector<MPOPITrajectory>& trajectories, int ego_closest_wp_idx, const VehicleState& ego);
 void computeWeight(std::vector<double>& mpopi_costs);
 void updateDistribution(std::vector<double>& mpopi_weights);
 void shiftSequence();
 void visualizeMPOPITrajectories();
 double computeLateralError(double x, double y, int ego_closest_wp_idx);
+void trajectoriesToBaseLink(std::vector<MPOPITrajectory>& trajectories, const VehicleState& ego);
+double getMPOPICostmapCost(double state_x, double state_y);
 
 
 // ========================================

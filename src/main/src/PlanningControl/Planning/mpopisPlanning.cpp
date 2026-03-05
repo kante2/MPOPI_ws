@@ -28,10 +28,10 @@ using namespace std;
 void mpopisPlanningProcess() {
 
     // Guard: Costmap이 준비될 때까지 대기
-    if (!checkCostmapAvailable()) {
-        ROS_WARN_THROTTLE(1.0, "[MPOPI] Waiting for costmap...");
-        return;
-    }
+    // if (!checkCostmapAvailable()) {
+    //     ROS_WARN_THROTTLE(1.0, "[MPOPI] Waiting for costmap...");
+    //     return;
+    // }
 
     // 초기화
     initializeMPOPIState();
@@ -39,7 +39,7 @@ void mpopisPlanningProcess() {
     // ego 기준 closest waypoint 인덱스 계산 (매 루프 한 번만)
     // LatticePlanning.cpp의 findClosestWaypoint() 방식 적용
 
-    findClosestWaypoint(ego, mpopi_ctrl.close_idx);
+    findClosestWaypoint(ego, mpopi_ctrl.close_idx); // ego -> close_idx
 
     // Algorithm 1 라인 4: for ℓ ← 1 to L do
     // L=5 반복: 이번 타임스텝에서 최적화를 5번 수행
@@ -56,10 +56,14 @@ void mpopisPlanningProcess() {
         // Algorithm 1 라인 8: x_t ← F(x_{t-1}, g(u'_{t-1} + ε_k_{t-1}))
         // 한 시퀀스(제어입력) -> 동역학 -> 예측 궤적
         // ego + k개의 제어 시퀀스 -> k개의 궤적을 뽑아낸다 !!!!
-        rollout(ego, mpopi_state.U_samples, mpopi_state.trajectories);
+        rollout(ego, mpopi_state.U_samples, mpopi_state.trajectories); 
+          // &&&  U_samples -> trajectories
+
+        // 신규 | 좌표계 편의성을 위해서 trajectory(ENU)가 base_link로 변환되어야 한다.
+        trajectoriesToBaseLink(mpopi_state.trajectories, ego); // ← trajectories (ENU) → trajectories (base_link)
         
         // Algorithm 1 라인 9: s_k ← c(X) + φ(X) + λ(1-α)U'Σ⁻¹(ε_k + U' - U)
-        computeCost(mpopi_ctrl.close_idx);
+        computeCostMPOPI(mpopi_state.trajectories,mpopi_ctrl.close_idx, ego);
         
         // Algorithm 1 라인 15: w_k ← 1/η × exp(...)
         computeWeight(mpopi_state.costs);
@@ -78,7 +82,6 @@ void mpopisPlanningProcess() {
     visualizeMPOPITrajectories();
 }
 
-//
 
 // ========================================
 // 라인 5-6: 샘플링 (sampleKcontrols)
@@ -141,6 +144,7 @@ void sampleKcontrols(MPOPIState& mpopi_state) {
     }
 }
 
+
 // ========================================
 // 라인 7-9: Rollout + Cost 계산
 // x_t = F(x_{t-1}, g(u'_t + ε_k_t))
@@ -163,11 +167,15 @@ void rollout(const VehicleState& ego,
     // Algorithm 1 라인 5: for k = 1 to K(500)
     for (int sampleIdx = 0; sampleIdx < K; sampleIdx++) {
         // ================= 각 샘플에 대해서,  ===================
+        // u1 = U_samples[0][0], u2 = U_samples[0][1], ..., u20 = U_samples[0][19]  -> trajectory 1 (500개)
+
         trajectories[sampleIdx].states.clear();
         trajectories[sampleIdx].states.resize(N + 1);  // t=0~t=N
         
         // 현재 상태 x_0 가져오기 (Algorithm 1 라인 1)
+        // waypoints 는 loadWaypoints() 함수를 통해 파일에서 읽어온 경로점들의 리스트이다. main 부에 정의되어있음,
         trajectories[sampleIdx].states[0] = ego;
+
         
         // Algorithm 1 라인 7: for t = 1 to T
         // N=20 , 0.1초마다 20번 반복 -> 2초 예측
@@ -181,6 +189,34 @@ void rollout(const VehicleState& ego,
         // ...
         // trajectories[sampleIdx].states[19]  // ← 1.9초 뒤
         // trajectories[sampleIdx].states[20]  // ← 2.0초 뒤 (최종 위치!) ← next_state
+
+        // ====================================================
+        // for문 내부 
+        // timeStep = 0 : 초기 상태 (현재 위치)
+        // timeStep = 1 : 0.1초 뒤
+        // timeStep = 2 : 0.2초 뒤
+
+        // timeStep=0:
+        // prev_state → states[0]  (현재 위치, 초기값으로 이미 설정됨)
+        // next_state → states[1]
+        // 동역학 계산 후 states[1]에 값 대입 
+
+        // timeStep=1:
+        // prev_state → states[1]  ← 이전 루프에서 계산된 값
+        // next_state → states[2]
+        // 동역학 계산 후 states[2]에 값 대입 
+
+        // timeStep=2:
+        // prev_state → states[2]
+        // next_state → states[3]
+        // 동역학 계산 후 states[3]에 값 대입 
+
+        // ...
+
+        // timeStep=19 (마지막):
+        // prev_state → states[19]
+        // next_state → states[20]  ← 최종 위치!
+        // 동역학 계산 후 states[20]에 값 대입 
 
         for (int timeStep = 0; timeStep < N; timeStep++) {
             // 이전 상태
@@ -228,13 +264,64 @@ void rollout(const VehicleState& ego,
     }
 }
 
+
+// ** 제거 예정 ----------------------------------------------------------------------------------------
+// ========================================
+// 좌표계 변환 함수들
+// trajectory는 ENU 좌표계로 되어있는데, costmap이 base_link 프레임이므로 변환 필요
+// ========================================
+
+// Map 좌표 (ENU) → base_link 좌표로 변환 (단일 점)
+// 이거는  utils부분에 이미 정의되어있어서, 나중에 지우거나 주석하면 됨, 
+// void mapToBaseLink(const Point2D& map_point, 
+//                    const VehicleState& ego,
+//                    Point2D& out_baselink) {
+//     double dx = map_point.x - ego.x;      // ego 위치 기준 상대 거리
+//     double dy = map_point.y - ego.y;
+    
+//     double c = cos(ego.yaw);              // ego의 현재 방향
+//     double s = sin(ego.yaw);
+    
+//     // 회전 변환: 맵 좌표 → 자차 기준(base_link) 좌표
+//     out_baselink.x =  c * dx + s * dy;    // 자차의 전방(X축)
+//     out_baselink.y = -s * dx + c * dy;    // 자차의 좌측(Y축)
+// }
+
+// // trajectories 전체를 ENU → base_link 좌표로 변환
+// void trajectoriesToBaseLink(std::vector<MPOPITrajectory>& trajectories,
+//                            const VehicleState& ego) {
+//     const int K = mpopi_params.K;  // 샘플 수
+//     const int N = mpopi_params.N;  // 예측 스텝 수
+    
+//     // 모든 샘플의 모든 상태를 변환
+//     for (int sampleIdx = 0; sampleIdx < K; sampleIdx++) {
+//         for (int timeStep = 0; timeStep <= N; timeStep++) {  // 0부터 N까지 (N+1개 상태)
+//             VehicleState& state = trajectories[sampleIdx].states[timeStep];
+            
+//             // ENU 좌표 저장
+//             Point2D enu_point{state.x, state.y};
+//             Point2D baselink_point;
+            
+//             // ENU → base_link 변환
+//             mapToBaseLink(enu_point, ego, baselink_point);
+            
+//             // 변환된 base_link 좌표로 업데이트
+//             state.x = baselink_point.x;
+//             state.y = baselink_point.y;
+//         }
+//     }
+// }
+// ----------------------------------- 제거 예정 ---------------------------------------------------------
+
 // ========================================
 // 라인 9: 비용 함수 계산
 // s_k = c(X) + φ(X) + λ(1-α)U'Σ⁻¹(ε_k + U' - U)
 //  computeCost() 에서는 500 개의 시퀀스 각각에 대한 점수를 매긴다.
 // ========================================
 
-void computeCost(int ego_closest_wp_idx) {
+// 참고로 이제 trajectories부분은 baseLink 기준 좌표로 되어있다. (costmap과 같은 프레임이므로, 비용 계산이 편해짐)
+
+void computeCostMPOPI(const std::vector<MPOPITrajectory>& trajectories, int ego_closest_wp_idx, const VehicleState& ego) {
     const int K = mpopi_params.K;
     const int N = mpopi_params.N;
 
@@ -257,12 +344,18 @@ void computeCost(int ego_closest_wp_idx) {
             
             // (1) lateral_error 구현 (횡방향 오차)
             // 경로이탈의 제곱을 주어, 많이 벗어나면 많은 벌점을 위해 제곱으로 표현
+            // rollout의 결과 :trajectories[k].states[t] (rollout 의 결과)
+            // state.x, state.y 는 k번째 샘플의 t번째 타임스텝에서 예측된 위치를 나타냄
+            
             double lateral_error = computeLateralError(state.x, state.y, ego_closest_wp_idx);
             pathCost += mpopi_params.w_path * (lateral_error * lateral_error);
             
             // (2) obstacle_cost 구현 (Costmap 활용)
-            // getCostmapCost()가 기존 라티스 코드에 있다면 재활용
-            double obstacle_cost = getCostmapCost(state.x, state.y) / 100.0;
+            // ========================================================
+            // trajectoriesToBaseLink()로 이미 base_link 좌표로 변환됨
+            // state.x, state.y는 이미 base_link 좌표이고, costmap도 base_link 기준
+            // ========================================================
+            double obstacle_cost = getMPOPICostmapCost(state.x, state.y) / 100.0;
             pathCost += mpopi_params.w_obstacle * obstacle_cost;
             
             // 충돌 즉시 패널티
@@ -284,7 +377,7 @@ void computeCost(int ego_closest_wp_idx) {
             pathCost += mpopi_params.w_velocity * (vel_error * vel_error);
         }
         
-        // <2 . 최종 상태 비용 φ(X)>
+        // <2 . 최종 상태 비용 φ(X)> ================================================================
         // 2초뒤에 예측의 마지막 지점인 N=20 이 어디에 있는지를 본다. 
         // states[N] 은 , 20번째 타임스텝의 상태를 나타냄 (즉, 2초 뒤의 예측된 위치 - 즉 예측 최종 위치라고 보면 됨.,)
         {
@@ -317,7 +410,7 @@ void computeCost(int ego_closest_wp_idx) {
             }
         }
         
-        // <3 . 제어 정규화항: λ(1-α)U'Σ⁻¹(ε_k + U' - U) > 
+        // <3 . 제어 정규화항: λ(1-α)U'Σ⁻¹(ε_k + U' - U) > =========================================================
         // 개선: Σ⁻¹ 반영 (기존: dv² + dd², 개선: dv²/σ_v² + dd²/σ_δ²)
         // 제어 비용 계산하는 부분인데, KL-divergence 에서 나온 개념이다.
         // 확신의 정도에 따라 벌점의 크기를 조절하는 것이 핵심이다./
@@ -359,7 +452,6 @@ void computeCost(int ego_closest_wp_idx) {
         mpopi_state.costs[sampleIdx] = pathCost + terminalCost + regularizationCost;
     }
 }
-
 
 
 // ========================================
@@ -607,11 +699,17 @@ void visualizeMPOPITrajectories() {
         double cost = cost_indices[n].first;
         
         visualization_msgs::Marker line_marker;
-        line_marker.header.frame_id = "map";  // 전역 좌표계
+        line_marker.header.frame_id = "map";  // map 기준
         line_marker.header.stamp = ros::Time::now();
         line_marker.id = n;
         line_marker.type = visualization_msgs::Marker::LINE_STRIP;
         line_marker.action = visualization_msgs::Marker::ADD;
+        
+        // Orientation 초기화 (identity quaternion)
+        line_marker.pose.orientation.x = 0.0;
+        line_marker.pose.orientation.y = 0.0;
+        line_marker.pose.orientation.z = 0.0;
+        line_marker.pose.orientation.w = 1.0;
         
         // 비용이 낮을수록 녹색, 높을수록 빨강
         double cost_ratio = min(1.0, cost / min_cost);
@@ -641,32 +739,32 @@ void visualizeMPOPITrajectories() {
 // ========================================
 // Helper: Compute Lateral Error
 // ========================================
-double computeLateralError(double x, double y, int ego_closest_wp_idx) {
-    // 경로 상의 가장 가까운 두 웨이포인트 찾기
-    if (ego_closest_wp_idx < 0 || ego_closest_wp_idx >= (int)waypoints.size() - 1) {
-        return 10.0;  // 유효하지 않은 인덱스면 큰 오차 반환
-    }
+// double computeLateralError(double x, double y, int ego_closest_wp_idx) {
+//     // 경로 상의 가장 가까운 두 웨이포인트 찾기
+//     if (ego_closest_wp_idx < 0 || ego_closest_wp_idx >= (int)waypoints.size() - 1) {
+//         return 10.0;  // 유효하지 않은 인덱스면 큰 오차 반환
+//     }
     
-    const Waypoint& wp1 = waypoints[ego_closest_wp_idx];
-    const Waypoint& wp2 = waypoints[ego_closest_wp_idx + 1];
+//     const Waypoint& wp1 = waypoints[ego_closest_wp_idx];
+//     const Waypoint& wp2 = waypoints[ego_closest_wp_idx + 1];
     
-    // 두 웨이포인트 사이의 거리
-    double dx = wp2.x - wp1.x;
-    double dy = wp2.y - wp1.y;
-    double line_len = std::sqrt(dx * dx + dy * dy);
+//     // 두 웨이포인트 사이의 거리
+//     double dx = wp2.x - wp1.x;
+//     double dy = wp2.y - wp1.y;
+//     double line_len = std::sqrt(dx * dx + dy * dy);
     
-    if (line_len < 1e-6) {
-        return std::sqrt((x - wp1.x) * (x - wp1.x) + (y - wp1.y) * (y - wp1.y));
-    }
+//     if (line_len < 1e-6) {
+//         return std::sqrt((x - wp1.x) * (x - wp1.x) + (y - wp1.y) * (y - wp1.y));
+//     }
     
-    // 점(x, y)에서 직선(wp1, wp2)까지의 최단거리 (부호 있는 거리)
-    // 공식: |ax + by + c| / sqrt(a^2 + b^2)
-    // 직선: (wp2.y - wp1.y)*x - (wp2.x - wp1.x)*y + wp2.x*wp1.y - wp2.y*wp1.x = 0
-    double a = wp2.y - wp1.y;
-    double b = -(wp2.x - wp1.x);
-    double c = wp2.x * wp1.y - wp2.y * wp1.x;
+//     // 점(x, y)에서 직선(wp1, wp2)까지의 최단거리 (부호 있는 거리)
+//     // 공식: |ax + by + c| / sqrt(a^2 + b^2)
+//     // 직선: (wp2.y - wp1.y)*x - (wp2.x - wp1.x)*y + wp2.x*wp1.y - wp2.y*wp1.x = 0
+//     double a = wp2.y - wp1.y;
+//     double b = -(wp2.x - wp1.x);
+//     double c = wp2.x * wp1.y - wp2.y * wp1.x;
     
-    double lateral_error = std::fabs(a * x + b * y + c) / line_len;
+//     double lateral_error = std::fabs(a * x + b * y + c) / line_len;
     
-    return lateral_error;
-}
+//     return lateral_error;
+// }

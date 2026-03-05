@@ -9,6 +9,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   visualization_msgs
   morai_msgs
+  geodesy
+  geographic_msgs
 )
 
 find_package(Eigen3 REQUIRED)
