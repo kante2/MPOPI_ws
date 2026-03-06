@@ -33,8 +33,9 @@ void mpopisPlanningProcess() {
     //     return;
     // }
 
-    // 초기화
-    initializeMPOPIState();
+    resetMPOPIPerLoop();       // ← 비용/가중치만 리셋
+    
+    // 
 
     // ego 기준 closest waypoint 인덱스 계산 (매 루프 한 번만)
     // LatticePlanning.cpp의 findClosestWaypoint() 방식 적용
@@ -309,9 +310,19 @@ void computeCostMPOPI(const std::vector<MPOPITrajectory>& trajectories, int ego_
             double enu_x = ego.x + state.x * cos_yaw - state.y * sin_yaw;
             double enu_y = ego.y + state.x * sin_yaw + state.y * cos_yaw;
             
-            // ego_closest_wp_idx -> 
-            double lateral_error = computeLateralError(enu_x, enu_y, ego_closest_wp_idx);
-            pathCost += mpopi_params.w_path * (lateral_error * lateral_error);
+            // --
+            int search_start = std::max(0, ego_closest_wp_idx - 2);
+            int search_end   = std::min((int)waypoints.size()-1, ego_closest_wp_idx + 30);
+            int state_wp_idx = ego_closest_wp_idx;
+            double min_d = 1e9;
+            for (int i = search_start; i <= search_end; i++) {
+                double d = (waypoints[i].x - enu_x) * (waypoints[i].x - enu_x)
+                        + (waypoints[i].y - enu_y) * (waypoints[i].y - enu_y);
+                if (d < min_d) { min_d = d; state_wp_idx = i; }
+            }
+            double lateral_error = computeLateralError(enu_x, enu_y, state_wp_idx);
+            pathCost += mpopi_params.w_path * (lateral_error * lateral_error);  //
+            // ---
             
             // (2) obstacle_cost 구현 (Costmap 활용)
             // ========================================================
@@ -568,8 +579,10 @@ void shiftSequence() {
     
     // Algorithm 1 라인 20: u_{T-1} ← Initialize(u_{T-1})
     // 마지막 제어 입력 재초기화
-    mpopi_state.U_nominal[N - 1].v = 30.0;      // 초기 속도
-    mpopi_state.U_nominal[N - 1].delta = 0.0;  // 초기 조향각
+    // mpopi_state.U_nominal[N - 1].v = 30.0;      // 초기 속도
+    // mpopi_state.U_nominal[N - 1].delta = 0.0;  // 초기 조향각
+    mpopi_state.U_nominal[N - 1].v = target_vel;  // 30.0 → target_vel
+    mpopi_state.U_nominal[N - 1].delta = 0.0;
     
     // 분산도 같이 shift (필수)
     // 예측 지평이 앞으로 이동하므로 분산도 함께 이동해야 함

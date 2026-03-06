@@ -129,6 +129,9 @@ void mainControlLoop(const ros::TimerEvent&) {
 
     tf_broadcaster.sendTransform(tf_msg);
 
+    //
+    mpopi_vehicle_state = ego;
+
     // 기존 코드
     mpopisPlanningProcess();
 }
@@ -149,6 +152,7 @@ int main(int argc, char** argv) {
     // 파라미터 초기화
     initializePlannerParameters();
     initializeControlParameters();
+    initializeMPOPIState(); // 최초 1회만 실행 (메모리 할당 + 초기값 설정)
     
     // 초기값
     ego.x = 0.0;

@@ -9,20 +9,35 @@
 #include <string>       
 #include <vector>
 
+// parameter_loader.cpp
+
+// 최초 1회만 실행 (메모리 할당 + 초기값 설정)
 void initializeMPOPIState() {
     const int K = mpopi_params.K;
     const int N = mpopi_params.N;
-    
+
     mpopi_state.U_samples.assign(K, std::vector<ControlInput>(N));
     mpopi_state.trajectories.resize(K);
     mpopi_state.costs.assign(K, 0.0);
     mpopi_state.weights.assign(K, 0.0);
-    mpopi_state.U_nominal.assign(N, {0.0, 0.0});
-    mpopi_state.mean_v.assign(N, 0.0);
-    mpopi_state.mean_delta.assign(N, 0.0);
     mpopi_state.std_v.assign(N, mpopi_params.sigma_v);
     mpopi_state.std_delta.assign(N, mpopi_params.sigma_delta);
+    mpopi_state.mean_v.assign(N, 0.0);
+    mpopi_state.mean_delta.assign(N, 0.0);
     mpopi_state.cmd = {0.0, 0.0};
+
+    // U_nominal: v=0이면 rollout이 안 펼쳐지므로 초기 속도 설정
+    ControlInput init_ctrl;
+    init_ctrl.v     = target_vel;  // 목표 속도로 초기화
+    init_ctrl.delta = 0.0;
+    mpopi_state.U_nominal.assign(N, init_ctrl);
+}
+
+// 매 루프 호출 (비용/가중치만 리셋, U_nominal은 건드리지 않음)
+void resetMPOPIPerLoop() {
+    const int K = mpopi_params.K;
+    std::fill(mpopi_state.costs.begin(),  mpopi_state.costs.end(),  0.0);
+    std::fill(mpopi_state.weights.begin(), mpopi_state.weights.end(), 0.0);
 }
 
 

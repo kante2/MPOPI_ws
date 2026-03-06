@@ -42,7 +42,7 @@ struct MPOPITrajectory {
 struct MPOPIParams {
     // ========== 샘플링 파라미터 ==========
     int K = 500;              // 샘플 수
-    int N = 200;               // 예측 스텝 수
+    int N = 20;               // 예측 스텝 수
     double DT = 0.1;          // 샘플링 시간 (20 × 0.1 = 2초)
     double L = 2.7;           // 차량 축간거리 (wheelbase)
     
@@ -51,20 +51,20 @@ struct MPOPIParams {
     double sigma_delta = 0.1;        // 초기 조향 분산
     double sigma_v_min = 0.1;        // 최소 속도 분산
     double sigma_delta_min = 0.01;   // 최소 조향 분산
-    double temperature = 1.0;        // 소프트맥스 온도 (λ)
+    double temperature = 50.0;        // 소프트맥스 온도 (λ)
     
     // ========== 제어 제한 ==========
-    double v_max = 10.0;       // 최대 속도
+    double v_max = 20.0;       // 최대 속도
     double v_min = 0.0;        // 최소 속도
     double delta_max = 0.5;    // 최대 조향각
     double delta_min = -0.5;   // 최소 조향각
     
     // ========== 비용 가중치 ==========
-    double w_path = 1.0;       // 경로 추종
+    double w_path = 30.0;       // 경로 추종
     double w_obstacle = 2.0;   // 장애물 회피
     double w_drivable = 1.5;   // 운전가능 영역
     double w_velocity = 0.5;   // 속도 추종
-    double w_goal = 0.5;       // 목표 진행
+    double w_goal = 5.0;       // 목표 진행
 };
 
 // MPOPI 상태를 하나의 구조체로 정리
